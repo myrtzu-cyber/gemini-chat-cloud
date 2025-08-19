@@ -219,6 +219,21 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Get last/most recent chat (DEVE vir antes da rota genérica)
+        if (pathname === '/api/chats/last' && method === 'GET') {
+            const chats = await db.getAllChats();
+            if (chats.length > 0) {
+                // getAllChats() já retorna ordenado por updated_at DESC
+                const lastChat = chats[0];
+                console.log(`📋 Retornando último chat: ${lastChat.title} (${lastChat.id})`);
+                sendJsonResponse(res, 200, lastChat);
+            } else {
+                console.log('⚠️ Nenhum chat encontrado para /api/chats/last');
+                sendJsonResponse(res, 404, { error: 'No chats found' });
+            }
+            return;
+        }
+
         // Create/Update chat
         if (pathname === '/api/chats' && method === 'POST') {
             parseJsonBody(req, async (error, data) => {
@@ -239,12 +254,19 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // Get specific chat
+        // Get specific chat (DEVE vir depois das rotas específicas)
         const chatIdMatch = pathname.match(/^\/api\/chats\/([^\/]+)$/);
         if (chatIdMatch && method === 'GET') {
             const chatId = chatIdMatch[1];
+
+            // Evitar conflito com rotas específicas
+            if (chatId === 'last') {
+                sendJsonResponse(res, 400, { error: 'Invalid chat ID: reserved keyword' });
+                return;
+            }
+
             const chat = await db.getChat(chatId);
-            
+
             if (chat) {
                 sendJsonResponse(res, 200, chat);
             } else {
