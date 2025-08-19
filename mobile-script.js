@@ -39,7 +39,18 @@ class GeminiChatMobile {
                 });
             }
         });
-        await this.autoDetectServer();
+
+        // Usar config.js se disponível, senão usar auto-detecção
+        if (window.appConfig) {
+            console.log('🔧 Usando AppConfig para configuração de servidor');
+            this.serverUrl = window.appConfig.apiBaseUrl;
+            localStorage.setItem('server_url', this.serverUrl);
+            console.log(`✅ Servidor configurado via AppConfig: ${this.serverUrl}`);
+        } else {
+            console.log('⚠️ AppConfig não encontrado, usando auto-detecção');
+            await this.autoDetectServer();
+        }
+
         this.loadSettings();
         this.registerServiceWorker();
         this.setupTextareaAutoResize();
@@ -526,17 +537,54 @@ class GeminiChatMobile {
 
     // Detecção automática do servidor
     async autoDetectServer() {
+        // Verificar se está em produção (não localhost)
+        const isProduction = window.location.hostname !== 'localhost' &&
+                           window.location.hostname !== '127.0.0.1' &&
+                           !window.location.hostname.includes('192.168.');
+
+        // Em produção, usar a mesma URL da página atual
+        if (isProduction) {
+            this.serverUrl = window.location.origin;
+            localStorage.setItem('server_url', this.serverUrl);
+            console.log(`🌍 Produção detectada - usando: ${this.serverUrl}`);
+
+            // Testar conexão com o servidor de produção
+            try {
+                const response = await fetch(`${this.serverUrl}/api/health`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(5000)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ Servidor de produção conectado: ${this.serverUrl}`, data);
+                    this.showToast(`✅ Conectado ao servidor de produção`);
+                    return true;
+                } else {
+                    console.error(`❌ Servidor de produção não responde: ${response.status}`);
+                    this.showToast(`❌ Erro no servidor: ${response.status}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error(`❌ Falha na conexão com servidor de produção:`, error);
+                this.showToast(`❌ Falha na conexão: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Desenvolvimento: usar lógica existente apenas se não há servidor configurado
         if (this.serverUrl) {
             console.log('Servidor já configurado:', this.serverUrl);
             return;
         }
 
-        console.log('Detectando servidor automaticamente...');
-        
+        console.log('🔧 Modo desenvolvimento - detectando servidor local...');
+
         // Obter IP atual da página
         const currentHost = window.location.hostname;
-        
-        // Lista de IPs/hosts para testar
+
+        // Lista de IPs/hosts para testar (apenas em desenvolvimento)
         const hostsToTest = [
             currentHost, // IP atual da página
             'localhost',
@@ -553,20 +601,20 @@ class GeminiChatMobile {
             for (const port of portsToTest) {
                 const protocol = window.location.protocol;
                 const testUrl = `${protocol}//${host}:${port}`;
-                console.log(`Testando: ${testUrl}`);
-                
+                console.log(`🔍 Testando: ${testUrl}`);
+
                 try {
                     const response = await fetch(`${testUrl}/api/health`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' },
                         signal: AbortSignal.timeout(3000) // 3 segundos timeout
                     });
-                    
+
                     if (response.ok) {
                         const data = await response.json();
                         this.serverUrl = testUrl;
                         localStorage.setItem('server_url', testUrl);
-                        console.log(`✅ Servidor detectado automaticamente: ${testUrl}`, data);
+                        console.log(`✅ Servidor local detectado: ${testUrl}`, data);
                         this.showToast(`✅ Servidor detectado: ${host}:${port}`);
                         return true;
                     }
@@ -575,8 +623,8 @@ class GeminiChatMobile {
                 }
             }
         }
-        
-        console.log('Nenhum servidor detectado automaticamente');
+
+        console.log('❌ Nenhum servidor local detectado');
         this.showToast('⚠️ Configure o servidor manualmente');
         return false;
     }

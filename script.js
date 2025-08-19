@@ -24,6 +24,9 @@ class GeminiChat {
         this.autoSaveDelay = 2500; // ms
         this.autoSaveTimer = null;
 
+        // --- API Configuration ---
+        this.apiBaseUrl = this.getApiBaseUrl();
+
         // --- Initialization ---
         this.initializeElements();
         this.injectCSS();
@@ -36,6 +39,17 @@ class GeminiChat {
 
     // 1. INITIALIZATION & SETUP
     // =========================================================================
+
+    /** Obter URL base da API usando config.js se disponível */
+    getApiBaseUrl() {
+        if (window.appConfig) {
+            console.log('🔧 Desktop: Usando AppConfig para API base URL');
+            return window.appConfig.apiBaseUrl;
+        } else {
+            console.log('⚠️ Desktop: AppConfig não encontrado, usando URL relativa');
+            return window.location.origin; // Fallback para URL atual
+        }
+    }
 
     /** Mapeia os elementos do DOM para propriedades da classe. */
     initializeElements() {
@@ -211,7 +225,7 @@ class GeminiChat {
         if (!confirm('Tem certeza que deseja excluir esta mensagem?')) return;
 
         try {
-            const res = await fetch(`/api/chats/${this.currentChatId}/messages`, {
+            const res = await fetch(`${this.apiBaseUrl}/api/chats/${this.currentChatId}/messages`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messageId })
@@ -531,7 +545,7 @@ RESUMO COMPRIMIDO:`;
             updatedAt: new Date().toISOString()
         };
         try {
-            await fetch('/api/chats', {
+            await fetch(`${this.apiBaseUrl}/api/chats`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(chatData)
@@ -543,7 +557,7 @@ RESUMO COMPRIMIDO:`;
 
     async loadLatestChat() {
         try {
-            const response = await fetch('/api/chats');
+            const response = await fetch(`${this.apiBaseUrl}/api/chats`);
             if (!response.ok) return;
             const chats = await response.json();
             if (chats.length > 0) {
@@ -555,7 +569,7 @@ RESUMO COMPRIMIDO:`;
 
     async loadChat(chatId) {
         try {
-            const response = await fetch(`/api/chats/${chatId}`);
+            const response = await fetch(`${this.apiBaseUrl}/api/chats/${chatId}`);
             const chatData = await response.json();
             this.conversationHistory = chatData.history || [];
             this.currentChatId = chatData.id;
@@ -576,7 +590,7 @@ RESUMO COMPRIMIDO:`;
     async deleteChat(chatId) {
         if (!confirm('Tem certeza que deseja excluir esta conversa?')) return;
         try {
-            await fetch(`/api/chats/${chatId}`, { method: 'DELETE' });
+            await fetch(`${this.apiBaseUrl}/api/chats/${chatId}`, { method: 'DELETE' });
             if (this.currentChatId === chatId) this.startNewChat();
             this.loadChatsList(); // Refresh list in modal
             this.showNotification('Conversa excluída.', 'success');
@@ -607,7 +621,7 @@ RESUMO COMPRIMIDO:`;
 
     async loadChatsList() {
         try {
-            const response = await fetch('/api/chats');
+            const response = await fetch(`${this.apiBaseUrl}/api/chats`);
             const chats = await response.json();
             this.elements.chatsList.innerHTML = '';
             if (chats.length === 0) {
