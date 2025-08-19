@@ -1,0 +1,1545 @@
+/* Mobile Styles para Mestre Gemini - 6.67" (1080x2400px) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Paleta de cores D&D */
+    --dnd-gold: #d4af37;
+    --dnd-dark-gold: #b8860b;
+    --dnd-brown: #8b4513;
+    --dnd-dark-brown: #654321;
+    --dnd-red: #8b0000;
+    --dnd-dark-red: #4b0082;
+    --dnd-cream: #f5f5dc;
+    --dnd-parchment: #f4f1e8;
+    
+    /* Variáveis específicas para mobile */
+    --mobile-header-height: 70px;
+    --mobile-input-height: 90px;
+    --mobile-padding: 20px;
+    --mobile-border-radius: 15px;
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1f1f1f 100%);
+    color: #f0f0f0;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    width: 100vw;
+    top: 0;
+    left: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /* Fullscreen optimizations */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Suporte para altura dinâmica usando variável CSS */
+html {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Classe para dispositivos com safe areas */
+body.has-safe-areas {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 100vw;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Header Mobile */
+.mobile-header {
+    background: linear-gradient(90deg, var(--dnd-parchment) 0%, var(--dnd-cream) 100%);
+    border-bottom: 3px solid var(--dnd-gold);
+    padding: var(--mobile-padding);
+    height: var(--mobile-header-height);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 100;
+}
+
+.mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-logo .logo-icon {
+    font-size: 2rem;
+    animation: swordGlow 2s ease-in-out infinite alternate;
+}
+
+.mobile-logo h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dnd-gold);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes swordGlow {
+    from { filter: drop-shadow(0 0 5px var(--dnd-gold)); }
+    to { filter: drop-shadow(0 0 15px var(--dnd-gold)); }
+}
+
+.settings-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    color: var(--dnd-cream);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+/* Estilos do Modal de Contexto */
+.context-tabs {
+    display: flex;
+    border-bottom: 1px solid #444;
+    margin-bottom: 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: #666 #2a2a2a;
+    -webkit-overflow-scrolling: touch;
+}
+
+.context-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.context-tabs::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-radius: 3px;
+}
+
+.context-tabs::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 3px;
+}
+
+.context-tabs::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
+.context-tab-btn {
+    background-color: transparent;
+    border: none;
+    color: #ccc;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-width: fit-content;
+}
+
+.context-tab-btn.active {
+    color: #8ab4f8; /* Azul do Gemini */
+    border-bottom: 2px solid #8ab4f8;
+}
+
+.context-tab-btn:hover {
+    background-color: #3c4043;
+}
+
+.context-content {
+    position: relative;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.context-content textarea {
+    width: 100%;
+    height: 300px;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #e0e0e0;
+    padding: 10px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    resize: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+}
+
+/* Modal de Configurações */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mobile-padding);
+}
+
+.settings-content {
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: var(--mobile-border-radius);
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.settings-header {
+    background: linear-gradient(90deg, var(--dnd-gold), var(--dnd-dark-gold));
+    color: var(--dnd-cream);
+    padding: var(--mobile-padding);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 9px 9px 0 0;
+}
+
+.settings-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--dnd-cream);
+    font-size: 2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.settings-body {
+    padding: var(--mobile-padding);
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    color: var(--dnd-gold);
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.mobile-input, .mobile-select {
+    width: 100%;
+    background: var(--dnd-parchment);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'Medieval Sharp', cursive;
+    font-size: 16px;
+    color: var(--dnd-brown);
+    margin-bottom: 8px;
+}
+
+.mobile-input:focus, .mobile-select:focus {
+    outline: none;
+    border-color: var(--dnd-dark-gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.mobile-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.mobile-btn.secondary {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+}
+
+.mobile-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Estatísticas Container */
+.stats-container {
+    display: flex;
+    gap: 12px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+}
+
+.stat-item {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--dnd-gold);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    color: var(--dnd-cream);
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Chat Container */
+.mobile-chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.mobile-chat-controls {
+    background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+    border-bottom: 2px solid var(--dnd-gold);
+    padding: 12px var(--mobile-padding);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+}
+
+.control-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.clear-messages-btn {
+    background: linear-gradient(145deg, #dc3545, #c82333);
+    border-color: #bd2130;
+}
+
+.clear-messages-btn:hover {
+    background: linear-gradient(145deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+}
+
+/* Tab Status Indicators */
+.tab-status {
+    display: inline-block;
+    margin-right: 6px;
+    font-size: 14px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.tab-status.processing {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Context tab button adjustments for status indicators */
+.context-tab-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+/* Compression Progress Display */
+.compression-progress {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+/* Modal Footer Buttons */
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.mobile-btn.primary {
+    background: linear-gradient(145deg, #28a745, #20c997);
+    color: white;
+    border: none;
+}
+
+.mobile-btn.secondary {
+    background: linear-gradient(145deg, #6c757d, #5a6268);
+    color: white;
+    border: none;
+}
+
+.mobile-btn.danger {
+    background: linear-gradient(145deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+}
+
+.mobile-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Tab Confirmation Modal Specific */
+#tabConfirmationPreview {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6c757d;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* Tab Error Modal Specific */
+#tabErrorDetails {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #721c24;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+/* Rate Limiting Countdown */
+.countdown-display {
+    font-size: 48px;
+    font-weight: bold;
+    text-align: center;
+    color: #007bff;
+    margin: 20px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Tab Status Enhancements */
+.tab-status.success {
+    color: #28a745;
+}
+
+.tab-status.error {
+    color: #dc3545;
+}
+
+.tab-status.skipped {
+    color: #6c757d;
+}
+
+.tab-status.pending {
+    color: #ffc107;
+}
+
+/* Individual Retry Buttons */
+.retry-tab-btn {
+    background: linear-gradient(145deg, #17a2b8, #138496);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.retry-tab-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.chat-title-mobile {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    color: var(--dnd-gold);
+    font-size: 1rem;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Mensagens */
+.mobile-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--mobile-padding);
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.mobile-welcome {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ffffff;
+}
+
+.mobile-welcome .welcome-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-8px); }
+    60% { transform: translateY(-4px); }
+}
+
+.mobile-welcome h2 {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+    color: var(--dnd-gold);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-welcome p {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #f0f0f0;
+}
+
+/* Mensagem Individual */
+.mobile-message {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 2px solid var(--dnd-gold);
+    border-radius: var(--mobile-border-radius);
+    margin-bottom: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: flow-root;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.mobile-message.user {
+    border-color: var(--dnd-red);
+    margin-right: auto; /* Alinha à esquerda */
+    margin-left: 0;
+}
+
+.mobile-message.assistant {
+    border-color: var(--dnd-gold);
+    margin-left: auto; /* Alinha à direita */
+    margin-right: 0;
+}
+
+.mobile-message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 2px solid var(--dnd-brown);
+    flex-shrink: 0;
+    float: left; /* Padrão para mensagens do usuário */
+    margin-right: 16px;
+    margin-left: 0;
+    margin-bottom: 4px;
+}
+
+.mobile-message.user .mobile-message-avatar {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+}
+
+.mobile-message.assistant .mobile-message-avatar {
+    float: right; /* Alinha o avatar do assistente à direita */
+    margin-left: 16px;
+    margin-right: 0;
+}
+
+.mobile-message-content {
+    /* flex: 1; is removed */
+    color: #ffffff;
+    line-height: 1.4; /* Reduced from 1.6 for more compact text */
+    font-size: 1rem;
+    font-weight: 500;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    width: 100%; /* Use full width */
+    display: block; /* Ensure block display for full width */
+    -ms-user-select: text;
+    user-select: text;
+    overflow: hidden; /* Garante que o conteúdo não sobreponha o avatar flutuado */
+    position: relative;
+    padding-bottom: 12px; /* Reduced from 18px for less spacing */
+}
+
+/* Reduce spacing between paragraphs in message content */
+.mobile-message-content p {
+    margin: 6px 0; /* Reduced paragraph spacing */
+    line-height: 1.4;
+}
+
+.mobile-message-content br + br {
+    display: none; /* Remove double line breaks */
+}
+
+.message-status {
+    position: absolute;
+    bottom: 4px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #27ae60;
+    transition: all 0.3s ease;
+}
+
+.message-status.pending .status-dot {
+    background-color: #f1c40f;
+    animation: pulse 1.5s infinite;
+}
+
+.message-status.failed .status-dot {
+    background-color: #e74c3c;
+}
+
+.message-status.error .status-dot {
+    background-color: #e74c3c;
+}
+
+.message-status.sent .status-dot {
+    background-color: #27ae60;
+}
+
+.message-status.saved .status-dot {
+    background-color: #27ae60;
+}
+
+/* Retry Button */
+.retry-btn {
+    background: rgba(231, 76, 60, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.retry-btn:hover {
+    background: rgba(231, 76, 60, 1);
+    transform: scale(1.1);
+}
+
+.retry-btn:active {
+    transform: scale(0.95);
+}
+
+.retry-btn i {
+    font-size: 8px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Enhanced status animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* Status-specific enhancements */
+.message-status.pending .status-dot {
+    animation: pulse 1.5s infinite;
+}
+
+.message-status.failed .status-dot {
+    animation: shake 0.5s ease-in-out;
+}
+
+.message-status.failed {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Message container styling for different states */
+.mobile-message[data-status="pending"] {
+    opacity: 0.8;
+    border-left: 3px solid #f1c40f;
+}
+
+.mobile-message[data-status="failed"] {
+    opacity: 0.9;
+    border-left: 3px solid #e74c3c;
+}
+
+.mobile-message[data-status="sent"] {
+    opacity: 1;
+    border-left: 3px solid transparent;
+}
+
+/* Botão de Excluir Mensagem */
+.mobile-message-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #f5f5dc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none; /* Desabilita cliques quando invisível */
+    transition: opacity 0.2s ease-in-out, background 0.2s ease;
+    font-size: 14px;
+}
+
+.mobile-message.delete-visible .mobile-message-delete {
+    opacity: 1;
+    pointer-events: auto; /* Habilita cliques quando visível */
+}
+
+
+/* Enhanced RPG Content Formatting System */
+
+/* Narration and Story Descriptions */
+.rpg-narration {
+    font-style: italic;
+    color: #e0e0e0;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(108, 92, 231, 0.05));
+    border-left: 4px solid #6c5ce7;
+    border-radius: 0 8px 8px 0;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+/* Environmental Descriptions */
+.rpg-environment {
+    color: #98d8c8;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(46, 204, 113, 0.05));
+    border-left: 4px solid #2ecc71;
+    border-radius: 0 8px 8px 0;
+    font-family: 'Georgia', serif;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+/* Character Dialogues */
+.rpg-dialogue {
+    color: #f39c12;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.05));
+    border-left: 4px solid #f39c12;
+    border-radius: 0 8px 8px 0;
+    position: relative;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+.rpg-dialogue::before {
+    content: '"';
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    font-size: 1.5em;
+    color: #f39c12;
+    opacity: 0.7;
+}
+
+.rpg-dialogue::after {
+    content: '"';
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 1.5em;
+    color: #f39c12;
+    opacity: 0.7;
+}
+
+/* Character Name in Dialogue */
+.rpg-character-name {
+    font-weight: bold;
+    color: #87ceeb;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+/* Dice Rolls and Mathematical Calculations */
+.rpg-dice-roll {
+    font-weight: bold;
+    color: #7fffd4;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(85, 239, 196, 0.25), rgba(85, 239, 196, 0.1));
+    border: 2px solid #55efb4;
+    border-radius: 8px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    line-height: 1.2; /* Reduced from 1.4 */
+}
+
+/* System Messages */
+.rpg-system {
+    font-size: 0.9rem;
+    color: #fff8dc;
+    text-align: center;
+    margin: 6px 0; /* Reduced from 12px */
+    padding: 6px 12px; /* Reduced from 8px 16px */
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.2), rgba(255, 234, 167, 0.1));
+    border-top: 2px solid #fdcb6e;
+    border-bottom: 2px solid #fdcb6e;
+    font-style: italic;
+    line-height: 1.2; /* Reduced from 1.4 */
+}
+
+/* Master/GM Descriptions */
+.rpg-master {
+    font-family: 'Georgia', serif;
+    color: #ffcccb;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(225, 112, 85, 0.15), rgba(225, 112, 85, 0.05));
+    border: 2px dashed #e17055;
+    border-radius: 8px;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+/* Legacy classes for backward compatibility - Updated with reduced spacing */
+.message-narration {
+    font-style: italic;
+    color: #e0e0e0;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(108, 92, 231, 0.05));
+    border-left: 4px solid #6c5ce7;
+    border-radius: 0 8px 8px 0;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+.message-master {
+    font-family: 'Georgia', serif;
+    color: #ffcccb;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(225, 112, 85, 0.15), rgba(225, 112, 85, 0.05));
+    border: 2px dashed #e17055;
+    border-radius: 8px;
+    line-height: 1.3; /* Reduced from 1.5 */
+}
+
+.message-dice-roll {
+    font-weight: bold;
+    color: #7fffd4;
+    margin: 4px 0; /* Reduced from 8px */
+    padding: 8px 12px; /* Reduced from 12px 16px */
+    background: linear-gradient(135deg, rgba(85, 239, 196, 0.25), rgba(85, 239, 196, 0.1));
+    border: 2px solid #55efb4;
+    border-radius: 8px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    line-height: 1.2; /* Reduced from 1.4 */
+}
+
+.message-system {
+    font-size: 0.9rem;
+    color: #fff8dc;
+    text-align: center;
+    margin: 6px 0; /* Reduced from 12px */
+    padding: 6px 12px; /* Reduced from 8px 16px */
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.2), rgba(255, 234, 167, 0.1));
+    border-top: 2px solid #fdcb6e;
+    border-bottom: 2px solid #fdcb6e;
+    font-style: italic;
+    line-height: 1.2; /* Reduced from 1.4 */
+}
+
+.message-character-speech .character-name {
+    font-weight: bold;
+    color: #87ceeb;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+/* Additional spacing optimizations for mobile */
+/* Reduce spacing between consecutive RPG elements */
+.rpg-narration + .rpg-narration,
+.rpg-environment + .rpg-environment,
+.rpg-dialogue + .rpg-dialogue,
+.rpg-dice-roll + .rpg-dice-roll,
+.rpg-system + .rpg-system,
+.rpg-master + .rpg-master {
+    margin-top: 2px; /* Very tight spacing for consecutive same-type elements */
+}
+
+/* Reduce spacing between different RPG elements */
+.rpg-narration + .rpg-dialogue,
+.rpg-dialogue + .rpg-narration,
+.rpg-environment + .rpg-dialogue,
+.rpg-dialogue + .rpg-environment,
+.rpg-narration + .rpg-environment,
+.rpg-environment + .rpg-narration {
+    margin-top: 3px; /* Slightly more space between different content types */
+}
+
+/* Special spacing for dice rolls and system messages */
+.rpg-dice-roll + .rpg-narration,
+.rpg-dice-roll + .rpg-dialogue,
+.rpg-dice-roll + .rpg-environment,
+.rpg-system + .rpg-narration,
+.rpg-system + .rpg-dialogue,
+.rpg-system + .rpg-environment {
+    margin-top: 6px; /* A bit more space after dice rolls and system messages */
+}
+
+/* Compact text within mobile message content */
+.mobile-message-text {
+    line-height: 1.4; /* Ensure consistent line height */
+}
+
+.mobile-message-text div:first-child {
+    margin-top: 0; /* Remove top margin from first element */
+}
+
+.mobile-message-text div:last-child {
+    margin-bottom: 0; /* Remove bottom margin from last element */
+}
+
+/* Estilos para formatação mobile das respostas Gemini */
+.mobile-h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--dnd-gold);
+    margin: 16px 0 12px 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ff6b6b;
+    margin: 14px 0 10px 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dnd-dark-gold);
+    margin: 12px 0 8px 0;
+}
+
+.mobile-bold {
+    font-weight: 700;
+    color: #ff6b6b;
+}
+
+.mobile-italic {
+    font-style: italic;
+    color: #deb887;
+}
+
+.mobile-code {
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid var(--dnd-gold);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #8b4513;
+    font-weight: 600;
+}
+
+.mobile-paragraph {
+    margin: 0;
+    text-align: justify;
+}
+
+.mobile-list {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.mobile-list-item {
+    margin: 6px 0;
+    line-height: 1.4;
+    list-style-type: '⚔️';
+    padding-left: 8px;
+}
+
+/* Indicador de Digitação */
+.mobile-typing {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px var(--mobile-padding);
+    background: rgba(212, 175, 55, 0.1);
+    border-top: 1px solid var(--dnd-gold);
+    color: var(--dnd-gold);
+    font-size: 0.9rem;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dnd-gold);
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Área de Input */
+.mobile-input-area {
+    background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+    border-top: 3px solid var(--dnd-gold);
+    padding: var(--mobile-padding);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-file-preview {
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-list {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mobile-file-item {
+    background: var(--dnd-parchment);
+    border: 1px solid var(--dnd-gold);
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--dnd-brown);
+}
+
+.clear-files-btn {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+    border: none;
+    border-radius: 6px;
+    color: var(--dnd-cream);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.mobile-input-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: var(--dnd-parchment);
+    border: 3px solid var(--dnd-gold);
+    border-radius: var(--mobile-border-radius);
+    padding: 8px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.attach-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: none;
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.attach-btn:active {
+    transform: scale(0.95);
+}
+
+#mobileAttachBtn {
+    display: none;
+}
+
+#mobileMessageInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: var(--dnd-brown);
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+    line-height: 1.4;
+    padding: 8px 0;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+#mobileMessageInput::placeholder {
+    color: rgba(139, 69, 19, 0.6);
+}
+
+.send-btn {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+    border: none;
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.send-btn:not(:disabled):active {
+    transform: scale(0.95);
+}
+
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mobile-padding);
+}
+
+.modal-content {
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: var(--mobile-border-radius);
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: linear-gradient(90deg, var(--dnd-gold), var(--dnd-dark-gold));
+    color: var(--dnd-cream);
+    padding: var(--mobile-padding);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--mobile-padding);
+}
+
+.mobile-chats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-chat-item {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: stretch;
+}
+
+.mobile-chat-item:hover {
+    background: rgba(212, 175, 55, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-chat-content {
+    flex: 1;
+    padding: 16px;
+    cursor: pointer;
+}
+
+.mobile-chat-item-actions {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.mobile-chat-item-rename-btn,
+.mobile-chat-item-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    padding: 8px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.mobile-chat-item-rename-btn:active,
+.mobile-chat-item-delete-btn:active {
+    transform: scale(0.9);
+}
+
+.mobile-chat-item-rename-btn {
+    color: #8b6914; /* Ouro envelhecido */
+}
+
+.mobile-chat-item-rename-btn:hover {
+    color: #d4af37; /* Ouro brilhante */
+}
+
+.mobile-chat-item-delete-btn {
+    color: #8b0000; /* Vermelho escuro */
+    font-weight: bold;
+}
+
+.mobile-chat-item-delete-btn:hover {
+    color: #ff4500; /* Laranja avermelhado */
+}
+
+.mobile-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.mobile-chat-item-title {
+    font-weight: 700;
+    color: #8b4513;
+    font-size: 16px;
+    font-family: 'Medieval Sharp', cursive;
+    flex: 1;
+    margin-right: 8px;
+}
+
+.mobile-chat-item-badge {
+    background: linear-gradient(145deg, #d4af37, #b8860b);
+    color: #f5f5dc;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #654321;
+    white-space: nowrap;
+}
+
+.mobile-chat-item-preview {
+    color: #5d4037;
+    font-size: 14px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.mobile-chat-item-date {
+    color: #8b6914;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.mobile-chat-item-date::before {
+    content: "🕒";
+    margin-right: 4px;
+}
+
+/* Responsividade para botão de exclusão */
+@media (max-width: 480px) {
+    .mobile-chat-delete-btn {
+        width: 35px;
+        font-size: 16px;
+    }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(139, 69, 19, 0.2);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--dnd-gold);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dnd-dark-gold);
+}
+
+/* Melhorias para responsividade do texto */
+.mobile-message-content p {
+    margin-bottom: 0;
+}
+
+.mobile-message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.mobile-message-content ul {
+    margin: 0;
+}
+
+.mobile-message-content li {
+    margin: 0;
+}
+
+/* Animações de entrada */
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.mobile-message {
+    margin-bottom: 8px;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.settings-modal, .modal {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Ajustes para tela específica 1080x2400 */
+@media screen and (width: 1080px) and (height: 2400px) {
+    :root {
+        --mobile-header-height: 80px;
+        --mobile-padding: 20px;
+        --mobile-border-radius: 16px;
+    }
+    
+    .mobile-logo h1 {
+        font-size: 1.8rem;
+    }
+    
+    .mobile-input-container {
+        padding: 16px;
+    }
+    
+    #mobileMessageInput {
+        font-size: 18px;
+        min-height: 48px;
+    }
+    
+    .send-btn, .attach-btn {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .mobile-h1 {
+        font-size: 1.6rem;
+    }
+    
+    .mobile-h2 {
+        font-size: 1.4rem;
+    }
+    
+    .mobile-h3 {
+        font-size: 1.2rem;
+    }
+}

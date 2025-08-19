@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: gemini-chat-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    
+databases:
+  - name: gemini-chat-db
+    databaseName: gemini_chat
+    user: gemini_user
+    plan: free
+    region: oregon

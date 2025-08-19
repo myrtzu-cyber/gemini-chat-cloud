@@ -1,0 +1,15 @@
+{
+  "name": "gemini-chat-backend",
+  "version": "2.0.0",
+  "description": "Gemini Chat Backend - Corporate Deploy",
+  "main": "server-minimal.js",
+  "scripts": {
+    "start": "node server-minimal.js",
+    "build": "echo 'Build completed'"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["gemini", "chat", "corporate"],
+  "license": "MIT"
+}

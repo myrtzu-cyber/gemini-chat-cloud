@@ -1,0 +1,9 @@
+[build]
+builder = "NIXPACKS"
+ECHO est  desativado.
+[deploy]
+startCommand = "cd backend && node server-minimal.js"
+healthcheckPath = "/api/health"
+ECHO est  desativado.
+[environments.production]
+variables = { NODE_ENV = "production" }
