@@ -9,6 +9,20 @@ REM Configuração
 set "RENDER_URL=https://gemini-chat-cloud.onrender.com"
 if not "%1"=="" set "RENDER_URL=%1"
 
+REM Configurar Node.js portátil
+set "NODE_CMD=portable\node\node.exe"
+set "NPM_CMD=portable\node\npm.cmd"
+
+REM Verificar se Node.js portátil existe
+if not exist "%NODE_CMD%" (
+    echo ❌ Node.js portátil não encontrado em: %NODE_CMD%
+    echo 💡 Verifique se o diretório portable\node existe
+    pause
+    goto end
+)
+
+echo ✅ Usando Node.js portátil: %NODE_CMD%
+
 echo 🌐 URL Cloud: %RENDER_URL%
 echo.
 
@@ -22,7 +36,7 @@ echo.
 REM Passo 1: Verificar conexão database
 echo 🔍 Passo 1: Verificando conexão database...
 echo ==========================================
-node verify-database-connection.js %RENDER_URL%
+%NODE_CMD% verify-database-connection.js %RENDER_URL%
 
 if errorlevel 1 (
     echo.
@@ -73,7 +87,7 @@ echo.
 REM Passo 3: Importar dados para cloud
 echo 📤 Passo 3: Importando dados para cloud...
 echo ==========================================
-node import-to-cloud.js %RENDER_URL% %EXPORT_FILE%
+%NODE_CMD% import-to-cloud.js %RENDER_URL% %EXPORT_FILE%
 
 if errorlevel 1 (
     echo.
@@ -91,7 +105,7 @@ echo.
 REM Passo 4: Verificação final
 echo 🔍 Passo 4: Verificação final...
 echo ================================
-node test-database-persistence.js %RENDER_URL%
+%NODE_CMD% test-database-persistence.js %RENDER_URL%
 
 if errorlevel 1 (
     echo.
