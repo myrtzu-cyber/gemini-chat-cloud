@@ -69,7 +69,7 @@ if errorlevel 1 (
     echo    - Database local não existe
     echo    - Permissões de arquivo
     echo.
-    echo ℹ️  Continuando sem dados locais (import vazio)...
+    echo INFO: Continuando sem dados locais (import vazio)...
     echo.
 )
 
@@ -83,15 +83,15 @@ for /f "delims=" %%i in ('dir /b /o-d database_export_*.json 2^>nul') do (
     goto found_export
 )
 
-echo ⚠️  Nenhum arquivo de export encontrado
-echo ℹ️  Continuando com import vazio...
+echo WARNING: Nenhum arquivo de export encontrado
+echo INFO: Continuando com import vazio...
 set "EXPORT_FILE="
 
 :found_export
 if defined EXPORT_FILE (
-    echo 📁 Arquivo de export: %EXPORT_FILE%
+    echo Arquivo de export: %EXPORT_FILE%
 ) else (
-    echo 📁 Import: Dados vazios (inicialização)
+    echo Import: Dados vazios (inicializacao)
 )
 echo.
 
