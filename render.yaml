@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: gemini-chat-backend
+    name: gemini-chat-cloud
     env: node
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    buildCommand: echo "No build needed - using minimal server"
+    startCommand: node server-minimal.js
+    rootDir: backend
     plan: free
     region: oregon
     branch: main
@@ -11,8 +12,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
     
 databases:
   - name: gemini-chat-db
