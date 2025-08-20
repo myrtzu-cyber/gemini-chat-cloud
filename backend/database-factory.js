@@ -284,6 +284,17 @@ class DatabaseFactory {
                 })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
             }
 
+            // Alias for backward compatibility
+            async getAllChats() {
+                console.log('📋 SimpleDatabase: getAllChats called (using getChats)');
+                const chats = await this.getChats();
+                console.log(`📋 getAllChats: ${chats.length} chats retrieved from SimpleDatabase`);
+                if (chats.length > 0) {
+                    console.log(`   Most recent: "${chats[0].title}" (${chats[0].id}) - ${chats[0].updated_at}`);
+                }
+                return chats;
+            }
+
             async getChatWithMessages(chatId) {
                 const chat = this.chats.find(c => c.id === chatId);
                 if (!chat) return null;

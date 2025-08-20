@@ -155,10 +155,10 @@ class PostgresDatabase {
         try {
             const result = await client.query(`
                 SELECT id, title, model, created_at, updated_at, context
-                FROM chats 
+                FROM chats
                 ORDER BY updated_at DESC
             `);
-            
+
             return result.rows.map(row => ({
                 ...row,
                 context: row.context ? JSON.parse(row.context) : null
@@ -169,6 +169,17 @@ class PostgresDatabase {
         } finally {
             client.release();
         }
+    }
+
+    // Alias for backward compatibility with SimpleDatabase
+    async getAllChats() {
+        console.log('📋 PostgresDatabase: getAllChats called (using getChats)');
+        const chats = await this.getChats();
+        console.log(`📋 getAllChats: ${chats.length} chats retrieved from PostgreSQL`);
+        if (chats.length > 0) {
+            console.log(`   Most recent: "${chats[0].title}" (${chats[0].id}) - ${chats[0].updated_at}`);
+        }
+        return chats;
     }
 
     async getChatWithMessages(chatId) {
