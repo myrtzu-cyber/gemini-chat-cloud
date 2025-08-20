@@ -352,9 +352,19 @@ const server = http.createServer(async (req, res) => {
             const chats = await db.getAllChats();
             if (chats.length > 0) {
                 // getAllChats() já retorna ordenado por updated_at DESC
-                const lastChat = chats[0];
-                console.log(`📋 Retornando último chat: ${lastChat.title} (${lastChat.id})`);
-                sendJsonResponse(res, 200, lastChat);
+                const lastChatBasic = chats[0];
+                console.log(`📋 Buscando último chat com mensagens: ${lastChatBasic.title} (${lastChatBasic.id})`);
+
+                // Buscar o chat completo com mensagens
+                const lastChatWithMessages = await db.getChatWithMessages(lastChatBasic.id);
+
+                if (lastChatWithMessages) {
+                    console.log(`✅ Último chat retornado com ${lastChatWithMessages.messages.length} mensagens`);
+                    sendJsonResponse(res, 200, lastChatWithMessages);
+                } else {
+                    console.log(`⚠️ Erro ao buscar mensagens do último chat`);
+                    sendJsonResponse(res, 200, lastChatBasic); // Fallback sem mensagens
+                }
             } else {
                 console.log('⚠️ Nenhum chat encontrado para /api/chats/last');
                 sendJsonResponse(res, 404, { error: 'No chats found' });

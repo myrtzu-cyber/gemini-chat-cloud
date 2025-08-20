@@ -26,7 +26,14 @@ function testAPI(url, description) {
                             console.log(`   First item:`, JSON.stringify(json[0], null, 2).substring(0, 200) + '...');
                         }
                     } else {
-                        if (json.messages) console.log(`   Messages: ${json.messages.length}`);
+                        if (json.messages) {
+                            console.log(`   Messages: ${json.messages.length}`);
+                            if (json.messages.length > 0) {
+                                console.log(`   First message: "${json.messages[0].content.substring(0, 50)}..."`);
+                            }
+                        } else {
+                            console.log(`   ⚠️ NO MESSAGES FIELD!`);
+                        }
                         if (json.title) console.log(`   Title: "${json.title}"`);
                         if (json.id) console.log(`   ID: ${json.id}`);
                         console.log(`   Keys: ${Object.keys(json).join(', ')}`);
