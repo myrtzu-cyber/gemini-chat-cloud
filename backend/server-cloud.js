@@ -6,6 +6,8 @@ const url = require('url');
 // Importar database PostgreSQL
 const PostgresDatabase = require('./database-postgres');
 
+console.log('📦 PostgresDatabase imported:', typeof PostgresDatabase);
+
 /**
  * Servidor Node.js para Cloud com Database Externo
  * Compatível com PostgreSQL (Render) e fallback para in-memory
@@ -124,12 +126,18 @@ class SimpleDatabase {
 let db;
 
 // Inicializar database baseado na disponibilidade do DATABASE_URL
+console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurado' : 'Não configurado');
+console.log('🔍 PostgresDatabase type:', typeof PostgresDatabase);
+
 if (DATABASE_URL) {
     console.log('🐘 Usando PostgreSQL Database');
     db = new PostgresDatabase();
+    console.log('✅ PostgresDatabase instanciado');
+    console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
 } else {
     console.log('💾 Usando SimpleDatabase (fallback)');
     db = new SimpleDatabase();
+    console.log('✅ SimpleDatabase instanciado');
 }
 
 // Função para adicionar headers CORS
