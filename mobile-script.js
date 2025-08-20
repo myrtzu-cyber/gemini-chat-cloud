@@ -3758,18 +3758,58 @@ ${message}`;
     async deleteMessage(messageId) {
         if (!messageId) return;
 
-        // Remover da UI
-        const messageElement = document.querySelector(`.mobile-message[data-message-id="${messageId}"]`);
-        if (messageElement) {
-            messageElement.remove();
+        try {
+            console.log(`[DEBUG] Deletando mensagem: ${messageId}`);
+
+            // FIXED: Use proper DELETE endpoint instead of autoSaveChat
+            const response = await fetch(`${this.serverUrl}/api/messages/${messageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Falha ao deletar mensagem: HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`[DEBUG] Mensagem deletada no servidor:`, result);
+
+            // Remove from UI
+            const messageElement = document.querySelector(`.mobile-message[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                messageElement.remove();
+                console.log(`[DEBUG] Mensagem removida da UI`);
+            }
+
+            // Remove from local history
+            const originalLength = this.messages.length;
+            this.messages = this.messages.filter(msg => msg.id !== messageId);
+            console.log(`[DEBUG] Mensagem removida do histórico local: ${originalLength} -> ${this.messages.length}`);
+
+            // Update chat status to saved (no need for autoSaveChat since we used proper DELETE)
+            this.updateAllMessageStatusToSaved();
+
+            this.showToast('✅ Mensagem deletada com sucesso!', 'success');
+
+        } catch (error) {
+            console.error('[DEBUG] Erro ao deletar mensagem:', error);
+            this.showToast(`❌ Erro ao deletar mensagem: ${error.message}`, 'error');
+
+            // Revert UI changes on error
+            this.renderMessages();
         }
+    }
 
-        // Remover do histórico
-        this.messages = this.messages.filter(msg => msg.id !== messageId);
-
-        // Salvar a mudança no servidor
-        await this.autoSaveChat();
-        this.showToast('Mensagem deletada.');
+    // Helper function to update all message statuses to saved
+    updateAllMessageStatusToSaved() {
+        const statusElements = document.querySelectorAll('.mobile-message .message-status');
+        statusElements.forEach(el => {
+            el.classList.remove('pending', 'failed');
+            el.classList.add('saved');
+        });
+        console.log(`[DEBUG] Atualizados ${statusElements.length} status de mensagens para 'saved'`);
     }
 
     // Enhanced message formatting with RPG context-aware styling
