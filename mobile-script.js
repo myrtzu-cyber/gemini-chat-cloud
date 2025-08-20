@@ -2910,27 +2910,70 @@ Chegou à cidade de Pedravale ao entardecer. Conheceu a guarda da cidade e desco
         }
 
         try {
-            // Criar objeto simulado de histórico comprimido para usar a função existente
-            const recentMessages = this.messages.slice(-messagesToKeep);
-            const compressedHistory = {
-                recentMessages: recentMessages
-            };
+            console.log(`[DEBUG] Iniciando limpeza de ${messagesToDelete} mensagens do banco PostgreSQL...`);
+            
+            // Identificar mensagens a serem removidas (todas exceto as últimas 10)
+            const messagesToRemove = this.messages.slice(0, messagesToDelete);
+            const messagesToKeepLocal = this.messages.slice(-messagesToKeep);
+            
+            console.log(`[DEBUG] Mensagens a remover do banco:`, messagesToRemove.map(m => m.id));
+            console.log(`[DEBUG] Mensagens a manter:`, messagesToKeepLocal.map(m => m.id));
 
-            // Limpar histórico original
-            this.clearOriginalHistory(compressedHistory);
+            // Remover mensagens do banco PostgreSQL via API
+            let deletedCount = 0;
+            let failedCount = 0;
+            
+            this.showToast('🔄 Removendo mensagens do banco de dados...', 'info');
+            
+            for (const message of messagesToRemove) {
+                try {
+                    console.log(`[DEBUG] Removendo mensagem ${message.id} do banco...`);
+                    
+                    const response = await fetch(`${this.serverUrl}/api/messages/${message.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-            // Salvar conversa atualizada
+                    if (response.ok) {
+                        deletedCount++;
+                        console.log(`[DEBUG] ✅ Mensagem ${message.id} removida do banco com sucesso`);
+                    } else {
+                        failedCount++;
+                        const errorText = await response.text();
+                        console.error(`[DEBUG] ❌ Falha ao remover mensagem ${message.id}: ${response.status} - ${errorText}`);
+                    }
+                } catch (error) {
+                    failedCount++;
+                    console.error(`[DEBUG] ❌ Erro ao remover mensagem ${message.id}:`, error);
+                }
+            }
+
+            console.log(`[DEBUG] Remoção do banco concluída: ${deletedCount} removidas, ${failedCount} falharam`);
+
+            // Atualizar mensagens localmente (manter apenas as recentes)
+            this.messages = messagesToKeepLocal;
+
+            // Limpar e recriar UI
+            this.clearMessages();
+            this.messages.forEach(msg => {
+                this.addMessageToUI(msg.sender, msg.content, msg.files || [], msg.id, msg.status || 'sent');
+            });
+
+            // Salvar conversa atualizada no banco
             await this.autoSaveChat();
 
             // Enhanced success feedback
-            this.showToast(
-                `✅ Limpeza concluída!\n` +
-                `🗑️ ${messagesToDelete} mensagens removidas\n` +
-                `📝 ${messagesToKeep} mensagens mantidas`,
-                'success'
-            );
+            let successMessage = `✅ Limpeza concluída!\n🗑️ ${deletedCount} mensagens removidas do banco\n📝 ${messagesToKeep} mensagens mantidas`;
+            
+            if (failedCount > 0) {
+                successMessage += `\n⚠️ ${failedCount} mensagens falharam na remoção`;
+            }
+            
+            this.showToast(successMessage, deletedCount > 0 ? 'success' : 'warning');
 
-            console.log(`[DEBUG] Limpeza concluída: ${messagesToDelete} removidas, ${messagesToKeep} mantidas`);
+            console.log(`[DEBUG] Limpeza concluída: ${deletedCount} removidas do banco, ${failedCount} falharam, ${messagesToKeep} mantidas localmente`);
 
         } catch (error) {
             console.error('Erro ao limpar mensagens:', error);
