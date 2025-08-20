@@ -4,12 +4,15 @@ services:
     env: node
     buildCommand: |
       echo "🔧 Starting build process..."
+      echo "Node version: $(node --version)"
+      echo "NPM version: $(npm --version)"
       rm -f package-lock.json
       npm cache clean --force
       npm install --verbose --no-optional
       npm rebuild pg --verbose
+      npm audit fix --force || true
       echo "✅ Build process completed"
-    startCommand: npm run prestart && node server-cloud.js
+    startCommand: npm run prestart && npm start
     rootDir: backend
     plan: free
     region: oregon
@@ -22,6 +25,10 @@ services:
         fromDatabase:
           name: gemini-chat-db
           property: connectionString
+      - key: PORT
+        value: 10000
+      - key: TZ
+        value: America/Sao_Paulo
     
 databases:
   - name: gemini-chat-db
