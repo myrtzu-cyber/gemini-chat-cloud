@@ -829,15 +829,22 @@ class GeminiChatMobile {
 
             // Mark user message as sent and add to history
             this.updateMessageStatus(userMessageId, 'sent');
-            this.messages.push({
-                id: userMessageId,
-                sender: 'user',
-                content: message,
-                files: processedFiles || [],
-                status: 'sent',
-                retryCount: 0,
-                timestamp: Date.now()
-            });
+            
+            // Verificar se a mensagem já existe antes de adicionar
+            const existingMessage = this.messages.find(msg => msg.id === userMessageId);
+            if (!existingMessage) {
+                this.messages.push({
+                    id: userMessageId,
+                    sender: 'user',
+                    content: message,
+                    files: processedFiles || [],
+                    status: 'sent',
+                    retryCount: 0,
+                    timestamp: Date.now()
+                });
+            } else {
+                console.log(`[DEBUG] Mensagem do usuário já existe: ${userMessageId}`);
+            }
 
             const assistantMessageId = this.addMessageToHistory('assistant', response);
             this.addMessageToUI('assistant', response, [], assistantMessageId, 'sent');
@@ -851,17 +858,24 @@ class GeminiChatMobile {
 
             // Mark user message as failed and store error
             this.updateMessageStatus(userMessageId, 'failed', errorInfo.message);
-            this.messages.push({
-                id: userMessageId,
-                sender: 'user',
-                content: message,
-                files: processedFiles || [],
-                status: 'failed',
-                retryCount: 0,
-                errorMessage: errorInfo.message,
-                errorType: errorInfo.type,
-                timestamp: Date.now()
-            });
+            
+            // Verificar se a mensagem já existe antes de adicionar
+            const existingMessage = this.messages.find(msg => msg.id === userMessageId);
+            if (!existingMessage) {
+                this.messages.push({
+                    id: userMessageId,
+                    sender: 'user',
+                    content: message,
+                    files: processedFiles || [],
+                    status: 'failed',
+                    retryCount: 0,
+                    errorMessage: errorInfo.message,
+                    errorType: errorInfo.type,
+                    timestamp: Date.now()
+                });
+            } else {
+                console.log(`[DEBUG] Mensagem com erro já existe: ${userMessageId}`);
+            }
 
             this.showToast(`❌ ${errorInfo.userMessage}`, 'error');
 
@@ -3507,15 +3521,23 @@ ${message}`;
 
     addMessageToHistory(sender, content, files = []) {
         const messageId = this.generateMessageId();
-        this.messages.push({
-            id: messageId,
-            sender,
-            content,
-            files: files || [],
-            status: 'sent',
-            retryCount: 0,
-            timestamp: Date.now()
-        });
+        
+        // Verificar se a mensagem já existe antes de adicionar
+        const existingMessage = this.messages.find(msg => msg.id === messageId);
+        if (!existingMessage) {
+            this.messages.push({
+                id: messageId,
+                sender,
+                content,
+                files: files || [],
+                status: 'sent',
+                retryCount: 0,
+                timestamp: Date.now()
+            });
+        } else {
+            console.log(`[DEBUG] Mensagem do assistente já existe: ${messageId}`);
+        }
+        
         return messageId;
     }
 
@@ -3752,6 +3774,15 @@ ${message}`;
     }
 
     addMessageToUI(sender, content, files = [], messageId = null, status = 'saved') {
+        // Verificar se a mensagem já existe na interface para evitar duplicação
+        if (messageId) {
+            const existingElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (existingElement) {
+                console.log(`[DEBUG] Mensagem já existe na interface: ${messageId}, pulando criação`);
+                return;
+            }
+        }
+        
         const messageElement = document.createElement('div');
         messageElement.classList.add('mobile-message', `mobile-message-${sender}`);
         messageElement.dataset.messageId = messageId;
@@ -4361,6 +4392,21 @@ ${message}`;
                     this.messages.push(pendingMsg);
                 }
             });
+
+            // Remover mensagens duplicadas por ID antes de exibir
+            const uniqueMessages = [];
+            const seenIds = new Set();
+            
+            this.messages.forEach(msg => {
+                if (!seenIds.has(msg.id)) {
+                    seenIds.add(msg.id);
+                    uniqueMessages.push(msg);
+                } else {
+                    console.log(`[DEBUG] Removendo mensagem duplicada: ${msg.id}`);
+                }
+            });
+            
+            this.messages = uniqueMessages;
 
             this.clearMessages();
             this.updateChatTitle(this.currentChatTitle);

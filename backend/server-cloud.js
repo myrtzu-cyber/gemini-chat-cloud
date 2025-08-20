@@ -252,16 +252,20 @@ class SimpleDatabase {
             const existingMessages = this.messages.filter(m => m.chat_id === chatData.id);
             console.log(`   Mensagens existentes no chat: ${existingMessages.length}`);
 
-            // Se o número de mensagens é o mesmo, não reprocessar (evitar duplicação)
-            if (existingMessages.length === messagesToProcess.length) {
-                console.log(`   Mesmo número de mensagens, pulando reprocessamento`);
+            // Verificar se há mensagens duplicadas por ID
+            const existingMessageIds = new Set(existingMessages.map(m => m.id));
+            const newMessageIds = new Set(messagesToProcess.map(m => m.id));
+            
+            // Se todas as mensagens já existem, não reprocessar
+            if (messagesToProcess.every(msg => existingMessageIds.has(msg.id))) {
+                console.log(`   Todas as mensagens já existem, pulando reprocessamento`);
             } else {
                 console.log(`   Atualizando mensagens: ${existingMessages.length} → ${messagesToProcess.length}`);
 
                 // Remover mensagens antigas deste chat
                 this.messages = this.messages.filter(m => m.chat_id !== chatData.id);
 
-                // Adicionar novas mensagens
+                // Adicionar novas mensagens, evitando duplicação por ID
                 for (const msg of messagesToProcess) {
                     const message = {
                         id: msg.id,
@@ -391,6 +395,13 @@ class SimpleDatabase {
             if (!chatExists) {
                 console.log(`❌ Chat não encontrado: ${messageData.chat_id}`);
                 return { success: false, error: 'Chat not found' };
+            }
+
+            // Verificar se a mensagem já existe para evitar duplicação
+            const existingMessage = this.messages.find(m => m.id === messageData.id);
+            if (existingMessage) {
+                console.log(`⚠️ Mensagem já existe (ID: ${messageData.id}), pulando adição`);
+                return { success: true, message: 'Message already exists', messageId: messageData.id };
             }
 
             // Adicionar mensagem ao array de mensagens
