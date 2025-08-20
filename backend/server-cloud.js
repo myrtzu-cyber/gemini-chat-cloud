@@ -5,11 +5,19 @@ const url = require('url');
 
 // Importar database PostgreSQL com fallback
 let PostgresDatabase = null;
+let postgresImportError = null;
 try {
     PostgresDatabase = require('./database-postgres');
     console.log('📦 PostgresDatabase imported successfully:', typeof PostgresDatabase);
+
+    // Verify it's a constructor function
+    if (typeof PostgresDatabase !== 'function') {
+        throw new Error('PostgresDatabase is not a constructor function');
+    }
 } catch (error) {
+    postgresImportError = error;
     console.log('⚠️ PostgresDatabase import failed:', error.message);
+    console.log('📍 Error details:', error.stack);
     console.log('💾 Will use SimpleDatabase fallback only');
 }
 
@@ -381,14 +389,15 @@ class SimpleDatabase {
     }
 
     async getStats() {
-        const totalMessages = this.chats.reduce((sum, chat) => 
-            sum + (chat.messages ? chat.messages.length : 0), 0);
-        
+        // Count messages from the messages array, not from chat.messages
+        const totalMessages = this.messages.length;
+
         return {
             total_chats: this.chats.length,
             total_messages: totalMessages,
-            server_type: DATABASE_URL ? 'cloud-database' : 'memory-fallback',
-            database_url_configured: !!DATABASE_URL
+            server_type: 'simple-database-fallback',
+            database_url_configured: !!DATABASE_URL,
+            fallback_reason: 'PostgreSQL unavailable or failed to initialize'
         };
     }
 
@@ -451,6 +460,9 @@ console.log('🔍 PostgresDatabase available:', PostgresDatabase !== null);
 // Tentar usar PostgresDatabase se disponível e DATABASE_URL configurado
 if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') {
     console.log('🐘 Tentando usar PostgreSQL Database');
+    console.log(`🔗 DATABASE_URL length: ${DATABASE_URL.length} characters`);
+    console.log(`🔗 DATABASE_URL starts with: ${DATABASE_URL.substring(0, 20)}...`);
+
     try {
         db = new PostgresDatabase();
         console.log('✅ PostgresDatabase instanciado com sucesso');
@@ -468,21 +480,31 @@ if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') 
             console.log('✅ PostgresDatabase: All required methods available');
         }
     } catch (error) {
-        console.error('❌ Erro ao instanciar PostgresDatabase:', error);
+        console.error('❌ Erro ao instanciar PostgresDatabase:', error.message);
+        console.error('📍 Stack trace:', error.stack);
         console.log('💾 Fallback para SimpleDatabase');
         db = new SimpleDatabase();
     }
 } else {
+    console.log('💾 Usando SimpleDatabase (fallback)');
+
     if (!PostgresDatabase) {
         console.log('⚠️ PostgresDatabase não disponível');
+        if (postgresImportError) {
+            console.log(`📍 Import error: ${postgresImportError.message}`);
+        }
         if (DATABASE_URL) {
-            console.log('⚠️ DATABASE_URL configurado mas PostgresDatabase não encontrado - verifique se o módulo pg está instalado');
+            console.log('⚠️ DATABASE_URL configurado mas PostgresDatabase não encontrado');
+            console.log('🔍 Possíveis causas:');
+            console.log('   - Módulo pg não instalado');
+            console.log('   - Erro na importação do database-postgres.js');
+            console.log('   - Erro de sintaxe no arquivo database-postgres.js');
         }
     }
     if (!DATABASE_URL) {
         console.log('⚠️ DATABASE_URL não configurado');
     }
-    console.log('💾 Usando SimpleDatabase (fallback)');
+
     db = new SimpleDatabase();
     console.log('✅ SimpleDatabase instanciado');
     console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
@@ -591,6 +613,32 @@ const server = http.createServer(async (req, res) => {
                 total_messages: stats.total_messages,
                 message: 'Servidor cloud funcionando - Keep alive active',
                 last_ping: new Date().toISOString()
+            });
+            return;
+        }
+
+        // Debug endpoint for troubleshooting database issues
+        if (pathname === '/api/debug/database') {
+            const stats = await db.getStats();
+            sendJsonResponse(res, 200, {
+                database_info: {
+                    type: db.constructor.name,
+                    server_type: stats.server_type,
+                    postgres_available: PostgresDatabase !== null,
+                    postgres_import_error: postgresImportError ? postgresImportError.message : null,
+                    database_url_configured: !!DATABASE_URL,
+                    database_url_length: DATABASE_URL ? DATABASE_URL.length : 0,
+                    required_methods_available: {
+                        initialize: typeof db.initialize === 'function',
+                        createChat: typeof db.createChat === 'function',
+                        addMessage: typeof db.addMessage === 'function',
+                        updateChatContext: typeof db.updateChatContext === 'function',
+                        getChats: typeof db.getChats === 'function',
+                        getChatWithMessages: typeof db.getChatWithMessages === 'function'
+                    }
+                },
+                stats: stats,
+                timestamp: new Date().toISOString()
             });
             return;
         }
