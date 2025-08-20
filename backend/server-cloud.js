@@ -234,6 +234,58 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Update chat context (DEVE vir antes da rota genérica)
+        const contextMatch = pathname.match(/^\/api\/chats\/([^\/]+)\/context$/);
+        if (contextMatch && method === 'PUT') {
+            const chatId = contextMatch[1];
+
+            parseJsonBody(req, async (error, data) => {
+                if (error) {
+                    console.log(`❌ Erro ao parsear JSON para context: ${error.message}`);
+                    sendJsonResponse(res, 400, { error: 'Invalid JSON' });
+                    return;
+                }
+
+                console.log(`📝 Salvando context para chat ${chatId}:`, data);
+
+                try {
+                    // Verificar se o chat existe
+                    const existingChat = await db.getChat(chatId);
+                    if (!existingChat) {
+                        console.log(`❌ Chat não encontrado: ${chatId}`);
+                        sendJsonResponse(res, 404, { error: 'Chat not found' });
+                        return;
+                    }
+
+                    // Salvar context no database
+                    const result = await db.updateChatContext(chatId, data);
+
+                    if (result.success) {
+                        console.log(`✅ Context salvo com sucesso para chat ${chatId}`);
+                        sendJsonResponse(res, 200, {
+                            success: true,
+                            message: 'Context updated successfully',
+                            chatId: chatId,
+                            context: data
+                        });
+                    } else {
+                        console.log(`❌ Falha ao salvar context: ${result.error}`);
+                        sendJsonResponse(res, 500, {
+                            error: 'Failed to update context',
+                            details: result.error
+                        });
+                    }
+                } catch (error) {
+                    console.log(`❌ Erro interno ao salvar context: ${error.message}`);
+                    sendJsonResponse(res, 500, {
+                        error: 'Internal server error',
+                        details: error.message
+                    });
+                }
+            });
+            return;
+        }
+
         // Create/Update chat
         if (pathname === '/api/chats' && method === 'POST') {
             parseJsonBody(req, async (error, data) => {
@@ -288,57 +340,7 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // Update chat context
-        const contextMatch = pathname.match(/^\/api\/chats\/([^\/]+)\/context$/);
-        if (contextMatch && method === 'PUT') {
-            const chatId = contextMatch[1];
 
-            parseJsonBody(req, async (error, data) => {
-                if (error) {
-                    console.log(`❌ Erro ao parsear JSON para context: ${error.message}`);
-                    sendJsonResponse(res, 400, { error: 'Invalid JSON' });
-                    return;
-                }
-
-                console.log(`📝 Salvando context para chat ${chatId}:`, data);
-
-                try {
-                    // Verificar se o chat existe
-                    const existingChat = await db.getChat(chatId);
-                    if (!existingChat) {
-                        console.log(`❌ Chat não encontrado: ${chatId}`);
-                        sendJsonResponse(res, 404, { error: 'Chat not found' });
-                        return;
-                    }
-
-                    // Salvar context no database
-                    const result = await db.updateChatContext(chatId, data);
-
-                    if (result.success) {
-                        console.log(`✅ Context salvo com sucesso para chat ${chatId}`);
-                        sendJsonResponse(res, 200, {
-                            success: true,
-                            message: 'Context updated successfully',
-                            chatId: chatId,
-                            context: data
-                        });
-                    } else {
-                        console.log(`❌ Falha ao salvar context: ${result.error}`);
-                        sendJsonResponse(res, 500, {
-                            error: 'Failed to update context',
-                            details: result.error
-                        });
-                    }
-                } catch (error) {
-                    console.log(`❌ Erro interno ao salvar context: ${error.message}`);
-                    sendJsonResponse(res, 500, {
-                        error: 'Internal server error',
-                        details: error.message
-                    });
-                }
-            });
-            return;
-        }
 
         // Import data endpoint
         if (pathname === '/api/import' && method === 'POST') {
