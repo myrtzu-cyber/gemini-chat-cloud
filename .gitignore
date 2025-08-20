@@ -58,6 +58,9 @@ database/
 *.db
 *.sqlite
 *.sqlite3
+chats.db
+test_database/
+migration-backups/
 
 # Logs
 logs
