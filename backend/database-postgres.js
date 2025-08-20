@@ -271,8 +271,8 @@ class PostgresDatabase {
             console.log(`📝 PostgresDatabase: Updating context for chat ${chatId}`);
 
             const result = await client.query(`
-                UPDATE chats 
-                SET context = $2, updated_at = CURRENT_TIMESTAMP 
+                UPDATE chats
+                SET context = $2, updated_at = CURRENT_TIMESTAMP
                 WHERE id = $1
                 RETURNING id
             `, [chatId, JSON.stringify(contextData)]);
@@ -286,6 +286,46 @@ class PostgresDatabase {
             return { success: true, message: 'Context updated successfully' };
         } catch (error) {
             console.error('❌ PostgresDatabase: Error updating context:', error.message);
+            return { success: false, error: error.message };
+        } finally {
+            client.release();
+        }
+    }
+
+    async deleteChat(chatId) {
+        const client = await this.pool.connect();
+        try {
+            console.log(`🗑️ PostgresDatabase: Deleting chat ${chatId}`);
+
+            // First check if chat exists
+            const checkResult = await client.query(
+                'SELECT id, title FROM chats WHERE id = $1',
+                [chatId]
+            );
+
+            if (checkResult.rows.length === 0) {
+                console.log(`❌ PostgresDatabase: Chat ${chatId} not found`);
+                return { success: false, message: 'Chat not found' };
+            }
+
+            const chatTitle = checkResult.rows[0].title;
+
+            // Delete chat (messages will be deleted automatically due to CASCADE)
+            const deleteResult = await client.query(
+                'DELETE FROM chats WHERE id = $1 RETURNING id',
+                [chatId]
+            );
+
+            if (deleteResult.rows.length > 0) {
+                console.log(`✅ PostgresDatabase: Chat "${chatTitle}" (${chatId}) deleted successfully`);
+                console.log(`   Associated messages were also deleted (CASCADE)`);
+                return { success: true, message: 'Chat deleted successfully' };
+            } else {
+                console.log(`❌ PostgresDatabase: Failed to delete chat ${chatId}`);
+                return { success: false, message: 'Failed to delete chat' };
+            }
+        } catch (error) {
+            console.error('❌ PostgresDatabase: Error deleting chat:', error.message);
             return { success: false, error: error.message };
         } finally {
             client.release();

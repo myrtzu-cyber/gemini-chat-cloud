@@ -277,6 +277,32 @@ class DatabaseFactory {
                 return { success: true, message: 'Context updated successfully' };
             }
 
+            async deleteChat(chatId) {
+                console.log(`🗑️ SimpleDatabase: Deleting chat ${chatId}`);
+
+                const chatIndex = this.chats.findIndex(chat => chat.id === chatId);
+                if (chatIndex === -1) {
+                    console.log(`❌ SimpleDatabase: Chat ${chatId} not found`);
+                    return { success: false, message: 'Chat not found' };
+                }
+
+                const chatTitle = this.chats[chatIndex].title;
+
+                // Remove chat
+                this.chats.splice(chatIndex, 1);
+
+                // Remove associated messages
+                const initialMessageCount = this.messages.length;
+                this.messages = this.messages.filter(message => message.chat_id !== chatId);
+                const removedMessages = initialMessageCount - this.messages.length;
+
+                console.log(`✅ SimpleDatabase: Chat "${chatTitle}" (${chatId}) deleted successfully`);
+                console.log(`   Removed ${removedMessages} associated messages`);
+
+                await this.persistData(`Chat deleted: ${chatId}`);
+                return { success: true, message: 'Chat deleted successfully' };
+            }
+
             async getChats() {
                 return this.chats.map(chat => ({
                     ...chat,
