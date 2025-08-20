@@ -553,7 +553,7 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // Add message endpoint
+        // Add message endpoint - CRITICAL FOR MOBILE FRONTEND
         if (pathname === '/api/messages' && method === 'POST') {
             parseJsonBody(req, async (error, data) => {
                 if (error) {
