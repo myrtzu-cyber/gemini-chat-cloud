@@ -111,12 +111,36 @@ class SimpleDatabase {
             if (exportData.messages) {
                 this.messages = exportData.messages;
             }
-            return { 
-                success: true, 
+            return {
+                success: true,
                 imported_chats: this.chats.length,
-                imported_messages: this.messages.length 
+                imported_messages: this.messages.length
             };
         } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
+    // MÉTODO CRÍTICO: updateChatContext para SimpleDatabase
+    async updateChatContext(chatId, contextData) {
+        try {
+            console.log(`📝 SimpleDatabase: Salvando context para chat ${chatId}`);
+
+            // Encontrar o chat
+            const chatIndex = this.chats.findIndex(chat => chat.id === chatId);
+            if (chatIndex === -1) {
+                console.log(`❌ SimpleDatabase: Chat ${chatId} não encontrado`);
+                return { success: false, error: 'Chat not found' };
+            }
+
+            // Atualizar context
+            this.chats[chatIndex].context = JSON.stringify(contextData);
+            this.chats[chatIndex].updated_at = new Date().toISOString();
+
+            console.log(`✅ SimpleDatabase: Context salvo para chat ${chatId}`);
+            return { success: true, message: 'Context updated successfully' };
+        } catch (error) {
+            console.error('❌ SimpleDatabase: Erro ao salvar context:', error);
             return { success: false, error: error.message };
         }
     }
@@ -129,15 +153,29 @@ let db;
 console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurado' : 'Não configurado');
 console.log('🔍 PostgresDatabase type:', typeof PostgresDatabase);
 
-if (DATABASE_URL) {
+// FORÇAR PostgresDatabase se DATABASE_URL estiver configurado
+if (DATABASE_URL && typeof PostgresDatabase === 'function') {
     console.log('🐘 Usando PostgreSQL Database');
-    db = new PostgresDatabase();
-    console.log('✅ PostgresDatabase instanciado');
-    console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
+    try {
+        db = new PostgresDatabase();
+        console.log('✅ PostgresDatabase instanciado');
+        console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
+
+        // Verificar se o método existe
+        if (typeof db.updateChatContext !== 'function') {
+            console.log('⚠️ updateChatContext não encontrado no PostgresDatabase, usando SimpleDatabase');
+            db = new SimpleDatabase();
+        }
+    } catch (error) {
+        console.error('❌ Erro ao instanciar PostgresDatabase:', error);
+        console.log('💾 Fallback para SimpleDatabase');
+        db = new SimpleDatabase();
+    }
 } else {
     console.log('💾 Usando SimpleDatabase (fallback)');
     db = new SimpleDatabase();
     console.log('✅ SimpleDatabase instanciado');
+    console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
 }
 
 // Função para adicionar headers CORS
@@ -274,6 +312,25 @@ const server = http.createServer(async (req, res) => {
                     if (!existingChat) {
                         console.log(`❌ Chat não encontrado: ${chatId}`);
                         sendJsonResponse(res, 404, { error: 'Chat not found' });
+                        return;
+                    }
+
+                    // LOGGING DETALHADO PARA DEBUG
+                    console.log(`🔍 CONTEXT ENDPOINT DEBUG:`);
+                    console.log(`   - Chat ID: ${chatId}`);
+                    console.log(`   - Database type: ${db.constructor.name}`);
+                    console.log(`   - updateChatContext method: ${typeof db.updateChatContext}`);
+                    console.log(`   - Data size: ${JSON.stringify(data).length} chars`);
+
+                    // Verificar se o método existe
+                    if (typeof db.updateChatContext !== 'function') {
+                        console.error(`❌ CRÍTICO: updateChatContext não é uma função!`);
+                        console.error(`   - Database: ${db.constructor.name}`);
+                        console.error(`   - Métodos disponíveis:`, Object.getOwnPropertyNames(Object.getPrototypeOf(db)));
+                        sendJsonResponse(res, 500, {
+                            error: 'Internal server error',
+                            details: 'db.updateChatContext is not a function'
+                        });
                         return;
                     }
 
