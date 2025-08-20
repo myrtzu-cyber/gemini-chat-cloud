@@ -802,8 +802,11 @@ class GeminiChatMobile {
         }
 
         const userMessageId = this.generateMessageId();
-        if (this.messages.length === 0) {
-            this.clearMessages();
+        
+        // Se não há conversa atual, garantir que temos um ID
+        if (!this.currentChatId) {
+            this.currentChatId = this.generateChatId();
+            console.log('[DEBUG] Nova conversa iniciada com ID:', this.currentChatId);
         }
 
         this.addMessageToUI('user', message, processedFiles, userMessageId, 'pending');
@@ -900,8 +903,13 @@ class GeminiChatMobile {
 
             if (response.ok) {
                 const result = await response.json();
-                this.currentChatId = result.id; // Garante que temos o ID mais recente
-                console.log('[DEBUG] Conversa salva com sucesso:', result.id);
+                // Só atualiza o ID se não tivermos um já estabelecido
+                if (!this.currentChatId || this.currentChatId !== result.id) {
+                    this.currentChatId = result.id;
+                    console.log('[DEBUG] Chat ID atualizado para:', result.id);
+                } else {
+                    console.log('[DEBUG] Conversa existente salva com sucesso:', result.id);
+                }
 
                 // Atualiza todos os indicadores pendentes para 'salvo'
                 const pendingElements = document.querySelectorAll('.mobile-message .message-status.pending');
