@@ -141,6 +141,57 @@ class SimpleDatabase {
         return { success: false, message: 'Chat not found' };
     }
 
+    async addMessage(messageData) {
+        try {
+            console.log(`📝 SimpleDatabase: Adicionando mensagem ao chat ${messageData.chat_id}`);
+
+            // Verificar se o chat existe
+            const chatExists = this.chats.find(c => c.id === messageData.chat_id);
+            if (!chatExists) {
+                console.log(`❌ Chat não encontrado: ${messageData.chat_id}`);
+                return { success: false, error: 'Chat not found' };
+            }
+
+            // Adicionar mensagem ao array de mensagens
+            const message = {
+                id: messageData.id,
+                chat_id: messageData.chat_id,
+                sender: messageData.sender,
+                content: messageData.content,
+                files: JSON.stringify(messageData.files || []),
+                created_at: new Date().toISOString()
+            };
+
+            this.messages.push(message);
+
+            // Atualizar timestamp do chat
+            const chatIndex = this.chats.findIndex(c => c.id === messageData.chat_id);
+            if (chatIndex >= 0) {
+                this.chats[chatIndex].updated_at = new Date().toISOString();
+            }
+
+            // Salvar dados persistentemente
+            try {
+                const dataFile = path.join(__dirname, 'simple-db-data.json');
+                const data = {
+                    chats: this.chats,
+                    messages: this.messages,
+                    lastSaved: new Date().toISOString()
+                };
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                console.log(`💾 Mensagem persistida em ${dataFile}`);
+            } catch (saveError) {
+                console.log('⚠️ Erro ao persistir mensagem:', saveError.message);
+            }
+
+            console.log(`✅ SimpleDatabase: Mensagem adicionada com sucesso`);
+            return { success: true, message: 'Message added successfully', messageId: message.id };
+        } catch (error) {
+            console.error('❌ SimpleDatabase: Erro ao adicionar mensagem:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     async getStats() {
         const totalMessages = this.chats.reduce((sum, chat) => 
             sum + (chat.messages ? chat.messages.length : 0), 0);
@@ -502,7 +553,47 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Add message endpoint
+        if (pathname === '/api/messages' && method === 'POST') {
+            parseJsonBody(req, async (error, data) => {
+                if (error) {
+                    console.log(`❌ Erro ao parsear JSON para mensagem: ${error.message}`);
+                    sendJsonResponse(res, 400, { error: 'Invalid JSON' });
+                    return;
+                }
 
+                console.log(`📝 Adicionando nova mensagem:`, data);
+
+                // Validar dados obrigatórios
+                const { id, chat_id, sender, content } = data;
+                if (!id || !chat_id || !sender || !content) {
+                    console.log(`❌ Dados obrigatórios faltando`);
+                    sendJsonResponse(res, 400, {
+                        error: 'Missing required fields: id, chat_id, sender, content'
+                    });
+                    return;
+                }
+
+                try {
+                    const result = await db.addMessage(data);
+
+                    if (result.success) {
+                        console.log(`✅ Mensagem adicionada com sucesso: ${result.messageId}`);
+                        sendJsonResponse(res, 201, result);
+                    } else {
+                        console.log(`❌ Erro ao adicionar mensagem: ${result.error}`);
+                        sendJsonResponse(res, 400, result);
+                    }
+                } catch (error) {
+                    console.log(`❌ Erro interno ao adicionar mensagem: ${error.message}`);
+                    sendJsonResponse(res, 500, {
+                        error: 'Internal server error',
+                        details: error.message
+                    });
+                }
+            });
+            return;
+        }
 
         // Import data endpoint
         if (pathname === '/api/import' && method === 'POST') {

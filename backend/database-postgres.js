@@ -244,7 +244,7 @@ class PostgresDatabase {
 
     async getChatMessages(chatId) {
         const client = await this.pool.connect();
-        
+
         try {
             const result = await client.query(
                 'SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC',
@@ -253,6 +253,28 @@ class PostgresDatabase {
             return result.rows;
         } finally {
             client.release();
+        }
+    }
+
+    async addMessage(messageData) {
+        try {
+            console.log(`📝 PostgresDatabase: Adicionando mensagem ao chat ${messageData.chat_id}`);
+
+            // Converter formato para saveMessage
+            const messageForSave = {
+                role: messageData.sender === 'user' ? 'user' : 'assistant',
+                content: messageData.content,
+                messageType: 'text',
+                fileInfo: messageData.files && messageData.files.length > 0 ? JSON.stringify(messageData.files) : null
+            };
+
+            const result = await this.saveMessage(messageData.chat_id, messageForSave);
+
+            console.log(`✅ PostgresDatabase: Mensagem adicionada com sucesso`);
+            return { success: true, message: 'Message added successfully', messageId: messageData.id };
+        } catch (error) {
+            console.error('❌ PostgresDatabase: Erro ao adicionar mensagem:', error);
+            return { success: false, error: error.message };
         }
     }
 
