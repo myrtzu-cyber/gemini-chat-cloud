@@ -201,6 +201,7 @@ class SimpleDatabase {
         console.log(`📝 SimpleDatabase: Criando/atualizando chat ${chatData.id}`);
         console.log(`   Título: "${chatData.title}"`);
         console.log(`   Mensagens recebidas: ${chatData.messages ? chatData.messages.length : 0}`);
+        console.log(`   History recebido: ${chatData.history ? chatData.history.length : 0}`);
         console.log(`   Context recebido: ${chatData.context ? 'Sim' : 'Não'}`);
 
         const chat = {
@@ -227,25 +228,41 @@ class SimpleDatabase {
             this.chats.push(chat);
         }
 
-        // Processar mensagens se fornecidas
+        // Processar mensagens se fornecidas (formato messages ou history)
+        let messagesToProcess = [];
+        
         if (chatData.messages && Array.isArray(chatData.messages)) {
-            console.log(`   Processando ${chatData.messages.length} mensagens`);
+            // Formato messages (mobile ou outros clientes)
+            messagesToProcess = chatData.messages;
+            console.log(`   Processando ${chatData.messages.length} mensagens (formato messages)`);
+        } else if (chatData.history && Array.isArray(chatData.history)) {
+            // Formato history (frontend desktop)
+            messagesToProcess = chatData.history.map(msg => ({
+                id: msg.id,
+                sender: msg.role, // 'user' ou 'assistant'
+                content: msg.parts && msg.parts[0] ? msg.parts[0].text : '',
+                files: msg.files || [],
+                timestamp: msg.timestamp || new Date().toISOString()
+            }));
+            console.log(`   Processando ${chatData.history.length} mensagens (formato history)`);
+        }
 
+        if (messagesToProcess.length > 0) {
             // Contar mensagens existentes para este chat
             const existingMessages = this.messages.filter(m => m.chat_id === chatData.id);
             console.log(`   Mensagens existentes no chat: ${existingMessages.length}`);
 
             // Se o número de mensagens é o mesmo, não reprocessar (evitar duplicação)
-            if (existingMessages.length === chatData.messages.length) {
+            if (existingMessages.length === messagesToProcess.length) {
                 console.log(`   Mesmo número de mensagens, pulando reprocessamento`);
             } else {
-                console.log(`   Atualizando mensagens: ${existingMessages.length} → ${chatData.messages.length}`);
+                console.log(`   Atualizando mensagens: ${existingMessages.length} → ${messagesToProcess.length}`);
 
                 // Remover mensagens antigas deste chat
                 this.messages = this.messages.filter(m => m.chat_id !== chatData.id);
 
                 // Adicionar novas mensagens
-                for (const msg of chatData.messages) {
+                for (const msg of messagesToProcess) {
                     const message = {
                         id: msg.id,
                         chat_id: chatData.id,
@@ -256,7 +273,7 @@ class SimpleDatabase {
                     };
                     this.messages.push(message);
                 }
-                console.log(`   ${chatData.messages.length} mensagens processadas`);
+                console.log(`   ${messagesToProcess.length} mensagens processadas`);
             }
         }
 
@@ -295,9 +312,23 @@ class SimpleDatabase {
             }
         }
 
+        // Converter mensagens para o formato history esperado pelo frontend
+        const history = messages
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)) // Ordenar por data
+            .map(msg => ({
+                id: msg.id,
+                role: msg.sender, // 'user' ou 'assistant'
+                parts: [{
+                    text: msg.content
+                }],
+                files: JSON.parse(msg.files || '[]'),
+                timestamp: msg.created_at
+            }));
+
         return {
             ...chat,
             ...expandedContext, // Expandir campos do contexto diretamente no chat
+            history: history, // Formato esperado pelo frontend
             messages: messages.map(msg => ({
                 id: msg.id,
                 sender: msg.sender,
@@ -321,7 +352,25 @@ class SimpleDatabase {
             console.log(`   Mais recente: "${sortedChats[0].title}" (${sortedChats[0].id}) - ${sortedChats[0].updated_at}`);
         }
 
-        return sortedChats;
+        // Adicionar history resumido para cada chat (para preview)
+        return sortedChats.map(chat => {
+            const messages = this.messages.filter(m => m.chat_id === chat.id);
+            const history = messages
+                .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                .map(msg => ({
+                    id: msg.id,
+                    role: msg.sender,
+                    parts: [{
+                        text: msg.content
+                    }],
+                    timestamp: msg.created_at
+                }));
+
+            return {
+                ...chat,
+                history: history
+            };
+        });
     }
 
     async deleteChat(chatId) {
