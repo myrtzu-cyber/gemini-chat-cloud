@@ -29,10 +29,35 @@ class GoogleDriveBackup {
         try {
             // Service Account authentication (recommended for production)
             if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+                console.log('🗄️ Google Drive backup service initialized');
+                
+                // Clean and format the private key properly
+                let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+                
+                // Handle different private key formats
+                if (privateKey.includes('\\n')) {
+                    privateKey = privateKey.replace(/\\n/g, '\n');
+                }
+                
+                // Ensure proper BEGIN/END format
+                if (!privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+                    throw new Error('Invalid private key format - missing BEGIN marker');
+                }
+                
+                if (!privateKey.includes('-----END PRIVATE KEY-----')) {
+                    throw new Error('Invalid private key format - missing END marker');
+                }
+                
+                // Remove any extra quotes or whitespace
+                privateKey = privateKey.trim();
+                if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+                    privateKey = privateKey.slice(1, -1);
+                }
+                
                 this.auth = new google.auth.GoogleAuth({
                     credentials: {
                         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+                        private_key: privateKey,
                     },
                     scopes: [
                         'https://www.googleapis.com/auth/drive.file',
@@ -50,7 +75,12 @@ class GoogleDriveBackup {
                 console.log('   Required: GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY');
             }
         } catch (error) {
-            console.error('❌ Error initializing Google Drive API:', error.message);
+            console.error('❌ Error initializing backup folder:', error.message);
+            console.error('   This is usually caused by:');
+            console.error('   1. Incorrectly formatted GOOGLE_PRIVATE_KEY environment variable');
+            console.error('   2. Missing or invalid service account credentials');
+            console.error('   3. Private key not properly escaped in environment variables');
+            console.error('   💡 Tip: Ensure private key includes proper \\n line breaks');
         }
     }
 

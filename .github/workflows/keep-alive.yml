@@ -1,9 +1,9 @@
-name: On-Demand Render App Wake-up
+name: Keep App Awake - Auto Ping
 
 on:
-  # Disable automatic scheduling - only manual triggers
-  # schedule:
-  #   - cron: '*/14 * * * *'  # Disabled for on-demand model
+  # Automatic scheduling to keep app awake
+  schedule:
+    - cron: '*/14 * * * *'  # Every 14 minutes to prevent sleeping
 
   workflow_dispatch: # Allow manual triggering
     inputs:
@@ -20,14 +20,14 @@ on:
     branches: [ main ]
 
 jobs:
-  on-demand-wake:
+  keep-alive-ping:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Wake Up Render App (On-Demand)
+    - name: Keep App Awake - Ping Health Endpoint
       run: |
-        echo "🌅 On-demand wake-up triggered..."
-        echo "Reason: ${{ github.event.inputs.wake_reason || 'Repository activity' }}"
+        echo "🌅 Keep-alive ping triggered..."
+        echo "Reason: ${{ github.event.inputs.wake_reason || 'Automatic keep-alive ping' }}"
 
         # Your Render app URL - update this with your actual URL
         RENDER_URL="https://gemini-chat-cloud.onrender.com"
@@ -71,7 +71,7 @@ jobs:
 
   backup-on-activity:
     runs-on: ubuntu-latest
-    needs: on-demand-wake
+    needs: keep-alive-ping
     if: success() && github.event_name != 'pull_request'
 
     steps:
