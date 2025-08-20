@@ -2542,11 +2542,14 @@ RESUMO DETALHADO DA AVENTURA:`;
 
             if (response.ok) {
                 const chat = await response.json();
-                const serverAventura = chat.aventura || '';
+                // FIXED: Extract aventura from nested context object
+                const serverAventura = chat.context?.aventura || chat.aventura || '';
                 const localAventura = this.currentChatContext.aventura || '';
 
                 console.log(`[DEBUG] Aventura local: ${localAventura.length} caracteres`);
-                console.log(`[DEBUG] Aventura servidor: ${serverAventura.length} caracteres`);
+                console.log(`[DEBUG] Aventura servidor (nested): ${chat.context?.aventura?.length || 0} caracteres`);
+                console.log(`[DEBUG] Aventura servidor (direct): ${chat.aventura?.length || 0} caracteres`);
+                console.log(`[DEBUG] Aventura servidor (final): ${serverAventura.length} caracteres`);
 
                 if (serverAventura.length > 0 && serverAventura === localAventura) {
                     console.log('[DEBUG] ✅ Aventura verificada: dados persistidos corretamente');
@@ -4051,20 +4054,31 @@ ${message}`;
             this.currentChatTitle = chat.title || 'Mestre';
 
             console.log('[DEBUG] Loading chat context from server...');
-            console.log('[DEBUG] Server aventura field:', chat.aventura?.length || 0, 'characters');
-            console.log('[DEBUG] Server aventura preview:', chat.aventura?.substring(0, 100) || '(empty)');
+            console.log('[DEBUG] Server context object:', chat.context ? 'present' : 'missing');
+            console.log('[DEBUG] Server aventura field (direct):', chat.aventura?.length || 0, 'characters');
+            console.log('[DEBUG] Server aventura field (nested):', chat.context?.aventura?.length || 0, 'characters');
+            console.log('[DEBUG] Server aventura preview (nested):', chat.context?.aventura?.substring(0, 100) || '(empty)');
 
+            // FIXED: Extract context from nested context object, with fallback to direct fields for backward compatibility
+            const contextData = chat.context || {};
             this.currentChatContext = {
-                master_rules: chat.master_rules || '',
-                character_sheet: chat.character_sheet || '',
-                local_history: chat.local_history || '',
-                current_plot: chat.current_plot || '',
-                relations: chat.relations || '',
-                aventura: chat.aventura || '',
-                lastCompressionTime: chat.lastCompressionTime || null
+                master_rules: contextData.master_rules || chat.master_rules || '',
+                character_sheet: contextData.character_sheet || chat.character_sheet || '',
+                local_history: contextData.local_history || chat.local_history || '',
+                current_plot: contextData.current_plot || chat.current_plot || '',
+                relations: contextData.relations || chat.relations || '',
+                aventura: contextData.aventura || chat.aventura || '',
+                lastCompressionTime: contextData.lastCompressionTime || chat.lastCompressionTime || null
             };
 
             console.log('[DEBUG] Loaded context aventura length:', this.currentChatContext.aventura.length);
+            console.log('[DEBUG] Context extraction summary:');
+            console.log('[DEBUG] - master_rules:', this.currentChatContext.master_rules.length, 'chars');
+            console.log('[DEBUG] - character_sheet:', this.currentChatContext.character_sheet.length, 'chars');
+            console.log('[DEBUG] - local_history:', this.currentChatContext.local_history.length, 'chars');
+            console.log('[DEBUG] - current_plot:', this.currentChatContext.current_plot.length, 'chars');
+            console.log('[DEBUG] - relations:', this.currentChatContext.relations.length, 'chars');
+            console.log('[DEBUG] - aventura:', this.currentChatContext.aventura.length, 'chars');
 
             // Merge with pending messages from localStorage
             const pendingMessages = this.loadPendingMessages();
