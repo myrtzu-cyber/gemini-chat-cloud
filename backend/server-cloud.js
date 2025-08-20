@@ -680,9 +680,16 @@ const server = http.createServer(async (req, res) => {
                         });
                     } else {
                         console.log(`❌ Falha ao salvar context: ${result.error}`);
-                        sendJsonResponse(res, 500, {
-                            error: 'Failed to update context',
-                            details: result.error
+
+                        // Return 404 if chat not found, 500 for other errors
+                        const statusCode = result.error === 'Chat not found' ? 404 : 500;
+                        const errorMessage = result.error === 'Chat not found' ?
+                            `Chat ${chatId} não encontrado` : 'Failed to update context';
+
+                        sendJsonResponse(res, statusCode, {
+                            error: errorMessage,
+                            details: result.error,
+                            chatId: chatId
                         });
                     }
                 } catch (error) {

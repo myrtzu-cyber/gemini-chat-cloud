@@ -179,8 +179,8 @@ class GeminiChatMobile {
         });
 
         // Chat controls
-        document.getElementById('mobileNewChat').addEventListener('click', () => {
-            this.newChat();
+        document.getElementById('mobileNewChat').addEventListener('click', async () => {
+            await this.newChat();
         });
 
         document.getElementById('mobileLoadChats').addEventListener('click', () => {
@@ -357,6 +357,16 @@ class GeminiChatMobile {
         this.currentChatContext[this.activeContextTab] = contextTextArea.value;
 
         try {
+            // Ensure chat exists in database before saving context
+            console.log(`[DEBUG] Ensuring chat ${this.currentChatId} exists before saving context`);
+            const chatExists = await this.ensureChatExists();
+
+            if (!chatExists) {
+                throw new Error('Falha ao criar conversa no banco de dados.');
+            }
+
+            console.log(`[DEBUG] Saving context for chat ${this.currentChatId}:`, this.currentChatContext);
+
             const response = await fetch(`${this.serverUrl}/api/chats/${this.currentChatId}/context`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -364,14 +374,17 @@ class GeminiChatMobile {
             });
 
             if (!response.ok) {
-                throw new Error('Falha ao salvar o contexto.');
+                const errorText = await response.text();
+                console.error(`[DEBUG] Context save failed: ${response.status} - ${errorText}`);
+                throw new Error(`Falha ao salvar o contexto (${response.status}).`);
             }
 
-            this.showToast('Contexto salvo com sucesso!');
+            this.showToast('✅ Contexto salvo com sucesso!');
             document.getElementById('contextModal').style.display = 'none';
+            console.log(`[DEBUG] Context saved successfully for chat ${this.currentChatId}`);
         } catch (error) {
             console.error('Erro ao salvar contexto:', error);
-            this.showToast(error.message, 'error');
+            this.showToast('❌ Erro ao salvar contexto: ' + error.message, 'error');
         }
     }
 
@@ -380,6 +393,14 @@ class GeminiChatMobile {
         if (!this.currentChatId) return;
 
         try {
+            // Ensure chat exists in database before saving context
+            console.log(`[DEBUG] Ensuring chat ${this.currentChatId} exists before saving updated context`);
+            const chatExists = await this.ensureChatExists();
+
+            if (!chatExists) {
+                throw new Error('Falha ao criar conversa no banco de dados.');
+            }
+
             console.log('[DEBUG] Salvando contextos atualizados no servidor...');
             console.log('[DEBUG] Aventura content length:', this.currentChatContext.aventura?.length || 0);
             console.log('[DEBUG] Aventura content preview:', this.currentChatContext.aventura?.substring(0, 100) || '(empty)');
@@ -687,13 +708,13 @@ class GeminiChatMobile {
     }
 
     // Nova conversa
-    newChat() {
+    async newChat() {
         this.currentChatId = this.generateChatId(); // Gera o ID imediatamente
         this.messages = [];
         this.clearMessages();
         this.currentChatTitle = 'Nova Conversa';
         document.getElementById('mobileChatTitle').textContent = this.currentChatTitle;
-        
+
         // Limpar contexto ao criar nova conversa
         this.currentChatContext = {
             master_rules: '',
@@ -705,8 +726,20 @@ class GeminiChatMobile {
             lastCompressionTime: null
         };
 
-        this.showToast('Nova conversa iniciada. O contexto já pode ser editado.');
-        // A tela será limpa automaticamente ao enviar a primeira mensagem.
+        // Ensure the chat is immediately saved to database
+        try {
+            const chatCreated = await this.ensureChatExists();
+            if (chatCreated) {
+                this.showToast('✅ Nova conversa criada. O contexto já pode ser editado.');
+                console.log(`[DEBUG] New chat ${this.currentChatId} created and saved to database`);
+            } else {
+                this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
+                console.log(`[DEBUG] New chat ${this.currentChatId} created locally only`);
+            }
+        } catch (error) {
+            console.error('[DEBUG] Error creating new chat:', error);
+            this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
+        }
     }
 
     // Limpar mensagens
@@ -912,6 +945,56 @@ class GeminiChatMobile {
     // Gerar ID único para conversa
     generateChatId() {
         return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Ensure chat exists in database before operations
+    async ensureChatExists() {
+        if (!this.serverUrl) return false;
+        if (!this.currentChatId) {
+            this.currentChatId = this.generateChatId();
+        }
+
+        try {
+            // Check if chat already exists
+            const checkResponse = await fetch(`${this.serverUrl}/api/chats/${this.currentChatId}`);
+
+            if (checkResponse.ok) {
+                console.log(`[DEBUG] Chat ${this.currentChatId} already exists in database`);
+                return true;
+            }
+
+            // Chat doesn't exist, create it
+            console.log(`[DEBUG] Creating new chat ${this.currentChatId} in database`);
+
+            const chatData = {
+                id: this.currentChatId,
+                title: this.currentChatTitle || 'Nova Conversa',
+                model: this.selectedModel,
+                messages: this.messages || [],
+                context: this.currentChatContext || {}
+            };
+
+            const createResponse = await fetch(`${this.serverUrl}/api/chats`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(chatData)
+            });
+
+            if (createResponse.ok) {
+                const result = await createResponse.json();
+                console.log(`[DEBUG] Chat created successfully: ${result.id}`);
+                return true;
+            } else {
+                console.error(`[DEBUG] Failed to create chat: ${createResponse.status}`);
+                return false;
+            }
+
+        } catch (error) {
+            console.error('[DEBUG] Error ensuring chat exists:', error);
+            return false;
+        }
     }
 
     // Chamar API Gemini com o modelo selecionado (sem fallback automático)
@@ -4204,10 +4287,7 @@ ${message}`;
     
 
 
-    // Gerar ID de conversa
-    generateChatId() {
-        return Math.random().toString(36).substr(2, 9);
-    }
+
 
     // Gerar título de conversa
     generateChatTitle() {
