@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chat - Iniciando...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .wake-up-container {
+            text-align: center;
+            max-width: 500px;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .steps {
+            text-align: left;
+            margin: 2rem 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step.completed {
+            opacity: 1;
+            color: #4ade80;
+        }
+
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 1rem;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .step.completed .step-icon {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: white;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .retry-button {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wake-up-container">
+        <div class="logo">🤖</div>
+        <h1 class="title">Gemini Chat</h1>
+        <p class="status" id="status">Iniciando aplicação...</p>
+        
+        <div class="loading-spinner" id="spinner"></div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="steps">
+            <div class="step" id="step1">
+                <div class="step-icon">1</div>
+                <span>Verificando status do servidor</span>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-icon">2</div>
+                <span>Iniciando serviços</span>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-icon">3</div>
+                <span>Carregando interface</span>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-icon">4</div>
+                <span>Pronto para uso</span>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <h3>⚠️ Erro ao iniciar</h3>
+            <p id="errorText">Não foi possível conectar ao servidor. Tentando novamente...</p>
+            <button class="retry-button" onclick="retryWakeUp()">Tentar Novamente</button>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <h3>✅ Aplicação iniciada com sucesso!</h3>
+            <p>Redirecionando para o chat...</p>
+        </div>
+    </div>
+
+    <script>
+        class WakeUpManager {
+            constructor() {
+                this.currentStep = 0;
+                this.maxRetries = 5;
+                this.retryCount = 0;
+                this.baseUrl = window.location.origin;
+                this.checkInterval = null;
+                
+                this.init();
+            }
+
+            init() {
+                console.log('🌅 Wake-up manager initialized');
+                this.startWakeUpProcess();
+            }
+
+            async startWakeUpProcess() {
+                this.updateStatus('Verificando status do servidor...');
+                this.setStep(1);
+                
+                try {
+                    const isAwake = await this.checkServerStatus();
+                    
+                    if (isAwake) {
+                        await this.completeWakeUp();
+                    } else {
+                        await this.wakeUpServer();
+                    }
+                } catch (error) {
+                    console.error('Wake-up process failed:', error);
+                    this.showError('Erro na inicialização: ' + error.message);
+                }
+            }
+
+            async checkServerStatus() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/api/health`, {
+                        method: 'GET',
+                        timeout: 10000
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Server is awake:', data);
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.log('⏰ Server appears to be sleeping');
+                    return false;
+                }
+            }
+
+            async wakeUpServer() {
+                this.updateStatus('Servidor em modo de economia. Iniciando...');
+                this.setStep(2);
+                
+                // Start multiple wake-up attempts
+                const wakeUpPromises = [
+                    this.makeWakeUpRequest('/api/health'),
+                    this.makeWakeUpRequest('/'),
+                    this.makeWakeUpRequest('/api/stats')
+                ];
+
+                try {
+                    await Promise.race(wakeUpPromises);
+                    await this.waitForServerReady();
+                } catch (error) {
+                    throw new Error('Falha ao despertar servidor');
+                }
+            }
+
+            async makeWakeUpRequest(endpoint) {
+                const maxAttempts = 3;
+                
+                for (let i = 0; i < maxAttempts; i++) {
+                    try {
+                        console.log(`🔄 Wake-up attempt ${i + 1} for ${endpoint}`);
+                        
+                        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                            method: 'GET',
+                            timeout: 30000
+                        });
+                        
+                        if (response.ok) {
+                            console.log(`✅ Wake-up successful for ${endpoint}`);
+                            return response;
+                        }
+                    } catch (error) {
+                        console.log(`⚠️ Wake-up attempt ${i + 1} failed for ${endpoint}`);
+                        if (i < maxAttempts - 1) {
+                            await this.sleep(2000); // Wait 2 seconds between attempts
+                        }
+                    }
+                }
+                
+                throw new Error(`Failed to wake up ${endpoint}`);
+            }
+
+            async waitForServerReady() {
+                this.updateStatus('Aguardando servidor ficar pronto...');
+                this.setStep(3);
+                
+                const maxWaitTime = 60000; // 60 seconds
+                const checkInterval = 2000; // Check every 2 seconds
+                const startTime = Date.now();
+                
+                while (Date.now() - startTime < maxWaitTime) {
+                    try {
+                        const isReady = await this.checkServerStatus();
+                        if (isReady) {
+                            return;
+                        }
+                        
+                        // Update progress
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min((elapsed / maxWaitTime) * 100, 90);
+                        this.updateProgress(progress);
+                        
+                        await this.sleep(checkInterval);
+                    } catch (error) {
+                        console.log('Still waiting for server...');
+                        await this.sleep(checkInterval);
+                    }
+                }
+                
+                throw new Error('Timeout aguardando servidor');
+            }
+
+            async completeWakeUp() {
+                this.updateStatus('Finalizando inicialização...');
+                this.setStep(4);
+                this.updateProgress(100);
+                
+                // Small delay for better UX
+                await this.sleep(1000);
+                
+                this.updateStatus('Aplicação pronta! Redirecionando...');
+                this.showSuccess();
+                
+                // Redirect to main app
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            }
+
+            updateStatus(message) {
+                document.getElementById('status').textContent = message;
+                console.log('📱 Status:', message);
+            }
+
+            setStep(stepNumber) {
+                // Mark previous steps as completed
+                for (let i = 1; i < stepNumber; i++) {
+                    const step = document.getElementById(`step${i}`);
+                    step.classList.add('completed');
+                    step.querySelector('.step-icon').textContent = '✓';
+                }
+                
+                // Mark current step as active
+                const currentStep = document.getElementById(`step${stepNumber}`);
+                if (currentStep) {
+                    currentStep.classList.add('active');
+                }
+                
+                this.currentStep = stepNumber;
+            }
+
+            updateProgress(percentage) {
+                document.getElementById('progressFill').style.width = `${percentage}%`;
+            }
+
+            showError(message) {
+                document.getElementById('errorText').textContent = message;
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('spinner').style.display = 'none';
+            }
+
+            showSuccess() {
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('spinner').style.display = 'none';
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Global retry function
+        function retryWakeUp() {
+            location.reload();
+        }
+
+        // Initialize wake-up manager when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WakeUpManager();
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                console.log('Page became visible - checking server status');
+                // Could trigger a status check here if needed
+            }
+        });
+    </script>
+</body>
+</html>

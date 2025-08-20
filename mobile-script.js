@@ -5,11 +5,16 @@ class GeminiChatMobile {
         this.apiKeys = {
             key1: localStorage.getItem('gemini_api_key1') || '',
             key2: localStorage.getItem('gemini_api_key2') || '',
-            key3: localStorage.getItem('gemini_api_key3') || ''
+            key3: localStorage.getItem('gemini_api_key3') || '',
+            key4: localStorage.getItem('gemini_api_key4') || ''
         };
         this.activeApiKey = localStorage.getItem('active_api_key') || 'key1';
         this.selectedModel = localStorage.getItem('selected_model') || 'gemini-2.5-pro';
         this.serverUrl = localStorage.getItem('server_url') || '';
+
+        // Automatic key rotation settings
+        this.autoKeyRotation = localStorage.getItem('auto_key_rotation') === 'true';
+        this.keyRotationInProgress = false;
         
         // Sistema de estatísticas
         this.statistics = this.loadStatistics();
@@ -223,6 +228,14 @@ class GeminiChatMobile {
         // API Delay selection
         document.getElementById('apiDelaySelect').addEventListener('change', () => {
             this.saveApiDelaySetting();
+        });
+
+        // Auto Key Rotation toggle
+        document.getElementById('autoKeyRotationToggle').addEventListener('change', (e) => {
+            this.autoKeyRotation = e.target.checked;
+            localStorage.setItem('auto_key_rotation', this.autoKeyRotation.toString());
+            console.log(`[Key Rotation] Auto rotation ${this.autoKeyRotation ? 'enabled' : 'disabled'}`);
+            this.showToast(`🔄 Rotação automática ${this.autoKeyRotation ? 'ativada' : 'desativada'}`);
         });
 
         // Individual tab update button
@@ -489,6 +502,9 @@ class GeminiChatMobile {
 
         // Load API delay setting
         this.loadApiDelaySetting();
+
+        // Load auto key rotation setting
+        this.loadAutoKeyRotationSetting();
 
         this.updateApiKeyInput();
         this.updateStatisticsDisplay();
@@ -769,7 +785,10 @@ class GeminiChatMobile {
             // Mark user message as pending initially
             this.updateMessageStatus(userMessageId, 'pending');
 
-            const response = await this.callGeminiAPI(message, processedFiles);
+            // Use rotation-enabled API call if auto rotation is enabled
+            const response = this.autoKeyRotation ?
+                await this.callGeminiAPIWithRotation(message, processedFiles) :
+                await this.callGeminiAPI(message, processedFiles);
             this.hideTyping();
 
             // Mark user message as sent and add to history
@@ -1948,6 +1967,111 @@ NARRATIVA HISTÓRICA DA AVENTURA:`;
         if (delaySelect) {
             delaySelect.value = savedDelay;
         }
+    }
+
+    // Load auto key rotation setting
+    loadAutoKeyRotationSetting() {
+        const rotationToggle = document.getElementById('autoKeyRotationToggle');
+        if (rotationToggle) {
+            rotationToggle.checked = this.autoKeyRotation;
+        }
+    }
+
+    // Get next API key for rotation
+    getNextApiKey(currentKey) {
+        const keyOrder = ['key1', 'key2', 'key3', 'key4'];
+        const currentIndex = keyOrder.indexOf(currentKey);
+        const nextIndex = (currentIndex + 1) % keyOrder.length;
+        return keyOrder[nextIndex];
+    }
+
+    // Check if error is rate limit related
+    isRateLimitError(errorMessage) {
+        const rateLimitKeywords = [
+            'quota exceeded',
+            'too many requests',
+            'rate limit',
+            'resource_exhausted',
+            'quota_exceeded',
+            'rate_limit_exceeded',
+            'requests per minute',
+            'requests per day',
+            'api quota',
+            'usage limit'
+        ];
+
+        const message = errorMessage.toLowerCase();
+        return rateLimitKeywords.some(keyword => message.includes(keyword));
+    }
+
+    // Attempt API call with automatic key rotation
+    async callGeminiAPIWithRotation(message, files = [], timeoutMs = 120000, maxRotations = 4) {
+        let currentKey = this.activeApiKey;
+        let rotationCount = 0;
+        let lastError = null;
+
+        while (rotationCount < maxRotations) {
+            try {
+                console.log(`[Key Rotation] Attempting API call with ${currentKey} (attempt ${rotationCount + 1}/${maxRotations})`);
+
+                // Temporarily set the active key for this attempt
+                const originalKey = this.activeApiKey;
+                this.activeApiKey = currentKey;
+
+                const result = await this.callGeminiAPI(message, files, timeoutMs);
+
+                // If successful and we rotated, update the UI and notify user
+                if (currentKey !== originalKey) {
+                    localStorage.setItem('active_api_key', currentKey);
+                    this.updateApiKeyInput();
+                    this.updateStatisticsDisplay();
+                    this.showToast(`✅ Chave ${currentKey} funcionando, continuando com ela`);
+                }
+
+                return result;
+
+            } catch (error) {
+                lastError = error;
+                console.log(`[Key Rotation] Error with ${currentKey}:`, error.message);
+
+                // Check if this is a rate limit error and auto rotation is enabled
+                if (this.autoKeyRotation && this.isRateLimitError(error.message)) {
+                    rotationCount++;
+
+                    if (rotationCount < maxRotations) {
+                        const nextKey = this.getNextApiKey(currentKey);
+
+                        // Check if next key has an API key configured
+                        if (this.apiKeys[nextKey] && this.apiKeys[nextKey].trim()) {
+                            this.showToast(`⚠️ Chave ${currentKey} saturada, tentando ${nextKey}...`);
+                            currentKey = nextKey;
+
+                            // Small delay before retry
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            continue;
+                        } else {
+                            this.showToast(`⚠️ ${nextKey} não configurada, pulando...`);
+                            currentKey = this.getNextApiKey(nextKey);
+                            continue;
+                        }
+                    }
+                } else {
+                    // Not a rate limit error or auto rotation disabled, throw immediately
+                    throw error;
+                }
+            }
+        }
+
+        // All keys failed with rate limit errors
+        console.log('[Key Rotation] All API keys exhausted');
+        this.showToast('❌ Todas as chaves atingiram o limite. Tente trocar de modelo (Pro ↔ Flash)', 'error', 5000);
+
+        // Suggest model switch
+        const currentModel = this.selectedModel;
+        const suggestedModel = currentModel.includes('pro') ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
+        this.showToast(`💡 Sugestão: Tente trocar para ${suggestedModel}`, 'info', 7000);
+
+        throw lastError;
     }
 
     // Save API delay setting
@@ -3997,36 +4121,61 @@ ${message}`;
     }
 
     // Mostrar toast
-    showToast(message) {
+    showToast(message, type = 'info', duration = 3000) {
         // Criar elemento toast
         const toast = document.createElement('div');
+
+        // Define colors based on type
+        let backgroundColor, borderColor;
+        switch (type) {
+            case 'error':
+                backgroundColor = 'linear-gradient(145deg, #dc3545, #c82333)';
+                borderColor = '#721c24';
+                break;
+            case 'success':
+                backgroundColor = 'linear-gradient(145deg, #28a745, #218838)';
+                borderColor = '#155724';
+                break;
+            case 'warning':
+                backgroundColor = 'linear-gradient(145deg, #ffc107, #e0a800)';
+                borderColor = '#856404';
+                break;
+            default: // info
+                backgroundColor = 'linear-gradient(145deg, #d4af37, #b8860b)';
+                borderColor = '#654321';
+        }
+
         toast.style.cssText = `
             position: fixed;
             top: 100px;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(145deg, #d4af37, #b8860b);
+            background: ${backgroundColor};
             color: #f5f5dc;
             padding: 12px 24px;
             border-radius: 8px;
-            border: 2px solid #654321;
+            border: 2px solid ${borderColor};
             font-family: 'Medieval Sharp', cursive;
             font-weight: 700;
             z-index: 10000;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             animation: slideInUp 0.3s ease-out;
+            max-width: 90%;
+            text-align: center;
         `;
         toast.textContent = message;
-        
+
         document.body.appendChild(toast);
-        
-        // Remover após 3 segundos
+
+        // Remover após duração especificada
         setTimeout(() => {
             toast.style.animation = 'fadeOut 0.3s ease-out';
             setTimeout(() => {
-                document.body.removeChild(toast);
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
             }, 300);
-        }, 3000);
+        }, duration);
     }
 
     // Utilitários
@@ -4100,7 +4249,7 @@ ${message}`;
             }
 
             // Migrate old statistics format to include new fields
-            ['key1', 'key2', 'key3'].forEach(key => {
+            ['key1', 'key2', 'key3', 'key4'].forEach(key => {
                 if (stats[key] && typeof stats[key].lastTokenCount === 'undefined') {
                     stats[key].lastTokenCount = 0;
                     stats[key].lastModel = '';
@@ -4119,7 +4268,8 @@ ${message}`;
             date: date,
             key1: { pro: 0, flash: 0, tokens: 0, lastTokenCount: 0, lastModel: '' },
             key2: { pro: 0, flash: 0, tokens: 0, lastTokenCount: 0, lastModel: '' },
-            key3: { pro: 0, flash: 0, tokens: 0, lastTokenCount: 0, lastModel: '' }
+            key3: { pro: 0, flash: 0, tokens: 0, lastTokenCount: 0, lastModel: '' },
+            key4: { pro: 0, flash: 0, tokens: 0, lastTokenCount: 0, lastModel: '' }
         };
     }
     
@@ -4158,8 +4308,17 @@ ${message}`;
     // Atualizar input da API key baseado na seleção
     updateApiKeyInput() {
         const apiKeyInput = document.getElementById('mobileApiKeyInput');
+        const keyLabel = document.getElementById('currentKeyLabel');
+
         apiKeyInput.value = this.apiKeys[this.activeApiKey] || '';
         apiKeyInput.placeholder = `Insira sua API Key (${this.activeApiKey})...`;
+
+        // Update label to show which key is being configured
+        const keyNumber = this.activeApiKey.replace('key', '');
+        if (keyLabel) {
+            keyLabel.textContent = `Chave da API ${keyNumber}:`;
+        }
+
         console.log(`[API Key] Campo de input atualizado para: ${this.activeApiKey}`);
     }
 

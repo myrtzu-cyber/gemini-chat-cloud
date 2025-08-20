@@ -48,27 +48,74 @@ class SimpleDatabase {
         // Carregar dados persistidos se existirem
         try {
             const dataFile = path.join(__dirname, 'simple-db-data.json');
+            const backupFile = path.join(__dirname, 'simple-db-data-backup.json');
+
             console.log(`🔍 Procurando arquivo de dados: ${dataFile}`);
             console.log(`🔍 Arquivo existe: ${fs.existsSync(dataFile)}`);
+            console.log(`🔍 Backup existe: ${fs.existsSync(backupFile)}`);
 
+            let dataLoaded = false;
+
+            // Try to load main data file
             if (fs.existsSync(dataFile)) {
-                const rawData = fs.readFileSync(dataFile, 'utf8');
-                console.log(`📄 Tamanho do arquivo: ${rawData.length} chars`);
+                try {
+                    const rawData = fs.readFileSync(dataFile, 'utf8');
+                    console.log(`📄 Tamanho do arquivo principal: ${rawData.length} chars`);
 
-                const data = JSON.parse(rawData);
-                this.chats = data.chats || [];
-                this.messages = data.messages || [];
-                console.log(`📂 Dados carregados: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+                    const data = JSON.parse(rawData);
+                    this.chats = data.chats || [];
+                    this.messages = data.messages || [];
+                    console.log(`📂 Dados carregados do arquivo principal: ${this.chats.length} chats, ${this.messages.length} mensagens`);
 
-                if (this.chats.length > 0) {
-                    console.log(`🎯 Primeiro chat: "${this.chats[0].title}" (${this.chats[0].id})`);
+                    if (data.lastSaved) {
+                        console.log(`🕒 Último salvamento: ${data.lastSaved}`);
+                    }
+
+                    dataLoaded = true;
+                } catch (parseError) {
+                    console.log('⚠️ Erro ao parsear arquivo principal:', parseError.message);
+                    console.log('🔄 Tentando carregar backup...');
                 }
-            } else {
-                console.log('📂 Arquivo de dados não encontrado, iniciando com database vazio');
             }
+
+            // If main file failed or doesn't exist, try backup
+            if (!dataLoaded && fs.existsSync(backupFile)) {
+                try {
+                    const rawData = fs.readFileSync(backupFile, 'utf8');
+                    console.log(`📄 Tamanho do arquivo de backup: ${rawData.length} chars`);
+
+                    const data = JSON.parse(rawData);
+                    this.chats = data.chats || [];
+                    this.messages = data.messages || [];
+                    console.log(`📂 Dados carregados do backup: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+
+                    // Restore main file from backup
+                    fs.writeFileSync(dataFile, rawData);
+                    console.log('🔄 Arquivo principal restaurado do backup');
+
+                    dataLoaded = true;
+                } catch (backupError) {
+                    console.log('⚠️ Erro ao carregar backup:', backupError.message);
+                }
+            }
+
+            if (!dataLoaded) {
+                console.log('📂 Nenhum arquivo de dados encontrado, iniciando com database vazio');
+                this.chats = [];
+                this.messages = [];
+            }
+
+            if (this.chats.length > 0) {
+                console.log(`🎯 Primeiro chat: "${this.chats[0].title}" (${this.chats[0].id})`);
+                console.log(`🎯 Último chat: "${this.chats[this.chats.length - 1].title}" (${this.chats[this.chats.length - 1].id})`);
+            }
+
         } catch (error) {
-            console.log('⚠️ Erro ao carregar dados persistidos:', error.message);
+            console.log('⚠️ Erro crítico ao carregar dados persistidos:', error.message);
             console.log('⚠️ Stack trace:', error.stack);
+            // Initialize with empty data as fallback
+            this.chats = [];
+            this.messages = [];
         }
 
         if (DATABASE_URL) {
@@ -78,7 +125,83 @@ class SimpleDatabase {
         }
 
         this.initialized = true;
+
+        // Set up periodic auto-save to prevent data loss
+        this.setupAutoSave();
+
         return true;
+    }
+
+    // Robust data persistence with backup
+    async persistData(operation = 'Data update') {
+        try {
+            const dataFile = path.join(__dirname, 'simple-db-data.json');
+            const backupFile = path.join(__dirname, 'simple-db-data-backup.json');
+
+            const data = {
+                chats: this.chats,
+                messages: this.messages,
+                lastSaved: new Date().toISOString(),
+                operation: operation,
+                stats: {
+                    totalChats: this.chats.length,
+                    totalMessages: this.messages.length,
+                    serverUptime: process.uptime()
+                }
+            };
+
+            const jsonData = JSON.stringify(data, null, 2);
+
+            // Create backup of current file before overwriting
+            if (fs.existsSync(dataFile)) {
+                try {
+                    fs.copyFileSync(dataFile, backupFile);
+                } catch (backupError) {
+                    console.log('⚠️ Erro ao criar backup:', backupError.message);
+                }
+            }
+
+            // Write new data
+            fs.writeFileSync(dataFile, jsonData);
+
+            console.log(`💾 Dados persistidos: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+            console.log(`💾 Operação: ${operation}`);
+            console.log(`💾 Arquivo: ${dataFile}`);
+
+            // Verify the write was successful
+            if (fs.existsSync(dataFile)) {
+                const verifySize = fs.statSync(dataFile).size;
+                console.log(`✅ Verificação: arquivo salvo com ${verifySize} bytes`);
+            }
+
+        } catch (saveError) {
+            console.log('⚠️ Erro crítico ao persistir dados:', saveError.message);
+            console.log('⚠️ Stack trace:', saveError.stack);
+
+            // Try to restore from backup if main save failed
+            try {
+                const backupFile = path.join(__dirname, 'simple-db-data-backup.json');
+                if (fs.existsSync(backupFile)) {
+                    console.log('🔄 Tentando restaurar do backup...');
+                    // Don't overwrite, just log that backup exists
+                    console.log('📂 Backup disponível para recuperação manual');
+                }
+            } catch (restoreError) {
+                console.log('⚠️ Erro ao verificar backup:', restoreError.message);
+            }
+        }
+    }
+
+    // Set up automatic periodic saves
+    setupAutoSave() {
+        // Auto-save every 5 minutes to prevent data loss
+        setInterval(async () => {
+            if (this.chats.length > 0 || this.messages.length > 0) {
+                await this.persistData('Auto-save (periodic)');
+            }
+        }, 5 * 60 * 1000); // 5 minutes
+
+        console.log('⏰ Auto-save configurado: salvamento a cada 5 minutos');
     }
 
     async createChat(chatData) {
@@ -144,27 +267,8 @@ class SimpleDatabase {
             }
         }
 
-        // Salvar dados persistentemente
-        try {
-            const dataFile = path.join(__dirname, 'simple-db-data.json');
-            const data = {
-                chats: this.chats,
-                messages: this.messages,
-                lastSaved: new Date().toISOString(),
-                stats: {
-                    totalChats: this.chats.length,
-                    totalMessages: this.messages.length,
-                    lastChatId: chatData.id
-                }
-            };
-            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            console.log(`💾 Dados persistidos: ${this.chats.length} chats, ${this.messages.length} mensagens`);
-            console.log(`💾 Arquivo: ${dataFile}`);
-            console.log(`💾 Último chat: ${chatData.id} - "${chatData.title}"`);
-        } catch (saveError) {
-            console.log('⚠️ Erro ao persistir dados:', saveError.message);
-            console.log('⚠️ Stack trace:', saveError.stack);
-        }
+        // Salvar dados persistentemente com backup
+        await this.persistData(`Chat criado: ${chatData.id} - "${chatData.title}"`);
 
         console.log(`✅ Chat ${chatData.id} salvo com sucesso`);
         return { success: true, message: 'Chat saved successfully', id: chatData.id };
@@ -266,18 +370,7 @@ class SimpleDatabase {
             }
 
             // Salvar dados persistentemente
-            try {
-                const dataFile = path.join(__dirname, 'simple-db-data.json');
-                const data = {
-                    chats: this.chats,
-                    messages: this.messages,
-                    lastSaved: new Date().toISOString()
-                };
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                console.log(`💾 Mensagem persistida em ${dataFile}`);
-            } catch (saveError) {
-                console.log('⚠️ Erro ao persistir mensagem:', saveError.message);
-            }
+            await this.persistData(`Mensagem salva para chat ${messageData.chat_id}`);
 
             console.log(`✅ SimpleDatabase: Mensagem adicionada com sucesso`);
             return { success: true, message: 'Message added successfully', messageId: message.id };
@@ -334,18 +427,7 @@ class SimpleDatabase {
             this.chats[chatIndex].updated_at = new Date().toISOString();
 
             // Salvar dados persistentemente
-            try {
-                const dataFile = path.join(__dirname, 'simple-db-data.json');
-                const data = {
-                    chats: this.chats,
-                    messages: this.messages,
-                    lastSaved: new Date().toISOString()
-                };
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-                console.log(`💾 Dados persistidos em ${dataFile}`);
-            } catch (saveError) {
-                console.log('⚠️ Erro ao persistir dados:', saveError.message);
-            }
+            await this.persistData(`Context atualizado para chat ${chatId}`);
 
             console.log(`✅ SimpleDatabase: Context salvo para chat ${chatId}`);
             return { success: true, message: 'Context updated successfully' };
@@ -358,6 +440,9 @@ class SimpleDatabase {
 
 // Instância global do database
 let db;
+
+// Instância global do backup service
+let backupService;
 
 // Inicializar database baseado na disponibilidade do DATABASE_URL e PostgresDatabase
 console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurado' : 'Não configurado');
@@ -453,6 +538,11 @@ const server = http.createServer(async (req, res) => {
 
     console.log(`${new Date().toISOString()} - ${method} ${pathname}`);
 
+    // Record activity for backup system
+    if (backupService && pathname.startsWith('/api/')) {
+        backupService.recordActivity();
+    }
+
     // Adicionar CORS headers
     addCorsHeaders(res);
 
@@ -466,15 +556,32 @@ const server = http.createServer(async (req, res) => {
     // API Routes
     if (pathname.startsWith('/api/')) {
         
-        // Health check
+        // Enhanced Health check with wake-up monitoring
         if (pathname === '/api/health') {
             const stats = await db.getStats();
+            const uptime = process.uptime();
+            const memoryUsage = process.memoryUsage();
+
+            // Log wake-up ping for monitoring
+            console.log(`🏥 Health check at ${new Date().toISOString()} - Uptime: ${Math.floor(uptime/60)}m ${Math.floor(uptime%60)}s`);
+
             sendJsonResponse(res, 200, {
                 status: 'ok',
                 timestamp: new Date().toISOString(),
                 environment: 'cloud-server',
+                uptime_seconds: Math.floor(uptime),
+                uptime_human: `${Math.floor(uptime/3600)}h ${Math.floor((uptime%3600)/60)}m ${Math.floor(uptime%60)}s`,
+                memory_usage: {
+                    rss_mb: Math.round(memoryUsage.rss / 1024 / 1024),
+                    heap_used_mb: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+                    heap_total_mb: Math.round(memoryUsage.heapTotal / 1024 / 1024)
+                },
                 database_configured: stats.database_url_configured,
-                message: 'Servidor cloud funcionando'
+                database_type: stats.server_type,
+                total_chats: stats.total_chats,
+                total_messages: stats.total_messages,
+                message: 'Servidor cloud funcionando - Keep alive active',
+                last_ping: new Date().toISOString()
             });
             return;
         }
@@ -750,6 +857,224 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Backup trigger endpoint
+        if (pathname === '/api/backup/trigger' && method === 'GET') {
+            try {
+                console.log('🗄️ Backup trigger endpoint called');
+
+                if (!backupService) {
+                    sendJsonResponse(res, 200, {
+                        status: 'skipped',
+                        message: 'Google Drive backup service not configured',
+                        timestamp: new Date().toISOString()
+                    });
+                    return;
+                }
+
+                const result = await backupService.performScheduledBackup(db);
+
+                sendJsonResponse(res, 200, {
+                    status: 'success',
+                    message: 'Backup check completed',
+                    result: result,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('❌ Backup trigger error:', error);
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    message: 'Backup trigger failed',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
+        // Backup status endpoint
+        if (pathname === '/api/backup/status' && method === 'GET') {
+            try {
+                if (!backupService) {
+                    sendJsonResponse(res, 200, {
+                        status: 'not_configured',
+                        message: 'Google Drive backup service not available',
+                        timestamp: new Date().toISOString()
+                    });
+                    return;
+                }
+
+                const status = await backupService.getBackupStatus();
+                sendJsonResponse(res, 200, status);
+            } catch (error) {
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
+        // Manual backup endpoint
+        if (pathname === '/api/backup/manual' && method === 'POST') {
+            try {
+                console.log('🔧 Manual backup endpoint called');
+
+                if (!backupService) {
+                    sendJsonResponse(res, 400, {
+                        status: 'error',
+                        message: 'Google Drive backup service not configured',
+                        timestamp: new Date().toISOString()
+                    });
+                    return;
+                }
+
+                const result = await backupService.triggerManualBackup(db);
+
+                sendJsonResponse(res, 200, {
+                    status: 'success',
+                    message: 'Manual backup completed',
+                    result: result,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('❌ Manual backup error:', error);
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    message: 'Manual backup failed',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
+        // Database recovery endpoint
+        if (pathname === '/api/database/recovery' && method === 'GET') {
+            try {
+                console.log('🔍 Database recovery endpoint called');
+
+                const dataFile = path.join(__dirname, 'simple-db-data.json');
+                const backupFile = path.join(__dirname, 'simple-db-data-backup.json');
+
+                const recovery = {
+                    timestamp: new Date().toISOString(),
+                    serverUptime: process.uptime(),
+                    databaseType: db.constructor.name,
+                    currentData: {
+                        chats: db.chats ? db.chats.length : 0,
+                        messages: db.messages ? db.messages.length : 0
+                    },
+                    files: {
+                        mainFile: {
+                            exists: fs.existsSync(dataFile),
+                            size: fs.existsSync(dataFile) ? fs.statSync(dataFile).size : 0,
+                            modified: fs.existsSync(dataFile) ? fs.statSync(dataFile).mtime : null
+                        },
+                        backupFile: {
+                            exists: fs.existsSync(backupFile),
+                            size: fs.existsSync(backupFile) ? fs.statSync(backupFile).size : 0,
+                            modified: fs.existsSync(backupFile) ? fs.statSync(backupFile).mtime : null
+                        }
+                    }
+                };
+
+                // Try to read backup file content for comparison
+                if (fs.existsSync(backupFile)) {
+                    try {
+                        const backupData = JSON.parse(fs.readFileSync(backupFile, 'utf8'));
+                        recovery.backupData = {
+                            chats: backupData.chats ? backupData.chats.length : 0,
+                            messages: backupData.messages ? backupData.messages.length : 0,
+                            lastSaved: backupData.lastSaved,
+                            operation: backupData.operation
+                        };
+                    } catch (parseError) {
+                        recovery.backupData = { error: 'Failed to parse backup file' };
+                    }
+                }
+
+                sendJsonResponse(res, 200, recovery);
+            } catch (error) {
+                console.error('❌ Database recovery error:', error);
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
+        // Force database reload endpoint
+        if (pathname === '/api/database/reload' && method === 'POST') {
+            try {
+                console.log('🔄 Database reload endpoint called');
+
+                if (db.constructor.name === 'SimpleDatabase') {
+                    const oldChats = db.chats.length;
+                    const oldMessages = db.messages.length;
+
+                    // Reinitialize the database
+                    await db.initialize();
+
+                    const newChats = db.chats.length;
+                    const newMessages = db.messages.length;
+
+                    sendJsonResponse(res, 200, {
+                        status: 'success',
+                        message: 'Database reloaded',
+                        before: { chats: oldChats, messages: oldMessages },
+                        after: { chats: newChats, messages: newMessages },
+                        timestamp: new Date().toISOString()
+                    });
+                } else {
+                    sendJsonResponse(res, 400, {
+                        status: 'error',
+                        message: 'Database reload only available for SimpleDatabase',
+                        databaseType: db.constructor.name,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Database reload error:', error);
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
+        // Activity status endpoint
+        if (pathname === '/api/activity/status' && method === 'GET') {
+            try {
+                if (!backupService) {
+                    sendJsonResponse(res, 200, {
+                        status: 'not_configured',
+                        message: 'Activity tracking not available',
+                        timestamp: new Date().toISOString()
+                    });
+                    return;
+                }
+
+                const activityStats = backupService.getActivityStats();
+                sendJsonResponse(res, 200, {
+                    ...activityStats,
+                    timestamp: new Date().toISOString(),
+                    uptime: process.uptime()
+                });
+            } catch (error) {
+                sendJsonResponse(res, 500, {
+                    status: 'error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            return;
+        }
+
         // API endpoint not found
         sendJsonResponse(res, 404, { error: 'API endpoint not found' });
         return;
@@ -783,13 +1108,24 @@ const server = http.createServer(async (req, res) => {
 async function startServer() {
     try {
         await db.initialize();
-        
+
+        // Initialize backup service
+        try {
+            const GoogleDriveBackup = require('./google-drive-backup');
+            backupService = new GoogleDriveBackup();
+            console.log('🗄️ Google Drive backup service initialized');
+        } catch (error) {
+            console.log('⚠️ Google Drive backup service not available:', error.message);
+            backupService = null;
+        }
+
         server.listen(PORT, () => {
             console.log('🚀 Servidor Cloud Iniciado');
             console.log('=====================================');
             console.log(`📱 Frontend: http://localhost:${PORT}`);
             console.log(`🔌 API: http://localhost:${PORT}/api`);
             console.log(`💾 Database: ${DATABASE_URL ? 'External' : 'Memory'}`);
+            console.log(`🗄️ Backup: ${backupService ? 'Google Drive Configured' : 'Not Configured'}`);
             console.log('✅ Pronto para cloud deployment!');
             console.log('=====================================');
         });

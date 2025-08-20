@@ -44,6 +44,7 @@
                             <option value="key1">API Key 1</option>
                             <option value="key2">API Key 2</option>
                             <option value="key3">API Key 3</option>
+                            <option value="key4">API Key 4</option>
                         </select>
                     </div>
                     
@@ -94,6 +95,17 @@
                             <option value="10">10 segundos</option>
                             <option value="15">15 segundos</option>
                         </select>
+                    </div>
+
+                    <!-- Rotação Automática de Chaves -->
+                    <div class="setting-group">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="autoKeyRotationToggle" style="transform: scale(1.2);">
+                            <span>Rotação Automática de Chaves</span>
+                        </label>
+                        <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                            Troca automaticamente para a próxima chave quando atingir limite de quota
+                        </small>
                     </div>
                     <div class="setting-group">
                         <label>Servidor Local:</label>
@@ -353,6 +365,8 @@
 
     <script src="frontend/config.js"></script>
     <script src="mobile-script.js"></script>
+    <!-- Smart Wake-up System for On-Demand Model -->
+    <script src="smart-wake-up.js"></script>
     <script>
         // Registrar Service Worker para PWA (apenas em HTTPS)
         if ('serviceWorker' in navigator && location.protocol === 'https:') {

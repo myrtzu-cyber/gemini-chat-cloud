@@ -1,0 +1,91 @@
+name: On-Demand Render App Wake-up
+
+on:
+  # Disable automatic scheduling - only manual triggers
+  # schedule:
+  #   - cron: '*/14 * * * *'  # Disabled for on-demand model
+
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      wake_reason:
+        description: 'Reason for wake-up'
+        required: false
+        default: 'Manual trigger'
+        type: string
+
+  # Trigger on repository events (when users interact with the repo)
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  on-demand-wake:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Wake Up Render App (On-Demand)
+      run: |
+        echo "🌅 On-demand wake-up triggered..."
+        echo "Reason: ${{ github.event.inputs.wake_reason || 'Repository activity' }}"
+
+        # Your Render app URL - update this with your actual URL
+        RENDER_URL="https://gemini-chat-cloud.onrender.com"
+        
+        # Ping health endpoint
+        response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$RENDER_URL/api/health")
+        
+        if [ "$response" = "200" ]; then
+          echo "✅ App is alive! Response: $response"
+          
+          # Also ping the main page to ensure full wake-up
+          main_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$RENDER_URL/")
+          echo "📱 Main page response: $main_response"
+          
+          # Get app stats for monitoring
+          stats=$(curl -s --max-time 30 "$RENDER_URL/api/stats" || echo "Stats unavailable")
+          echo "📊 App stats: $stats"
+          
+        else
+          echo "❌ App might be sleeping or having issues. Response: $response"
+          
+          # Try to wake it up with multiple requests
+          echo "🔄 Attempting to wake up the app..."
+          for i in {1..3}; do
+            echo "Attempt $i..."
+            curl -s --max-time 45 "$RENDER_URL/api/health" > /dev/null
+            sleep 10
+          done
+          
+          # Check again
+          final_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$RENDER_URL/api/health")
+          echo "🔍 Final check response: $final_response"
+          
+          if [ "$final_response" != "200" ]; then
+            echo "🚨 App failed to wake up after multiple attempts"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ On-demand wake-up completed at $(date)"
+
+  backup-on-activity:
+    runs-on: ubuntu-latest
+    needs: on-demand-wake
+    if: success() && github.event_name != 'pull_request'
+
+    steps:
+    - name: Trigger Backup During Activity
+      run: |
+        echo "🗄️ App is active - checking if backup is needed..."
+
+        RENDER_URL="https://gemini-chat-cloud.onrender.com"
+
+        # Only trigger backup if app was successfully awakened
+        backup_response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$RENDER_URL/api/backup/trigger" || echo "000")
+
+        if [ "$backup_response" = "200" ]; then
+          echo "✅ Backup check completed during active period"
+        else
+          echo "ℹ️ Backup endpoint response: $backup_response"
+        fi
