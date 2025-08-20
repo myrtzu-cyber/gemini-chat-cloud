@@ -10,7 +10,7 @@ const https = require('https');
 
 class APIMigration {
     constructor() {
-        this.DATABASE_URL = 'postgresql://gemini_user:G0RKN3hY6K3C2bUDTjCs1PI6itVYTTbA@dpg-d2ivltruibrs73abk0h0-a.oregon-postgres.render.com/gemini_chat';
+        this.DATABASE_URL = process.env.DATABASE_URL;
         this.sqlitePath = this.findSQLiteDatabase();
         this.renderAppUrl = 'https://gemini-chat-cloud.onrender.com'; // Será atualizado quando souber a URL real
         this.totalChats = 0;

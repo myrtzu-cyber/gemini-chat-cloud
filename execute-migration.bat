@@ -8,7 +8,7 @@ echo.
 
 REM Executar SQL via PowerShell e Invoke-RestMethod para PostgreSQL
 powershell -Command "
-$connectionString = 'postgresql://gemini_user:G0RKN3hY6K3C2bUDTjCs1PI6itVYTTbA@dpg-d2ivltruibrs73abk0h0-a.oregon-postgres.render.com/gemini_chat'
+$connectionString = $env:DATABASE_URL
 $sqlFile = Get-Content -Path 'migration.sql' -Raw
 
 Write-Host '📝 SQL a ser executado:'
