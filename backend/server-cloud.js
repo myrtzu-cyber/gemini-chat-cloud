@@ -3,10 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-// Importar database PostgreSQL
-const PostgresDatabase = require('./database-postgres');
-
-console.log('📦 PostgresDatabase imported:', typeof PostgresDatabase);
+// Importar database PostgreSQL com fallback
+let PostgresDatabase = null;
+try {
+    PostgresDatabase = require('./database-postgres');
+    console.log('📦 PostgresDatabase imported successfully:', typeof PostgresDatabase);
+} catch (error) {
+    console.log('⚠️ PostgresDatabase import failed:', error.message);
+    console.log('💾 Will use SimpleDatabase fallback only');
+}
 
 /**
  * Servidor Node.js para Cloud com Database Externo
@@ -40,14 +45,25 @@ class SimpleDatabase {
     }
 
     async initialize() {
-        if (DATABASE_URL) {
-            console.log('🔗 DATABASE_URL detectada, usando database externo');
-            // Em produção real, aqui conectaria ao PostgreSQL
-            // Por simplicidade, mantemos in-memory mas com estrutura preparada
-        } else {
-            console.log('💾 Usando database em memória (desenvolvimento)');
+        // Carregar dados persistidos se existirem
+        try {
+            const dataFile = path.join(__dirname, 'simple-db-data.json');
+            if (fs.existsSync(dataFile)) {
+                const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+                this.chats = data.chats || [];
+                this.messages = data.messages || [];
+                console.log(`📂 Dados carregados: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+            }
+        } catch (error) {
+            console.log('⚠️ Erro ao carregar dados persistidos:', error.message);
         }
-        
+
+        if (DATABASE_URL) {
+            console.log('🔗 DATABASE_URL detectada, mas usando SimpleDatabase como fallback');
+        } else {
+            console.log('💾 Usando SimpleDatabase com persistência em arquivo');
+        }
+
         this.initialized = true;
         return true;
     }
@@ -137,6 +153,20 @@ class SimpleDatabase {
             this.chats[chatIndex].context = JSON.stringify(contextData);
             this.chats[chatIndex].updated_at = new Date().toISOString();
 
+            // Salvar dados persistentemente
+            try {
+                const dataFile = path.join(__dirname, 'simple-db-data.json');
+                const data = {
+                    chats: this.chats,
+                    messages: this.messages,
+                    lastSaved: new Date().toISOString()
+                };
+                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+                console.log(`💾 Dados persistidos em ${dataFile}`);
+            } catch (saveError) {
+                console.log('⚠️ Erro ao persistir dados:', saveError.message);
+            }
+
             console.log(`✅ SimpleDatabase: Context salvo para chat ${chatId}`);
             return { success: true, message: 'Context updated successfully' };
         } catch (error) {
@@ -149,16 +179,16 @@ class SimpleDatabase {
 // Instância global do database
 let db;
 
-// Inicializar database baseado na disponibilidade do DATABASE_URL
+// Inicializar database baseado na disponibilidade do DATABASE_URL e PostgresDatabase
 console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurado' : 'Não configurado');
-console.log('🔍 PostgresDatabase type:', typeof PostgresDatabase);
+console.log('🔍 PostgresDatabase available:', PostgresDatabase !== null);
 
-// FORÇAR PostgresDatabase se DATABASE_URL estiver configurado
-if (DATABASE_URL && typeof PostgresDatabase === 'function') {
-    console.log('🐘 Usando PostgreSQL Database');
+// Tentar usar PostgresDatabase se disponível e DATABASE_URL configurado
+if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') {
+    console.log('🐘 Tentando usar PostgreSQL Database');
     try {
         db = new PostgresDatabase();
-        console.log('✅ PostgresDatabase instanciado');
+        console.log('✅ PostgresDatabase instanciado com sucesso');
         console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
 
         // Verificar se o método existe
@@ -172,6 +202,12 @@ if (DATABASE_URL && typeof PostgresDatabase === 'function') {
         db = new SimpleDatabase();
     }
 } else {
+    if (!PostgresDatabase) {
+        console.log('⚠️ PostgresDatabase não disponível (módulo pg não encontrado)');
+    }
+    if (!DATABASE_URL) {
+        console.log('⚠️ DATABASE_URL não configurado');
+    }
     console.log('💾 Usando SimpleDatabase (fallback)');
     db = new SimpleDatabase();
     console.log('✅ SimpleDatabase instanciado');
