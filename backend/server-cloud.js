@@ -6,10 +6,6 @@ const url = require('url');
 // Import database factory for better error handling
 const DatabaseFactory = require('./database-factory');
 
-// Import keep-alive systems
-const { setupKeepAlive } = require('./keep-alive-endpoint');
-const { initSelfPing } = require('./self-ping');
-
 /**
  * Servidor Node.js para Cloud com Database Externo
  * Compatível com PostgreSQL (Render) e fallback para in-memory
@@ -861,45 +857,17 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // Keep-alive endpoint - ping simples
+        // Keep-alive endpoint - para GitHub Actions workflow
         if (pathname === '/keep-alive' && method === 'GET') {
             const timestamp = new Date().toISOString();
-            const uptime = process.uptime();
-            const memoryUsage = process.memoryUsage();
-            
-            console.log(`🏓 Keep-alive ping recebido em ${timestamp}`);
+            console.log(`🏓 Keep-alive ping recebido via GitHub Actions: ${timestamp}`);
             
             sendJsonResponse(res, 200, {
                 status: 'alive',
                 timestamp,
-                uptime: Math.floor(uptime),
-                memory: {
-                    used: Math.round(memoryUsage.heapUsed / 1024 / 1024) + 'MB',
-                    total: Math.round(memoryUsage.heapTotal / 1024 / 1024) + 'MB'
-                },
-                message: 'Servidor acordado e funcionando!',
-                keep_alive: 'active'
-            });
-            return;
-        }
-
-        // Status endpoint - informações detalhadas
-        if (pathname === '/api/status' && method === 'GET') {
-            const timestamp = new Date().toISOString();
-            const uptime = process.uptime();
-            
-            sendJsonResponse(res, 200, {
-                status: 'ok',
-                timestamp,
-                uptime: {
-                    seconds: Math.floor(uptime),
-                    minutes: Math.floor(uptime / 60),
-                    hours: Math.floor(uptime / 3600)
-                },
-                environment: process.env.NODE_ENV || 'development',
-                database: db ? 'connected' : 'disconnected',
-                keep_alive: 'active',
-                ping_interval: '14 minutes'
+                uptime: Math.floor(process.uptime()),
+                message: 'App mantido acordado via GitHub Actions',
+                workflow: 'keep-alive.yml'
             });
             return;
         }
@@ -1240,21 +1208,6 @@ async function startServer() {
     }
 }
 
-// Inicializar sistema de keep-alive
-function initializeKeepAlive() {
-    console.log('🔄 Inicializando sistema keep-alive...');
-    
-    // Self-ping interno a cada 14 minutos
-    const selfPing = initSelfPing();
-    
-    console.log('✅ Keep-alive configurado:');
-    console.log('   🏓 Endpoint: /keep-alive');
-    console.log('   🔄 Self-ping: 14 minutos');
-    console.log('   🌐 Acesse: https://seu-app.onrender.com/keep-alive');
-    
-    return selfPing;
-}
-
 // Graceful shutdown
 process.on('SIGINT', () => {
     console.log('\n🛑 Parando servidor...');
@@ -1266,8 +1219,3 @@ process.on('SIGINT', () => {
 
 // Iniciar servidor
 startServer();
-
-// Inicializar keep-alive após 30 segundos
-setTimeout(() => {
-    initializeKeepAlive();
-}, 30000);
