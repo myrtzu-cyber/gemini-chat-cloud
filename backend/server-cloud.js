@@ -107,6 +107,27 @@ class SimpleDatabase {
         return chat || null;
     }
 
+    async getChatWithMessages(chatId) {
+        const chat = this.chats.find(c => c.id === chatId);
+        if (!chat) return null;
+
+        // Buscar mensagens do chat
+        const messages = this.messages.filter(m => m.chat_id === chatId);
+
+        console.log(`📋 Chat "${chat.title}": ${messages.length} mensagens encontradas`);
+
+        return {
+            ...chat,
+            messages: messages.map(msg => ({
+                id: msg.id,
+                sender: msg.sender,
+                content: msg.content,
+                files: JSON.parse(msg.files || '[]'),
+                created_at: msg.created_at
+            }))
+        };
+    }
+
     async getAllChats() {
         return this.chats;
     }
@@ -443,11 +464,16 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
 
-            const chat = await db.getChat(chatId);
+            console.log(`🔍 Buscando chat com mensagens: ${chatId}`);
+
+            // Usar getChatWithMessages para incluir as mensagens
+            const chat = await db.getChatWithMessages(chatId);
 
             if (chat) {
+                console.log(`✅ Chat encontrado: "${chat.title}" com ${chat.messages.length} mensagens`);
                 sendJsonResponse(res, 200, chat);
             } else {
+                console.log(`❌ Chat não encontrado: ${chatId}`);
                 sendJsonResponse(res, 404, { error: 'Chat not found' });
             }
             return;
