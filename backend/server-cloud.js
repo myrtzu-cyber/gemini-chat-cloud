@@ -456,10 +456,16 @@ if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') 
         console.log('✅ PostgresDatabase instanciado com sucesso');
         console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
 
-        // Verificar se o método existe
-        if (typeof db.updateChatContext !== 'function') {
-            console.log('⚠️ updateChatContext não encontrado no PostgresDatabase, usando SimpleDatabase');
+        // Verificar se os métodos essenciais existem
+        const requiredMethods = ['initialize', 'createChat', 'addMessage', 'updateChatContext', 'getChats', 'getChatWithMessages'];
+        const missingMethods = requiredMethods.filter(method => typeof db[method] !== 'function');
+
+        if (missingMethods.length > 0) {
+            console.log(`⚠️ PostgresDatabase missing methods: ${missingMethods.join(', ')}`);
+            console.log('💾 Fallback para SimpleDatabase');
             db = new SimpleDatabase();
+        } else {
+            console.log('✅ PostgresDatabase: All required methods available');
         }
     } catch (error) {
         console.error('❌ Erro ao instanciar PostgresDatabase:', error);
@@ -468,7 +474,10 @@ if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') 
     }
 } else {
     if (!PostgresDatabase) {
-        console.log('⚠️ PostgresDatabase não disponível (módulo pg não encontrado)');
+        console.log('⚠️ PostgresDatabase não disponível');
+        if (DATABASE_URL) {
+            console.log('⚠️ DATABASE_URL configurado mas PostgresDatabase não encontrado - verifique se o módulo pg está instalado');
+        }
     }
     if (!DATABASE_URL) {
         console.log('⚠️ DATABASE_URL não configurado');
@@ -1114,7 +1123,20 @@ const server = http.createServer(async (req, res) => {
 // Inicializar database e servidor
 async function startServer() {
     try {
+        console.log(`🚀 Initializing ${db.constructor.name}...`);
         await db.initialize();
+
+        // Verify database is working by getting stats
+        const stats = await db.getStats();
+        console.log('📊 Database stats:', stats);
+
+        // Log database type for monitoring
+        if (db.constructor.name === 'PostgresDatabase') {
+            console.log('🐘 Using PostgreSQL for persistent storage');
+        } else {
+            console.log('💾 Using SimpleDatabase with file persistence (fallback mode)');
+            console.log('⚠️ Data will be lost on container restart unless migrated to PostgreSQL');
+        }
 
         // Initialize backup service
         try {
