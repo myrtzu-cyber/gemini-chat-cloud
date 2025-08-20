@@ -3267,29 +3267,33 @@ ${message}`;
 
             // Verificar se a resposta contém apenas categorias de segurança (bug conhecido da API)
             const responseStr = JSON.stringify(responseData);
-            if (responseStr.includes('HARM_CATEGORY_') && !responseStr.includes('"text"')) {
+            const hasOnlySafetyCategories = responseStr.includes('HARM_CATEGORY_') && !responseStr.includes('"text"');
+            const hasEmptyContent = !candidate.content || !candidate.content.parts || candidate.content.parts.length === 0;
+            
+            if (hasOnlySafetyCategories || (candidate.finishReason === 'STOP' && hasEmptyContent && tokensConsumed > 0)) {
                 console.error(`[DEBUG] ERRO: Resposta do modelo ${model} contém apenas categorias de segurança sem texto`);
                 console.error(`[DEBUG] Resposta problemática:`, responseStr.substring(0, 500));
-                throw new Error(`Modelo ${model} retornou apenas categorias de segurança. Tente reformular sua mensagem ou use um modelo diferente.`);
-            }
-
-            // Verificar caso específico: API processou (consumiu tokens) mas não retornou conteúdo
-            if (candidate.finishReason === 'STOP' &&
-                tokensConsumed > 0 &&
-                (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0)) {
-
-                console.error(`[DEBUG] ERRO CRÍTICO: ${model} processou a requisição (${tokensConsumed} tokens) mas não retornou conteúdo`);
-                console.error(`[DEBUG] finishReason: ${candidate.finishReason}`);
-                console.error(`[DEBUG] candidate.content:`, candidate.content);
-                console.error(`[DEBUG] Isso geralmente indica prompt muito longo para o modelo ${model}`);
-
-                // Para gemini-2.5-pro, sugerir fallback imediato
-                if (model.includes('2.5-pro')) {
-                    throw new Error(`Gemini 2.5 Pro processou a requisição mas não retornou conteúdo. Isso geralmente ocorre com prompts muito longos. Tente usar Gemini 2.5 Flash.`);
+                
+                // Tentar fallback automático para Flash se estiver usando Pro
+                if (model.includes('2.5-pro') && this.autoKeyRotation) {
+                    console.log(`[DEBUG] Tentando fallback automático para Gemini 2.5 Flash...`);
+                    const originalModel = this.selectedModel;
+                    this.selectedModel = 'gemini-2.5-flash';
+                    
+                    try {
+                        console.log(`[DEBUG] Chamando API novamente com ${this.selectedModel}...`);
+                        return await this.callGeminiAPI(message, files, timeoutMs);
+                    } catch (fallbackError) {
+                        console.error(`[DEBUG] Fallback para Flash também falhou:`, fallbackError);
+                        this.selectedModel = originalModel; // Restaurar modelo original
+                        throw new Error(`Tanto Gemini 2.5 Pro quanto Flash falharam. Pro: apenas categorias de segurança. Flash: ${fallbackError.message}`);
+                    }
                 } else {
-                    throw new Error(`Modelo ${model} processou a requisição mas não retornou conteúdo. Tente reduzir o tamanho da mensagem.`);
+                    throw new Error(`Modelo ${model} retornou apenas categorias de segurança. Tente reformular sua mensagem ou usar Gemini 2.5 Flash.`);
                 }
             }
+
+            // Esta verificação foi movida para o bloco anterior para unificar o tratamento
 
             // Log detalhado da estrutura do candidato para debug
             console.log(`[DEBUG] Estrutura completa do candidate (${model}):`, JSON.stringify(candidate, null, 2));
