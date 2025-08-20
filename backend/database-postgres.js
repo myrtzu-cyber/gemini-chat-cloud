@@ -144,7 +144,7 @@ class PostgresDatabase {
 
     async updateChatTitle(chatId, title) {
         const client = await this.pool.connect();
-        
+
         try {
             const result = await client.query(
                 'UPDATE chats SET title = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
@@ -153,6 +153,51 @@ class PostgresDatabase {
             return result.rowCount;
         } finally {
             client.release();
+        }
+    }
+
+    async updateChatContext(chatId, contextData) {
+        const client = await this.pool.connect();
+
+        try {
+            // Verificar se a coluna context existe, se não, adicionar
+            await this.ensureContextColumn(client);
+
+            const result = await client.query(
+                'UPDATE chats SET context = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+                [JSON.stringify(contextData), chatId]
+            );
+
+            if (result.rowCount > 0) {
+                return { success: true, message: 'Context updated successfully' };
+            } else {
+                return { success: false, error: 'Chat not found' };
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar context:', error);
+            return { success: false, error: error.message };
+        } finally {
+            client.release();
+        }
+    }
+
+    async ensureContextColumn(client) {
+        try {
+            // Verificar se a coluna context existe
+            const columnCheck = await client.query(`
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'chats' AND column_name = 'context'
+            `);
+
+            if (columnCheck.rows.length === 0) {
+                console.log('📝 Adicionando coluna context à tabela chats...');
+                await client.query('ALTER TABLE chats ADD COLUMN context TEXT');
+                console.log('✅ Coluna context adicionada com sucesso');
+            }
+        } catch (error) {
+            console.error('Erro ao verificar/adicionar coluna context:', error);
+            // Não falhar se a coluna já existir
         }
     }
 
