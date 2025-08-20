@@ -48,14 +48,27 @@ class SimpleDatabase {
         // Carregar dados persistidos se existirem
         try {
             const dataFile = path.join(__dirname, 'simple-db-data.json');
+            console.log(`🔍 Procurando arquivo de dados: ${dataFile}`);
+            console.log(`🔍 Arquivo existe: ${fs.existsSync(dataFile)}`);
+
             if (fs.existsSync(dataFile)) {
-                const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+                const rawData = fs.readFileSync(dataFile, 'utf8');
+                console.log(`📄 Tamanho do arquivo: ${rawData.length} chars`);
+
+                const data = JSON.parse(rawData);
                 this.chats = data.chats || [];
                 this.messages = data.messages || [];
                 console.log(`📂 Dados carregados: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+
+                if (this.chats.length > 0) {
+                    console.log(`🎯 Primeiro chat: "${this.chats[0].title}" (${this.chats[0].id})`);
+                }
+            } else {
+                console.log('📂 Arquivo de dados não encontrado, iniciando com database vazio');
             }
         } catch (error) {
             console.log('⚠️ Erro ao carregar dados persistidos:', error.message);
+            console.log('⚠️ Stack trace:', error.stack);
         }
 
         if (DATABASE_URL) {
