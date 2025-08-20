@@ -2,7 +2,7 @@ services:
   - type: web
     name: gemini-chat-cloud
     env: node
-    buildCommand: echo "No build needed - using cloud server"
+    buildCommand: npm install
     startCommand: node server-cloud.js
     rootDir: backend
     plan: free
