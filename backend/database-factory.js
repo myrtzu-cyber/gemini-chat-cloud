@@ -321,6 +321,16 @@ class DatabaseFactory {
                 return chats;
             }
 
+            async getChat(chatId) {
+                const chat = this.chats.find(c => c.id === chatId);
+                if (!chat) return null;
+
+                return {
+                    ...chat,
+                    context: chat.context ? JSON.parse(chat.context) : null
+                };
+            }
+
             async getChatWithMessages(chatId) {
                 const chat = this.chats.find(c => c.id === chatId);
                 if (!chat) return null;

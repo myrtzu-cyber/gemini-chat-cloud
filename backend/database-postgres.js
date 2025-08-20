@@ -182,6 +182,31 @@ class PostgresDatabase {
         return chats;
     }
 
+    async getChat(chatId) {
+        const client = await this.pool.connect();
+        try {
+            const result = await client.query(
+                'SELECT * FROM chats WHERE id = $1',
+                [chatId]
+            );
+
+            if (result.rows.length === 0) {
+                return null;
+            }
+
+            const chat = result.rows[0];
+            return {
+                ...chat,
+                context: chat.context ? JSON.parse(chat.context) : null
+            };
+        } catch (error) {
+            console.error('❌ PostgresDatabase: Error getting chat:', error.message);
+            return null;
+        } finally {
+            client.release();
+        }
+    }
+
     async getChatWithMessages(chatId) {
         const client = await this.pool.connect();
         try {
@@ -200,8 +225,8 @@ class PostgresDatabase {
             // Get messages
             const messagesResult = await client.query(`
                 SELECT id, sender, content, files, created_at
-                FROM messages 
-                WHERE chat_id = $1 
+                FROM messages
+                WHERE chat_id = $1
                 ORDER BY created_at ASC
             `, [chatId]);
 
