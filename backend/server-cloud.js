@@ -99,8 +99,13 @@ class SimpleDatabase {
         // Verificar se chat já existe
         const existingIndex = this.chats.findIndex(c => c.id === chat.id);
         if (existingIndex >= 0) {
-            console.log(`   Atualizando chat existente`);
-            this.chats[existingIndex] = { ...this.chats[existingIndex], ...chat };
+            console.log(`   Atualizando chat existente (índice ${existingIndex})`);
+            // Manter created_at original, atualizar apenas updated_at
+            this.chats[existingIndex] = {
+                ...this.chats[existingIndex],
+                ...chat,
+                created_at: this.chats[existingIndex].created_at // Preservar data de criação
+            };
         } else {
             console.log(`   Criando novo chat`);
             this.chats.push(chat);
@@ -110,22 +115,33 @@ class SimpleDatabase {
         if (chatData.messages && Array.isArray(chatData.messages)) {
             console.log(`   Processando ${chatData.messages.length} mensagens`);
 
-            // Remover mensagens antigas deste chat
-            this.messages = this.messages.filter(m => m.chat_id !== chatData.id);
+            // Contar mensagens existentes para este chat
+            const existingMessages = this.messages.filter(m => m.chat_id === chatData.id);
+            console.log(`   Mensagens existentes no chat: ${existingMessages.length}`);
 
-            // Adicionar novas mensagens
-            for (const msg of chatData.messages) {
-                const message = {
-                    id: msg.id,
-                    chat_id: chatData.id,
-                    sender: msg.sender,
-                    content: msg.content,
-                    files: JSON.stringify(msg.files || []),
-                    created_at: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString()
-                };
-                this.messages.push(message);
+            // Se o número de mensagens é o mesmo, não reprocessar (evitar duplicação)
+            if (existingMessages.length === chatData.messages.length) {
+                console.log(`   Mesmo número de mensagens, pulando reprocessamento`);
+            } else {
+                console.log(`   Atualizando mensagens: ${existingMessages.length} → ${chatData.messages.length}`);
+
+                // Remover mensagens antigas deste chat
+                this.messages = this.messages.filter(m => m.chat_id !== chatData.id);
+
+                // Adicionar novas mensagens
+                for (const msg of chatData.messages) {
+                    const message = {
+                        id: msg.id,
+                        chat_id: chatData.id,
+                        sender: msg.sender,
+                        content: msg.content,
+                        files: JSON.stringify(msg.files || []),
+                        created_at: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString()
+                    };
+                    this.messages.push(message);
+                }
+                console.log(`   ${chatData.messages.length} mensagens processadas`);
             }
-            console.log(`   ${chatData.messages.length} mensagens adicionadas`);
         }
 
         // Salvar dados persistentemente
@@ -134,12 +150,20 @@ class SimpleDatabase {
             const data = {
                 chats: this.chats,
                 messages: this.messages,
-                lastSaved: new Date().toISOString()
+                lastSaved: new Date().toISOString(),
+                stats: {
+                    totalChats: this.chats.length,
+                    totalMessages: this.messages.length,
+                    lastChatId: chatData.id
+                }
             };
             fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-            console.log(`💾 Chat e mensagens persistidos em ${dataFile}`);
+            console.log(`💾 Dados persistidos: ${this.chats.length} chats, ${this.messages.length} mensagens`);
+            console.log(`💾 Arquivo: ${dataFile}`);
+            console.log(`💾 Último chat: ${chatData.id} - "${chatData.title}"`);
         } catch (saveError) {
-            console.log('⚠️ Erro ao persistir chat:', saveError.message);
+            console.log('⚠️ Erro ao persistir dados:', saveError.message);
+            console.log('⚠️ Stack trace:', saveError.stack);
         }
 
         console.log(`✅ Chat ${chatData.id} salvo com sucesso`);
@@ -188,7 +212,19 @@ class SimpleDatabase {
     }
 
     async getAllChats() {
-        return this.chats;
+        // Ordenar por updated_at DESC (mais recente primeiro)
+        const sortedChats = [...this.chats].sort((a, b) => {
+            const dateA = new Date(a.updated_at || a.created_at);
+            const dateB = new Date(b.updated_at || b.created_at);
+            return dateB - dateA; // DESC
+        });
+
+        console.log(`📋 getAllChats: ${sortedChats.length} chats ordenados por data`);
+        if (sortedChats.length > 0) {
+            console.log(`   Mais recente: "${sortedChats[0].title}" (${sortedChats[0].id}) - ${sortedChats[0].updated_at}`);
+        }
+
+        return sortedChats;
     }
 
     async deleteChat(chatId) {
@@ -669,6 +705,34 @@ const server = http.createServer(async (req, res) => {
                     });
                 }
             });
+            return;
+        }
+
+        // Debug endpoint para verificar estado do SimpleDatabase
+        if (pathname === '/api/debug/database' && method === 'GET') {
+            const debugInfo = {
+                databaseType: db.constructor.name,
+                totalChats: db.chats ? db.chats.length : 'N/A',
+                totalMessages: db.messages ? db.messages.length : 'N/A',
+                chats: db.chats ? db.chats.map(c => ({
+                    id: c.id,
+                    title: c.title,
+                    created_at: c.created_at,
+                    updated_at: c.updated_at,
+                    hasContext: !!c.context
+                })) : [],
+                recentMessages: db.messages ? db.messages.slice(-5).map(m => ({
+                    id: m.id,
+                    chat_id: m.chat_id,
+                    sender: m.sender,
+                    content: m.content.substring(0, 50) + '...',
+                    created_at: m.created_at
+                })) : [],
+                timestamp: new Date().toISOString()
+            };
+
+            console.log(`🔍 Debug endpoint chamado - retornando estado do database`);
+            sendJsonResponse(res, 200, debugInfo);
             return;
         }
 
