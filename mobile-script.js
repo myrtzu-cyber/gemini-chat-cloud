@@ -709,7 +709,13 @@ class GeminiChatMobile {
 
     // Nova conversa
     async newChat() {
-        this.currentChatId = this.generateChatId(); // Gera o ID imediatamente
+        console.log('[DEBUG] Criando nova conversa...');
+        
+        // Gerar novo ID para a conversa
+        this.currentChatId = this.generateChatId();
+        console.log('[DEBUG] Novo currentChatId gerado:', this.currentChatId);
+        
+        // Limpar mensagens e interface
         this.messages = [];
         this.clearMessages();
         this.currentChatTitle = 'Nova Conversa';
@@ -728,13 +734,26 @@ class GeminiChatMobile {
 
         // Ensure the chat is immediately saved to database
         try {
-            const chatCreated = await this.ensureChatExists();
-            if (chatCreated) {
-                this.showToast('✅ Nova conversa criada. O contexto já pode ser editado.');
+            // Criar a conversa no banco de dados
+            const chatData = {
+                id: this.currentChatId,
+                title: this.currentChatTitle,
+                model: this.selectedModel || 'gemini-pro',
+                messages: [],
+                context: this.currentChatContext
+            };
+            
+            const response = await fetch(`${this.serverUrl}/api/chats`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(chatData)
+            });
+            
+            if (response.ok) {
+                this.showToast('✅ Nova conversa criada e salva no servidor.');
                 console.log(`[DEBUG] New chat ${this.currentChatId} created and saved to database`);
             } else {
-                this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
-                console.log(`[DEBUG] New chat ${this.currentChatId} created locally only`);
+                throw new Error(`Falha no servidor: ${response.statusText}`);
             }
         } catch (error) {
             console.error('[DEBUG] Error creating new chat:', error);
@@ -744,12 +763,15 @@ class GeminiChatMobile {
 
     // Limpar mensagens
     clearMessages() {
+        console.log('[DEBUG] Limpando mensagens da interface');
         const messagesContainer = document.getElementById('mobileMessages');
         messagesContainer.innerHTML = '';
+        console.log('[DEBUG] clearMessages: currentChatId mantido como:', this.currentChatId);
     }
 
     // Mostrar boas-vindas
     showWelcome() {
+        console.log('[DEBUG] Mostrando tela de boas-vindas');
         const messagesContainer = document.getElementById('mobileMessages');
         messagesContainer.innerHTML = `
             <div class="mobile-welcome">
@@ -758,6 +780,9 @@ class GeminiChatMobile {
                 <p>Configure sua chave da API nas configurações e comece sua aventura!</p>
             </div>
         `;
+        
+        // Não resetar o currentChatId aqui, deixar para a função loadLastChat gerenciar
+        console.log('[DEBUG] showWelcome: currentChatId mantido como:', this.currentChatId);
     }
 
     // Atualizar título do chat
@@ -803,11 +828,13 @@ class GeminiChatMobile {
 
         const userMessageId = this.generateMessageId();
         
-        // Se não há conversa atual, garantir que temos um ID
+        // Se não há conversa atual, criar uma nova
         if (!this.currentChatId) {
-            this.currentChatId = this.generateChatId();
-            console.log('[DEBUG] Nova conversa iniciada com ID:', this.currentChatId);
+            console.log('[DEBUG] Nenhuma conversa ativa, criando nova conversa');
+            await this.newChat();
         }
+        
+        console.log('[DEBUG] Enviando mensagem para conversa:', this.currentChatId);
 
         this.addMessageToUI('user', message, processedFiles, userMessageId, 'pending');
 
@@ -818,6 +845,13 @@ class GeminiChatMobile {
         this.showTyping();
 
         try {
+            // Verificar se ainda temos o currentChatId correto
+            if (!this.currentChatId) {
+                throw new Error('ID da conversa perdido durante o envio');
+            }
+            
+            console.log('[DEBUG] Enviando mensagem para conversa:', this.currentChatId);
+            
             // Mark user message as pending initially
             this.updateMessageStatus(userMessageId, 'pending');
 
@@ -833,6 +867,7 @@ class GeminiChatMobile {
             // Verificar se a mensagem já existe antes de adicionar
             const existingMessage = this.messages.find(msg => msg.id === userMessageId);
             if (!existingMessage) {
+                console.log(`[DEBUG] Adicionando mensagem do usuário ao array: ${userMessageId}`);
                 this.messages.push({
                     id: userMessageId,
                     sender: 'user',
@@ -842,6 +877,7 @@ class GeminiChatMobile {
                     retryCount: 0,
                     timestamp: Date.now()
                 });
+                console.log(`[DEBUG] Array de mensagens agora tem ${this.messages.length} mensagens`);
             } else {
                 console.log(`[DEBUG] Mensagem do usuário já existe: ${userMessageId}`);
             }
@@ -850,6 +886,7 @@ class GeminiChatMobile {
             this.addMessageToUI('assistant', response, [], assistantMessageId, 'sent');
 
             this.clearAttachedFiles();
+            console.log(`[DEBUG] Chamando autoSaveChat para conversa: ${this.currentChatId}`);
             await this.autoSaveChat();
 
         } catch (error) {
@@ -862,6 +899,7 @@ class GeminiChatMobile {
             // Verificar se a mensagem já existe antes de adicionar
             const existingMessage = this.messages.find(msg => msg.id === userMessageId);
             if (!existingMessage) {
+                console.log(`[DEBUG] Adicionando mensagem com erro ao array: ${userMessageId}`);
                 this.messages.push({
                     id: userMessageId,
                     sender: 'user',
@@ -873,6 +911,7 @@ class GeminiChatMobile {
                     errorType: errorInfo.type,
                     timestamp: Date.now()
                 });
+                console.log(`[DEBUG] Array de mensagens agora tem ${this.messages.length} mensagens`);
             } else {
                 console.log(`[DEBUG] Mensagem com erro já existe: ${userMessageId}`);
             }
@@ -880,6 +919,7 @@ class GeminiChatMobile {
             this.showToast(`❌ ${errorInfo.userMessage}`, 'error');
 
             // Save the failed message to localStorage for persistence
+            console.log(`[DEBUG] Salvando mensagens pendentes para conversa: ${this.currentChatId}`);
             this.savePendingMessages();
         }
     }
@@ -888,9 +928,10 @@ class GeminiChatMobile {
         if (!this.serverUrl) return;
         if (this.messages.length === 0) return;
 
-        // Se não houver ID de chat, a conversa é nova. O salvamento inicial vai criar um.
+        // Se não houver ID de chat, não há o que salvar
         if (!this.currentChatId) {
-            this.currentChatId = this.generateChatId();
+            console.log('[DEBUG] Nenhum currentChatId definido, pulando salvamento');
+            return;
         }
 
         // Only save messages that are not pending or failed
@@ -898,6 +939,8 @@ class GeminiChatMobile {
             msg.status !== 'pending' && msg.status !== 'failed'
         );
 
+        console.log('[DEBUG] Salvando conversa:', this.currentChatId);
+        
         const chatData = {
             id: this.currentChatId,
             title: this.currentChatTitle || 'Nova Conversa',
@@ -939,6 +982,7 @@ class GeminiChatMobile {
                 });
 
                 // Update pending messages in localStorage
+                console.log(`[DEBUG] Atualizando mensagens pendentes no localStorage para conversa: ${this.currentChatId}`);
                 this.savePendingMessages();
             } else {
                 throw new Error(`Falha no servidor: ${response.statusText}`);
@@ -955,6 +999,7 @@ class GeminiChatMobile {
             });
 
             // Save pending messages even if server save fails
+            console.log(`[DEBUG] Salvando mensagens pendentes mesmo com falha no servidor para conversa: ${this.currentChatId}`);
             this.savePendingMessages();
         }
     }
@@ -973,7 +1018,8 @@ class GeminiChatMobile {
     async ensureChatExists() {
         if (!this.serverUrl) return false;
         if (!this.currentChatId) {
-            this.currentChatId = this.generateChatId();
+            console.log('[DEBUG] Nenhum currentChatId definido, não é possível garantir existência');
+            return false;
         }
 
         try {
@@ -3522,6 +3568,8 @@ ${message}`;
     addMessageToHistory(sender, content, files = []) {
         const messageId = this.generateMessageId();
         
+        console.log(`[DEBUG] Adicionando mensagem ao histórico: ${messageId} para conversa: ${this.currentChatId}`);
+        
         // Verificar se a mensagem já existe antes de adicionar
         const existingMessage = this.messages.find(msg => msg.id === messageId);
         if (!existingMessage) {
@@ -3534,6 +3582,7 @@ ${message}`;
                 retryCount: 0,
                 timestamp: Date.now()
             });
+            console.log(`[DEBUG] Mensagem adicionada ao histórico: ${messageId}`);
         } else {
             console.log(`[DEBUG] Mensagem do assistente já existe: ${messageId}`);
         }
@@ -3782,6 +3831,8 @@ ${message}`;
                 return;
             }
         }
+        
+        console.log(`[DEBUG] Adicionando mensagem à interface: ${messageId} para conversa: ${this.currentChatId}`);
         
         const messageElement = document.createElement('div');
         messageElement.classList.add('mobile-message', `mobile-message-${sender}`);
@@ -4347,15 +4398,22 @@ ${message}`;
 
     async loadChat(chatId) {
         try {
+            console.log('[DEBUG] Carregando conversa:', chatId);
+            
             const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`);
             if (!response.ok) {
                 throw new Error('Falha ao carregar a conversa.');
             }
             const chat = await response.json();
 
+            console.log('[DEBUG] Conversa carregada do servidor:', chat.id, chat.title);
+            
             this.currentChatId = chat.id;
             this.messages = chat.messages || [];
             this.currentChatTitle = chat.title || 'Mestre';
+            
+            console.log('[DEBUG] currentChatId definido como:', this.currentChatId);
+            console.log('[DEBUG] currentChatTitle definido como:', this.currentChatTitle);
 
             console.log('[DEBUG] Loading chat context from server...');
             console.log('[DEBUG] Server context object:', chat.context ? 'present' : 'missing');
@@ -4430,14 +4488,19 @@ ${message}`;
                 const lastChat = await response.json();
                 if (lastChat && lastChat.id) {
                     await this.loadChat(lastChat.id);
+                    return; // Sair se conseguiu carregar a última conversa
                 }
-            } else {
-                // Se não houver última conversa, mostrar tela de boas-vindas
-                this.showWelcome();
             }
+            
+            // Se não houver última conversa ou erro, criar uma nova conversa
+            console.log('[DEBUG] Nenhuma conversa anterior encontrada, criando nova conversa');
+            await this.newChat();
+            
         } catch (error) {
             console.error('Nenhum servidor encontrado para carregar última conversa:', error);
-            this.showWelcome();
+            // Em caso de erro, criar uma nova conversa em vez de mostrar welcome
+            console.log('[DEBUG] Erro ao carregar última conversa, criando nova conversa');
+            await this.newChat();
         }
     }
 
