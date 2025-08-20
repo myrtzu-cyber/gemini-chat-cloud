@@ -846,6 +846,17 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Health check endpoint for connectivity testing
+        if (pathname === '/api/health' && method === 'GET') {
+            sendJsonResponse(res, 200, {
+                status: 'ok',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                database: db ? 'connected' : 'disconnected'
+            });
+            return;
+        }
+
         // Debug endpoint para verificar estado do SimpleDatabase
         if (pathname === '/api/debug/database' && method === 'GET') {
             const debugInfo = {

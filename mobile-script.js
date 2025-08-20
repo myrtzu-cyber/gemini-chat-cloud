@@ -3274,23 +3274,8 @@ ${message}`;
                 console.error(`[DEBUG] ERRO: Resposta do modelo ${model} contém apenas categorias de segurança sem texto`);
                 console.error(`[DEBUG] Resposta problemática:`, responseStr.substring(0, 500));
                 
-                // Tentar fallback automático para Flash se estiver usando Pro
-                if (model.includes('2.5-pro') && this.autoKeyRotation) {
-                    console.log(`[DEBUG] Tentando fallback automático para Gemini 2.5 Flash...`);
-                    const originalModel = this.selectedModel;
-                    this.selectedModel = 'gemini-2.5-flash';
-                    
-                    try {
-                        console.log(`[DEBUG] Chamando API novamente com ${this.selectedModel}...`);
-                        return await this.callGeminiAPI(message, files, timeoutMs);
-                    } catch (fallbackError) {
-                        console.error(`[DEBUG] Fallback para Flash também falhou:`, fallbackError);
-                        this.selectedModel = originalModel; // Restaurar modelo original
-                        throw new Error(`Tanto Gemini 2.5 Pro quanto Flash falharam. Pro: apenas categorias de segurança. Flash: ${fallbackError.message}`);
-                    }
-                } else {
-                    throw new Error(`Modelo ${model} retornou apenas categorias de segurança. Tente reformular sua mensagem ou usar Gemini 2.5 Flash.`);
-                }
+                // Removed automatic fallback - user must manually retry or change model
+                throw new Error(`Modelo ${model} retornou apenas categorias de segurança. Tente reformular sua mensagem ou usar Gemini 2.5 Flash.`);
             }
 
             // Esta verificação foi movida para o bloco anterior para unificar o tratamento
@@ -3550,11 +3535,38 @@ ${message}`;
 
             // Update status dot and add retry button if failed
             if (status === 'failed') {
+                // Find the message to get retry count and error info
+                const message = this.messages.find(msg => msg.id === messageId);
+                const retryCount = message ? (message.retryCount || 0) : 0;
+                const maxRetries = 5;
+                const canRetry = retryCount < maxRetries;
+
+                let retryButtonHtml = '';
+                if (canRetry) {
+                    retryButtonHtml = `
+                        <button class="retry-btn" onclick="geminiChatMobile.retryMessage('${messageId}')"
+                                title="Tentar novamente (${retryCount}/${maxRetries} tentativas)">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    `;
+                } else {
+                    retryButtonHtml = `
+                        <span class="retry-limit" title="Limite de tentativas atingido">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </span>
+                    `;
+                }
+
                 statusElement.innerHTML = `
                     <span class="status-dot"></span>
-                    <button class="retry-btn" onclick="geminiChatMobile.retryMessage('${messageId}')" title="Tentar novamente">
-                        <i class="fas fa-redo"></i>
-                    </button>
+                    ${retryButtonHtml}
+                `;
+            } else if (status === 'pending') {
+                statusElement.innerHTML = `
+                    <span class="status-dot"></span>
+                    <span class="pending-indicator">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </span>
                 `;
             } else {
                 statusElement.innerHTML = `<span class="status-dot"></span>`;
@@ -3649,7 +3661,7 @@ ${message}`;
         };
     }
 
-    // Retry a failed message
+    // Retry a failed message (manual user-initiated retry only)
     async retryMessage(messageId) {
         const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
         if (messageIndex === -1) {
@@ -3663,23 +3675,43 @@ ${message}`;
             return;
         }
 
-        // Increment retry count
-        message.retryCount = (message.retryCount || 0) + 1;
+        // Check retry limit to prevent infinite retries
+        const maxRetries = 5;
+        const currentRetryCount = message.retryCount || 0;
+        if (currentRetryCount >= maxRetries) {
+            this.showToast(`❌ Limite de tentativas atingido (${maxRetries}). Tente reformular a mensagem.`, 'error');
+            return;
+        }
 
-        // Update status to pending
+        // Increment retry count
+        message.retryCount = currentRetryCount + 1;
+
+        // Update status to pending and disable retry button temporarily
         this.updateMessageStatus(messageId, 'pending');
 
+        // Disable retry button during processing
+        const retryBtn = document.querySelector(`.mobile-message[data-message-id="${messageId}"] .retry-btn`);
+        if (retryBtn) {
+            retryBtn.disabled = true;
+            retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
         this.showTyping();
-        this.showToast('🔄 Reenviando mensagem...', 'info');
+        this.showToast(`🔄 Reenviando mensagem... (tentativa ${message.retryCount}/${maxRetries})`, 'info');
 
         try {
-            const response = await this.callGeminiAPI(message.content, message.files || []);
+            // Use rotation-enabled API call if auto rotation is enabled
+            const response = this.autoKeyRotation ?
+                await this.callGeminiAPIWithRotation(message.content, message.files || []) :
+                await this.callGeminiAPI(message.content, message.files || []);
+
             this.hideTyping();
 
             // Mark message as sent
             this.updateMessageStatus(messageId, 'sent');
             message.status = 'sent';
             delete message.errorMessage;
+            delete message.errorType;
 
             // Add assistant response
             const assistantMessageId = this.addMessageToHistory('assistant', response);
@@ -3692,13 +3724,21 @@ ${message}`;
             this.hideTyping();
             const errorInfo = this.categorizeError(error);
 
-            // Mark as failed again
+            // Mark as failed again with enhanced error info
             this.updateMessageStatus(messageId, 'failed', errorInfo.message);
             message.status = 'failed';
             message.errorMessage = errorInfo.message;
             message.errorType = errorInfo.type;
 
-            this.showToast(`❌ Falha ao reenviar: ${errorInfo.userMessage}`, 'error');
+            // Provide helpful retry suggestions
+            let retryMessage = `❌ Falha ao reenviar (${message.retryCount}/${maxRetries}): ${errorInfo.userMessage}`;
+            if (message.retryCount >= maxRetries) {
+                retryMessage += '\n💡 Limite atingido. Tente reformular a mensagem ou alterar o modelo.';
+            } else {
+                retryMessage += '\n🔄 Clique no botão de retry para tentar novamente.';
+            }
+
+            this.showToast(retryMessage, 'error');
             this.savePendingMessages();
         }
     }
@@ -3754,11 +3794,38 @@ ${message}`;
 
         // Add status dot and retry button if failed
         if (status === 'failed') {
+            // Find the message to get retry count
+            const message = this.messages.find(msg => msg.id === messageId);
+            const retryCount = message ? (message.retryCount || 0) : 0;
+            const maxRetries = 5;
+            const canRetry = retryCount < maxRetries;
+
+            let retryButtonHtml = '';
+            if (canRetry) {
+                retryButtonHtml = `
+                    <button class="retry-btn" onclick="geminiChatMobile.retryMessage('${messageId}')"
+                            title="Tentar novamente (${retryCount}/${maxRetries} tentativas)">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                `;
+            } else {
+                retryButtonHtml = `
+                    <span class="retry-limit" title="Limite de tentativas atingido">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                `;
+            }
+
             statusElement.innerHTML = `
                 <span class="status-dot"></span>
-                <button class="retry-btn" onclick="geminiChatMobile.retryMessage('${messageId}')" title="Tentar novamente">
-                    <i class="fas fa-redo"></i>
-                </button>
+                ${retryButtonHtml}
+            `;
+        } else if (status === 'pending') {
+            statusElement.innerHTML = `
+                <span class="status-dot"></span>
+                <span class="pending-indicator">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
             `;
         } else {
             statusElement.innerHTML = `<span class="status-dot"></span>`;
@@ -3803,31 +3870,139 @@ ${message}`;
 
     // Deletar mensagem
     async deleteMessage(messageId) {
-        if (!messageId) return;
+        if (!messageId) {
+            console.warn('[DEBUG] deleteMessage called with empty messageId');
+            return;
+        }
 
+        // Check if message exists locally first
+        const messageExists = this.messages.find(msg => msg.id === messageId);
+        if (!messageExists) {
+            console.warn(`[DEBUG] Message ${messageId} not found in local history`);
+            this.showToast('⚠️ Mensagem não encontrada no histórico local', 'warning');
+            return;
+        }
+
+        // Show confirmation for important messages
+        const isUserMessage = messageExists.sender === 'user';
+        if (isUserMessage) {
+            const confirmed = confirm('Tem certeza que deseja deletar esta mensagem?');
+            if (!confirmed) {
+                return;
+            }
+        }
+
+        let messageElement = null;
         try {
             console.log(`[DEBUG] Deletando mensagem: ${messageId}`);
 
-            // FIXED: Use proper DELETE endpoint instead of autoSaveChat
+            // Add loading state to prevent multiple deletion attempts
+            messageElement = document.querySelector(`.mobile-message[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                messageElement.style.opacity = '0.5';
+                messageElement.style.pointerEvents = 'none';
+            }
+
+            // Check server connectivity first
+            const healthCheck = await fetch(`${this.serverUrl}/api/health`, {
+                method: 'GET',
+                timeout: 5000
+            }).catch(() => null);
+
+            if (!healthCheck || !healthCheck.ok) {
+                console.warn('[DEBUG] Server not reachable, removing message locally only');
+                this.removeMessageLocally(messageId);
+                this.showToast('⚠️ Servidor indisponível. Mensagem removida localmente.', 'warning');
+                return;
+            }
+
+            // Use proper DELETE endpoint with enhanced error handling
             const response = await fetch(`${this.serverUrl}/api/messages/${messageId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 10000 // 10 second timeout
             });
 
+            // Handle different HTTP status codes
+            if (response.status === 404) {
+                console.warn(`[DEBUG] Message ${messageId} not found on server (404)`);
+                // Still remove from local storage since it doesn't exist on server
+                this.removeMessageLocally(messageId);
+                this.showToast('⚠️ Mensagem não encontrada no servidor, removida localmente', 'warning');
+                return;
+            }
+
             if (!response.ok) {
-                throw new Error(`Falha ao deletar mensagem: HTTP ${response.status}`);
+                const errorText = await response.text().catch(() => 'Unknown error');
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
 
             const result = await response.json();
             console.log(`[DEBUG] Mensagem deletada no servidor:`, result);
 
-            // Remove from UI
+            // Remove from local storage and UI
+            this.removeMessageLocally(messageId);
+            this.showToast('✅ Mensagem deletada com sucesso!', 'success');
+
+        } catch (error) {
+            console.error('[DEBUG] Erro ao deletar mensagem:', error);
+
+            // Restore UI state safely
+            try {
+                if (messageElement) {
+                    messageElement.style.opacity = '1';
+                    messageElement.style.pointerEvents = 'auto';
+                }
+            } catch (uiError) {
+                console.warn('[DEBUG] Erro ao restaurar estado da UI:', uiError);
+            }
+
+            // Provide specific error messages with fallback handling
+            let errorMessage = 'Erro desconhecido';
+            try {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Erro de conexão com o servidor';
+                } else if (error.message && error.message.includes('timeout')) {
+                    errorMessage = 'Timeout - servidor demorou para responder';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+            } catch (parseError) {
+                console.warn('[DEBUG] Erro ao processar mensagem de erro:', parseError);
+                errorMessage = 'Erro interno do sistema';
+            }
+
+            // Show error but don't crash the system
+            try {
+                this.showToast(`❌ Erro ao deletar mensagem: ${errorMessage}`, 'error');
+            } catch (toastError) {
+                console.error('[DEBUG] Erro ao mostrar toast:', toastError);
+            }
+
+            // Ensure system remains operational
+            console.warn('[DEBUG] Sistema continua operacional após erro de deleção');
+            
+            // Try to refresh the message list to maintain consistency
+            try {
+                this.renderMessages();
+            } catch (renderError) {
+                console.warn('[DEBUG] Erro ao re-renderizar mensagens após falha:', renderError);
+            }
+        }
+    }
+
+    // Helper method to remove message locally with enhanced error handling
+    removeMessageLocally(messageId) {
+        try {
+            // Remove from UI safely
             const messageElement = document.querySelector(`.mobile-message[data-message-id="${messageId}"]`);
             if (messageElement) {
                 messageElement.remove();
                 console.log(`[DEBUG] Mensagem removida da UI`);
+            } else {
+                console.warn(`[DEBUG] Elemento da mensagem ${messageId} não encontrado na UI`);
             }
 
             // Remove from local history
@@ -3835,17 +4010,20 @@ ${message}`;
             this.messages = this.messages.filter(msg => msg.id !== messageId);
             console.log(`[DEBUG] Mensagem removida do histórico local: ${originalLength} -> ${this.messages.length}`);
 
-            // Update chat status to saved (no need for autoSaveChat since we used proper DELETE)
+            // Update chat status to saved
             this.updateAllMessageStatusToSaved();
-
-            this.showToast('✅ Mensagem deletada com sucesso!', 'success');
-
+            
+            // Save updated messages to prevent inconsistencies
+            this.savePendingMessages();
+            
         } catch (error) {
-            console.error('[DEBUG] Erro ao deletar mensagem:', error);
-            this.showToast(`❌ Erro ao deletar mensagem: ${error.message}`, 'error');
-
-            // Revert UI changes on error
-            this.renderMessages();
+            console.error('[DEBUG] Erro ao remover mensagem localmente:', error);
+            // Don't throw - just log and continue
+            try {
+                this.showToast('⚠️ Erro ao remover mensagem localmente', 'warning');
+            } catch (toastError) {
+                console.error('[DEBUG] Erro ao mostrar toast de aviso:', toastError);
+            }
         }
     }
 
@@ -4294,14 +4472,18 @@ ${message}`;
 
     // Renderizar mensagens
     renderMessages() {
-        this.clearMessages();
-        this.messages.forEach(msg => {
-            if (msg.files) {
-                this.addMessage(msg.sender, msg.content, msg.files);
-            } else {
-                this.addMessage(msg.sender, msg.content, []);
-            }
-        });
+        try {
+            this.clearMessages();
+            this.messages.forEach(msg => {
+                const status = msg.status || 'saved';
+                this.addMessageToUI(msg.sender, msg.content, msg.files || [], msg.id, status);
+            });
+            console.log(`[DEBUG] renderMessages: Successfully rendered ${this.messages.length} messages`);
+        } catch (error) {
+            console.error('[DEBUG] Error in renderMessages:', error);
+            this.showToast('❌ Erro ao renderizar mensagens', 'error');
+            // Don't crash the system - continue operation
+        }
     }
 
     // Mostrar toast
