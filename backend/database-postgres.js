@@ -154,14 +154,24 @@ class PostgresDatabase {
         const client = await this.pool.connect();
         try {
             const result = await client.query(`
-                SELECT id, title, model, created_at, updated_at, context
-                FROM chats
-                ORDER BY updated_at DESC
+                SELECT
+                    c.id,
+                    c.title,
+                    c.model,
+                    c.created_at,
+                    c.updated_at,
+                    c.context,
+                    COUNT(m.id) as message_count
+                FROM chats c
+                LEFT JOIN messages m ON c.id = m.chat_id
+                GROUP BY c.id, c.title, c.model, c.created_at, c.updated_at, c.context
+                ORDER BY c.updated_at DESC
             `);
 
             return result.rows.map(row => ({
                 ...row,
-                context: row.context ? JSON.parse(row.context) : null
+                context: row.context ? JSON.parse(row.context) : null,
+                message_count: parseInt(row.message_count) || 0
             }));
         } catch (error) {
             console.error('❌ PostgresDatabase: Error getting chats:', error.message);
@@ -311,6 +321,52 @@ class PostgresDatabase {
             return { success: true, message: 'Context updated successfully' };
         } catch (error) {
             console.error('❌ PostgresDatabase: Error updating context:', error.message);
+            return { success: false, error: error.message };
+        } finally {
+            client.release();
+        }
+    }
+
+    async deleteMessage(messageId) {
+        const client = await this.pool.connect();
+        try {
+            console.log(`🗑️ PostgresDatabase: Deleting message ${messageId}`);
+
+            // First check if message exists and get chat info
+            const checkResult = await client.query(
+                'SELECT id, chat_id FROM messages WHERE id = $1',
+                [messageId]
+            );
+
+            if (checkResult.rows.length === 0) {
+                console.log(`❌ PostgresDatabase: Message ${messageId} not found`);
+                return { success: false, message: 'Message not found' };
+            }
+
+            const chatId = checkResult.rows[0].chat_id;
+
+            // Delete message
+            const deleteResult = await client.query(
+                'DELETE FROM messages WHERE id = $1 RETURNING id',
+                [messageId]
+            );
+
+            if (deleteResult.rows.length > 0) {
+                console.log(`✅ PostgresDatabase: Message ${messageId} deleted successfully`);
+
+                // Update chat's updated_at timestamp
+                await client.query(
+                    'UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+                    [chatId]
+                );
+
+                return { success: true, message: 'Message deleted successfully', chatId: chatId };
+            } else {
+                console.log(`❌ PostgresDatabase: Failed to delete message ${messageId}`);
+                return { success: false, message: 'Failed to delete message' };
+            }
+        } catch (error) {
+            console.error('❌ PostgresDatabase: Error deleting message:', error.message);
             return { success: false, error: error.message };
         } finally {
             client.release();

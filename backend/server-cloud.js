@@ -820,6 +820,32 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Delete message endpoint - for individual message deletion
+        const messageIdMatch = pathname.match(/^\/api\/messages\/([^\/]+)$/);
+        if (messageIdMatch && method === 'DELETE') {
+            const messageId = messageIdMatch[1];
+
+            try {
+                console.log(`🗑️ Deleting message: ${messageId}`);
+                const result = await db.deleteMessage(messageId);
+
+                if (result.success) {
+                    console.log(`✅ Message deleted successfully: ${messageId}`);
+                    sendJsonResponse(res, 200, result);
+                } else {
+                    console.log(`❌ Failed to delete message: ${result.message}`);
+                    sendJsonResponse(res, 404, result);
+                }
+            } catch (error) {
+                console.log(`❌ Error deleting message: ${error.message}`);
+                sendJsonResponse(res, 500, {
+                    error: 'Internal server error',
+                    details: error.message
+                });
+            }
+            return;
+        }
+
         // Debug endpoint para verificar estado do SimpleDatabase
         if (pathname === '/api/debug/database' && method === 'GET') {
             const debugInfo = {

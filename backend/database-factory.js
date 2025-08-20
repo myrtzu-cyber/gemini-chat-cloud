@@ -277,6 +277,33 @@ class DatabaseFactory {
                 return { success: true, message: 'Context updated successfully' };
             }
 
+            async deleteMessage(messageId) {
+                console.log(`🗑️ SimpleDatabase: Deleting message ${messageId}`);
+
+                const messageIndex = this.messages.findIndex(msg => msg.id === messageId);
+                if (messageIndex === -1) {
+                    console.log(`❌ SimpleDatabase: Message ${messageId} not found`);
+                    return { success: false, message: 'Message not found' };
+                }
+
+                const message = this.messages[messageIndex];
+                const chatId = message.chat_id;
+
+                // Remove message
+                this.messages.splice(messageIndex, 1);
+
+                // Update chat's updated_at timestamp
+                const chatIndex = this.chats.findIndex(chat => chat.id === chatId);
+                if (chatIndex !== -1) {
+                    this.chats[chatIndex].updated_at = new Date().toISOString();
+                }
+
+                console.log(`✅ SimpleDatabase: Message ${messageId} deleted successfully`);
+
+                await this.persistData(`Message deleted: ${messageId}`);
+                return { success: true, message: 'Message deleted successfully', chatId: chatId };
+            }
+
             async deleteChat(chatId) {
                 console.log(`🗑️ SimpleDatabase: Deleting chat ${chatId}`);
 
@@ -304,10 +331,16 @@ class DatabaseFactory {
             }
 
             async getChats() {
-                return this.chats.map(chat => ({
-                    ...chat,
-                    context: chat.context ? JSON.parse(chat.context) : null
-                })).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                return this.chats.map(chat => {
+                    // Count messages for this chat
+                    const messageCount = this.messages.filter(msg => msg.chat_id === chat.id).length;
+
+                    return {
+                        ...chat,
+                        context: chat.context ? JSON.parse(chat.context) : null,
+                        message_count: messageCount
+                    };
+                }).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
             }
 
             // Alias for backward compatibility
