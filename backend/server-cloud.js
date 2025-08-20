@@ -82,24 +82,68 @@ class SimpleDatabase {
     }
 
     async createChat(chatData) {
+        console.log(`📝 SimpleDatabase: Criando/atualizando chat ${chatData.id}`);
+        console.log(`   Título: "${chatData.title}"`);
+        console.log(`   Mensagens recebidas: ${chatData.messages ? chatData.messages.length : 0}`);
+        console.log(`   Context recebido: ${chatData.context ? 'Sim' : 'Não'}`);
+
         const chat = {
             id: chatData.id,
             title: chatData.title,
             model: chatData.model || 'gemini-pro',
-            messages: chatData.messages || [],
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            context: chatData.context ? JSON.stringify(chatData.context) : null
         };
 
         // Verificar se chat já existe
         const existingIndex = this.chats.findIndex(c => c.id === chat.id);
         if (existingIndex >= 0) {
+            console.log(`   Atualizando chat existente`);
             this.chats[existingIndex] = { ...this.chats[existingIndex], ...chat };
         } else {
+            console.log(`   Criando novo chat`);
             this.chats.push(chat);
         }
 
-        return { success: true, message: 'Chat saved successfully' };
+        // Processar mensagens se fornecidas
+        if (chatData.messages && Array.isArray(chatData.messages)) {
+            console.log(`   Processando ${chatData.messages.length} mensagens`);
+
+            // Remover mensagens antigas deste chat
+            this.messages = this.messages.filter(m => m.chat_id !== chatData.id);
+
+            // Adicionar novas mensagens
+            for (const msg of chatData.messages) {
+                const message = {
+                    id: msg.id,
+                    chat_id: chatData.id,
+                    sender: msg.sender,
+                    content: msg.content,
+                    files: JSON.stringify(msg.files || []),
+                    created_at: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString()
+                };
+                this.messages.push(message);
+            }
+            console.log(`   ${chatData.messages.length} mensagens adicionadas`);
+        }
+
+        // Salvar dados persistentemente
+        try {
+            const dataFile = path.join(__dirname, 'simple-db-data.json');
+            const data = {
+                chats: this.chats,
+                messages: this.messages,
+                lastSaved: new Date().toISOString()
+            };
+            fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+            console.log(`💾 Chat e mensagens persistidos em ${dataFile}`);
+        } catch (saveError) {
+            console.log('⚠️ Erro ao persistir chat:', saveError.message);
+        }
+
+        console.log(`✅ Chat ${chatData.id} salvo com sucesso`);
+        return { success: true, message: 'Chat saved successfully', id: chatData.id };
     }
 
     async getChat(chatId) {
@@ -116,8 +160,23 @@ class SimpleDatabase {
 
         console.log(`📋 Chat "${chat.title}": ${messages.length} mensagens encontradas`);
 
+        // Expandir contexto se existir
+        let expandedContext = {};
+        if (chat.context) {
+            try {
+                expandedContext = JSON.parse(chat.context);
+                console.log(`📋 Context expandido: ${Object.keys(expandedContext).join(', ')}`);
+                if (expandedContext.aventura) {
+                    console.log(`📋 Aventura length: ${expandedContext.aventura.length} chars`);
+                }
+            } catch (error) {
+                console.log(`⚠️ Erro ao parsear context: ${error.message}`);
+            }
+        }
+
         return {
             ...chat,
+            ...expandedContext, // Expandir campos do contexto diretamente no chat
             messages: messages.map(msg => ({
                 id: msg.id,
                 sender: msg.sender,
@@ -498,18 +557,36 @@ const server = http.createServer(async (req, res) => {
         if (pathname === '/api/chats' && method === 'POST') {
             parseJsonBody(req, async (error, data) => {
                 if (error) {
+                    console.log(`❌ Erro ao parsear JSON para chat: ${error.message}`);
                     sendJsonResponse(res, 400, { error: 'Invalid JSON' });
                     return;
                 }
 
+                console.log(`📝 Criando/atualizando chat:`, {
+                    id: data.id,
+                    title: data.title,
+                    messagesCount: data.messages ? data.messages.length : 0,
+                    hasContext: !!data.context
+                });
+
                 const { id, title } = data;
                 if (!id || !title) {
+                    console.log(`❌ Dados obrigatórios faltando: id=${id}, title=${title}`);
                     sendJsonResponse(res, 400, { error: 'ID and title are required' });
                     return;
                 }
 
-                const result = await db.createChat(data);
-                sendJsonResponse(res, 200, result);
+                try {
+                    const result = await db.createChat(data);
+                    console.log(`✅ Chat criado/atualizado com sucesso: ${result.id}`);
+                    sendJsonResponse(res, 200, result);
+                } catch (error) {
+                    console.log(`❌ Erro interno ao criar chat: ${error.message}`);
+                    sendJsonResponse(res, 500, {
+                        error: 'Internal server error',
+                        details: error.message
+                    });
+                }
             });
             return;
         }
