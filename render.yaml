@@ -2,7 +2,7 @@ services:
   - type: web
     name: gemini-chat-cloud
     env: node
-    buildCommand: npm install
+    buildCommand: rm -f package-lock.json && npm install
     startCommand: node server-cloud.js
     rootDir: backend
     plan: free
