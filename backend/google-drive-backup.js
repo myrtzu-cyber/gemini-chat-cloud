@@ -88,29 +88,56 @@ class GoogleDriveBackup {
         if (!this.drive) return;
 
         try {
-            const folderName = `Gemini-Chat-Backups-${process.env.NODE_ENV || 'production'}`;
-            
-            // Check if backup folder exists
-            const response = await this.drive.files.list({
-                q: `name='${folderName}' and mimeType='application/vnd.google-apps.folder'`,
-                fields: 'files(id, name)'
-            });
+            const customFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-            if (response.data.files.length > 0) {
-                this.backupFolderId = response.data.files[0].id;
-                console.log(`📁 Using existing backup folder: ${folderName} (${this.backupFolderId})`);
+            if (customFolderId) {
+                console.log(`📁 Using custom backup folder ID from environment: ${customFolderId}`);
+                // Verify access to the custom folder
+                try {
+                    const folder = await this.drive.files.get({
+                        fileId: customFolderId,
+                        fields: 'id, name, mimeType'
+                    });
+
+                    if (folder.data.mimeType !== 'application/vnd.google-apps.folder') {
+                        console.error(`❌ The provided ID (${customFolderId}) is not a folder.`);
+                        this.backupFolderId = null;
+                        return;
+                    }
+
+                    this.backupFolderId = folder.data.id;
+                    console.log(`✅ Successfully verified access to folder: "${folder.data.name}"`);
+                } catch (error) {
+                    console.error(`❌ Error accessing custom folder ID (${customFolderId}):`, error.message);
+                    console.error('   Please ensure the service account has "Editor" permissions on this folder.');
+                    this.backupFolderId = null;
+                    return;
+                }
             } else {
-                // Create backup folder
-                const folderResponse = await this.drive.files.create({
-                    resource: {
-                        name: folderName,
-                        mimeType: 'application/vnd.google-apps.folder'
-                    },
-                    fields: 'id'
-                });
+                // Fallback to default behavior
+                const folderName = `Gemini-Chat-Backups-${process.env.NODE_ENV || 'production'}`;
                 
-                this.backupFolderId = folderResponse.data.id;
-                console.log(`📁 Created backup folder: ${folderName} (${this.backupFolderId})`);
+                const response = await this.drive.files.list({
+                    q: `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and 'root' in parents`,
+                    fields: 'files(id, name)'
+                });
+
+                if (response.data.files.length > 0) {
+                    this.backupFolderId = response.data.files[0].id;
+                    console.log(`📁 Using existing backup folder: ${folderName} (${this.backupFolderId})`);
+                } else {
+                    console.log(`📁 Backup folder "${folderName}" not found. Creating it...`);
+                    const folderResponse = await this.drive.files.create({
+                        resource: {
+                            name: folderName,
+                            mimeType: 'application/vnd.google-apps.folder'
+                        },
+                        fields: 'id'
+                    });
+                    
+                    this.backupFolderId = folderResponse.data.id;
+                    console.log(`📁 Created backup folder: ${folderName} (${this.backupFolderId})`);
+                }
             }
         } catch (error) {
             console.error('❌ Error initializing backup folder:', error.message);
