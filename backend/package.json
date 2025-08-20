@@ -2,9 +2,9 @@
   "name": "gemini-chat-backend",
   "version": "2.0.0",
   "description": "Backend para sistema de chat com Gemini AI - Cloud Version",
-  "main": "server.js",
+  "main": "server-cloud.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-cloud.js",
     "dev": "nodemon server.js",
     "build": "echo 'Build completed'",
     "migrate": "node scripts/migrate-db.js"
