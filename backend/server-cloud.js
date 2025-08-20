@@ -3,23 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-// Importar database PostgreSQL com fallback
-let PostgresDatabase = null;
-let postgresImportError = null;
-try {
-    PostgresDatabase = require('./database-postgres');
-    console.log('📦 PostgresDatabase imported successfully:', typeof PostgresDatabase);
-
-    // Verify it's a constructor function
-    if (typeof PostgresDatabase !== 'function') {
-        throw new Error('PostgresDatabase is not a constructor function');
-    }
-} catch (error) {
-    postgresImportError = error;
-    console.log('⚠️ PostgresDatabase import failed:', error.message);
-    console.log('📍 Error details:', error.stack);
-    console.log('💾 Will use SimpleDatabase fallback only');
-}
+// Import database factory for better error handling
+const DatabaseFactory = require('./database-factory');
 
 /**
  * Servidor Node.js para Cloud com Database Externo
@@ -453,63 +438,6 @@ let db;
 // Instância global do backup service
 let backupService;
 
-// Inicializar database baseado na disponibilidade do DATABASE_URL e PostgresDatabase
-console.log('🔍 DATABASE_URL:', DATABASE_URL ? 'Configurado' : 'Não configurado');
-console.log('🔍 PostgresDatabase available:', PostgresDatabase !== null);
-
-// Tentar usar PostgresDatabase se disponível e DATABASE_URL configurado
-if (DATABASE_URL && PostgresDatabase && typeof PostgresDatabase === 'function') {
-    console.log('🐘 Tentando usar PostgreSQL Database');
-    console.log(`🔗 DATABASE_URL length: ${DATABASE_URL.length} characters`);
-    console.log(`🔗 DATABASE_URL starts with: ${DATABASE_URL.substring(0, 20)}...`);
-
-    try {
-        db = new PostgresDatabase();
-        console.log('✅ PostgresDatabase instanciado com sucesso');
-        console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
-
-        // Verificar se os métodos essenciais existem
-        const requiredMethods = ['initialize', 'createChat', 'addMessage', 'updateChatContext', 'getChats', 'getChatWithMessages'];
-        const missingMethods = requiredMethods.filter(method => typeof db[method] !== 'function');
-
-        if (missingMethods.length > 0) {
-            console.log(`⚠️ PostgresDatabase missing methods: ${missingMethods.join(', ')}`);
-            console.log('💾 Fallback para SimpleDatabase');
-            db = new SimpleDatabase();
-        } else {
-            console.log('✅ PostgresDatabase: All required methods available');
-        }
-    } catch (error) {
-        console.error('❌ Erro ao instanciar PostgresDatabase:', error.message);
-        console.error('📍 Stack trace:', error.stack);
-        console.log('💾 Fallback para SimpleDatabase');
-        db = new SimpleDatabase();
-    }
-} else {
-    console.log('💾 Usando SimpleDatabase (fallback)');
-
-    if (!PostgresDatabase) {
-        console.log('⚠️ PostgresDatabase não disponível');
-        if (postgresImportError) {
-            console.log(`📍 Import error: ${postgresImportError.message}`);
-        }
-        if (DATABASE_URL) {
-            console.log('⚠️ DATABASE_URL configurado mas PostgresDatabase não encontrado');
-            console.log('🔍 Possíveis causas:');
-            console.log('   - Módulo pg não instalado');
-            console.log('   - Erro na importação do database-postgres.js');
-            console.log('   - Erro de sintaxe no arquivo database-postgres.js');
-        }
-    }
-    if (!DATABASE_URL) {
-        console.log('⚠️ DATABASE_URL não configurado');
-    }
-
-    db = new SimpleDatabase();
-    console.log('✅ SimpleDatabase instanciado');
-    console.log('🔍 updateChatContext method:', typeof db.updateChatContext);
-}
-
 // Função para adicionar headers CORS
 function addCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -620,14 +548,27 @@ const server = http.createServer(async (req, res) => {
         // Debug endpoint for troubleshooting database issues
         if (pathname === '/api/debug/database') {
             const stats = await db.getStats();
+
+            // Test pg module availability
+            let pgModuleAvailable = false;
+            let pgModuleError = null;
+            try {
+                require('pg');
+                pgModuleAvailable = true;
+            } catch (error) {
+                pgModuleError = error.message;
+            }
+
             sendJsonResponse(res, 200, {
                 database_info: {
                     type: db.constructor.name,
                     server_type: stats.server_type,
-                    postgres_available: PostgresDatabase !== null,
-                    postgres_import_error: postgresImportError ? postgresImportError.message : null,
+                    pg_module_available: pgModuleAvailable,
+                    pg_module_error: pgModuleError,
                     database_url_configured: !!DATABASE_URL,
                     database_url_length: DATABASE_URL ? DATABASE_URL.length : 0,
+                    node_version: process.version,
+                    platform: process.platform,
                     required_methods_available: {
                         initialize: typeof db.initialize === 'function',
                         createChat: typeof db.createChat === 'function',
@@ -1171,8 +1112,10 @@ const server = http.createServer(async (req, res) => {
 // Inicializar database e servidor
 async function startServer() {
     try {
-        console.log(`🚀 Initializing ${db.constructor.name}...`);
-        await db.initialize();
+        console.log('🚀 Starting server initialization...');
+
+        // Initialize database using factory
+        db = await DatabaseFactory.createDatabase();
 
         // Verify database is working by getting stats
         const stats = await db.getStats();
@@ -1181,9 +1124,10 @@ async function startServer() {
         // Log database type for monitoring
         if (db.constructor.name === 'PostgresDatabase') {
             console.log('🐘 Using PostgreSQL for persistent storage');
+            console.log('✅ Data will persist across redeployments and restarts');
         } else {
             console.log('💾 Using SimpleDatabase with file persistence (fallback mode)');
-            console.log('⚠️ Data will be lost on container restart unless migrated to PostgreSQL');
+            console.log('⚠️ Data will be lost on container restart unless PostgreSQL is available');
         }
 
         // Initialize backup service

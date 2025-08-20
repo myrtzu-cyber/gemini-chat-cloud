@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server-cloud.js",
     "dev": "nodemon server.js",
-    "build": "echo 'Build completed'",
+    "build": "npm rebuild && echo 'Build completed'",
+    "postinstall": "npm rebuild pg",
+    "prestart": "node -e \"try { require('pg'); console.log('✅ pg module available'); } catch(e) { console.log('❌ pg module not available:', e.message); }\"",
     "migrate": "node scripts/migrate-db.js",
     "monitor": "node ../monitor-system.js",
     "backup": "node ../monitor-system.js backup",
@@ -26,8 +28,10 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "18.x",
+    "npm": ">=8.0.0"
   },
+  "os": ["linux"],
   "keywords": ["gemini", "chat", "ai", "nodejs", "postgresql", "cloud"],
   "author": "Seu Nome",
   "license": "MIT"

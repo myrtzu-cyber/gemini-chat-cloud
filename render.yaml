@@ -2,8 +2,14 @@ services:
   - type: web
     name: gemini-chat-cloud
     env: node
-    buildCommand: rm -f package-lock.json && npm install
-    startCommand: node server-cloud.js
+    buildCommand: |
+      echo "🔧 Starting build process..."
+      rm -f package-lock.json
+      npm cache clean --force
+      npm install --verbose --no-optional
+      npm rebuild pg --verbose
+      echo "✅ Build process completed"
+    startCommand: npm run prestart && node server-cloud.js
     rootDir: backend
     plan: free
     region: oregon
