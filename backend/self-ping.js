@@ -95,9 +95,11 @@ function initSelfPing() {
     // Detectar URL do Render automaticamente
     const renderUrl = process.env.RENDER_EXTERNAL_URL || 
                      process.env.APP_URL || 
-                     `https://${process.env.RENDER_SERVICE_NAME}.onrender.com`;
+                     'https://gemini-chat-cloud.onrender.com'; // URL específica do seu app
 
-    if (renderUrl && renderUrl.includes('onrender.com')) {
+    console.log(`🔗 Self-ping URL detectada: ${renderUrl}`);
+
+    if (renderUrl && (renderUrl.includes('onrender.com') || renderUrl.includes('localhost'))) {
         const selfPing = new SelfPing(renderUrl);
         selfPing.start();
 
@@ -107,7 +109,7 @@ function initSelfPing() {
 
         return selfPing;
     } else {
-        console.log('⏸️  Self-ping: URL do Render não detectada');
+        console.log('⏸️  Self-ping: URL não configurada para keep-alive');
         return null;
     }
 }
