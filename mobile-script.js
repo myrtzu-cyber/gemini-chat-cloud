@@ -1052,8 +1052,8 @@ class GeminiChatMobile {
             };
 
             console.log(`[DEBUG] ensureChatExists: Criando chat com ${validMessages.length} mensagens válidas`);
-
-            const createResponse = await fetch(`${this.serverUrl}/api/chats`, {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1061,49 +1061,49 @@ class GeminiChatMobile {
                 body: JSON.stringify(chatData)
             });
 
-            if (createResponse.ok) {
-                const result = await createResponse.json();
-                console.log(`[DEBUG] ensureChatExists: Chat criado com sucesso: ${result.id}`);
-                
-                // CORREÇÃO: Verificar se o ID retornado é o mesmo que enviamos
-                if (result.id !== this.currentChatId) {
-                    console.log(`[DEBUG] ensureChatExists: AVISO - ID retornado diferente: ${result.id} vs ${this.currentChatId}`);
-                    // Manter o ID local para consistência
+            if (response.ok) {
+                const result = await response.json();
+                // CORREÇÃO: Atualizar o currentChatId apenas se o backend retornar um ID válido
+                if (result.id && typeof result.id === 'string' && result.id !== this.currentChatId) {
+                    console.log('[DEBUG] autoSaveChat: Atualizando currentChatId do retorno do backend:', result.id);
+                    this.currentChatId = result.id;
+                } else if (result.id && result.id === this.currentChatId) {
+                    console.log('[DEBUG] autoSaveChat: Conversa salva com sucesso, ID preservado:', this.currentChatId);
+                } else if (typeof result.id === 'undefined') {
+                    console.warn('[DEBUG] autoSaveChat: AVISO - Servidor não retornou ID. Mantendo currentChatId:', this.currentChatId);
                 }
-                
-                return true;
+
+                // Atualiza todos os indicadores pendentes para 'salvo'
+                const pendingElements = document.querySelectorAll('.mobile-message .message-status.pending');
+                console.log(`[DEBUG] autoSaveChat: Encontrados ${pendingElements.length} elementos pendentes para atualizar`);
+                pendingElements.forEach(el => {
+                    el.classList.remove('pending');
+                    el.classList.add('saved');
+                    // Força uma atualização visual
+                    el.style.display = 'none';
+                    el.offsetHeight; // Trigger reflow
+                    el.style.display = '';
+                });
+
+                // Update pending messages in localStorage
+                this.savePendingMessages();
             } else {
-                const errorText = await createResponse.text();
-                console.error(`[DEBUG] ensureChatExists: Falha ao criar chat: ${createResponse.status} - ${errorText}`);
-                return false;
+                throw new Error(`Falha no servidor: ${response.statusText}`);
             }
-
         } catch (error) {
-            console.error('[DEBUG] ensureChatExists: Erro ao verificar/criar chat:', error);
-            return false;
+            console.error('Erro no salvamento automático:', error);
+            this.showToast('❌ Falha ao salvar a conversa.', 'error');
+
+            // Atualiza todos os indicadores pendentes para 'erro'
+            document.querySelectorAll('.message-status.pending').forEach(el => {
+                el.classList.remove('pending');
+                el.classList.add('error');
+                el.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+            });
+
+            // Save pending messages even if server save fails
+            this.savePendingMessages();
         }
-    }
-
-    // Chamar API Gemini com o modelo selecionado (sem fallback automático)
-    async callGeminiAPIForCompression(message, files = []) {
-        const model = this.selectedModel;
-        console.log(`[DEBUG] callGeminiAPIForCompression iniciado - modelo selecionado: ${model}`);
-
-        try {
-            console.log(`[DEBUG] Tentando compressão com ${model}`);
-            this.showToast(`🔄 Comprimindo com ${this.getModelDisplayName(model)}...`, 'info');
-
-            const result = await this.callGeminiAPI(message, files);
-
-            console.log(`[DEBUG] Sucesso com ${model}`);
-            return result;
-
-        } catch (error) {
-            console.error(`[DEBUG] Erro com ${model}:`, error);
-
-            // Detectar tipo de erro para melhor orientação
-            const isQuotaError = error.message.includes('quota') || error.message.includes('429');
-            const isLargePromptError = error.message.includes('processou a requisição mas não retornou conteúdo') ||
                                      error.message.includes('prompts muito longos');
 
             let errorType = 'ERRO TÉCNICO';
