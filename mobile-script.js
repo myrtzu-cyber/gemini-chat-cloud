@@ -19,7 +19,7 @@ class GeminiChatMobile {
         // Sistema de estatísticas
         this.statistics = this.loadStatistics();
         
-        this.currentChatId = null;
+        this.currentChatId = localStorage.getItem('current_chat_id') || null;
         this.messages = [];
         this.isTyping = false;
         this.attachedFiles = [];
@@ -716,6 +716,7 @@ class GeminiChatMobile {
         
         // Gerar novo ID para a conversa
         this.currentChatId = this.generateChatId();
+        localStorage.setItem('current_chat_id', this.currentChatId);
         console.log('[DEBUG] Novo currentChatId gerado:', this.currentChatId);
         
         // Limpar mensagens e interface
@@ -858,11 +859,20 @@ class GeminiChatMobile {
         // Se não há conversa atual, criar uma nova
         if (!this.currentChatId) {
             console.log('[DEBUG] Nenhuma conversa ativa, criando nova conversa');
-            await this.newChat();
+            console.log('[DEBUG] Estado atual - messages.length:', this.messages.length, 'chats.length:', this.chats.length);
             
-            // Verificar se a nova conversa foi criada corretamente
+            // Verificar se existe uma conversa recente que podemos usar
+            const recentChat = this.chats && this.chats.length > 0 ? this.chats[0] : null;
+            if (recentChat && recentChat.id) {
+                console.log('[DEBUG] Encontrada conversa recente, carregando:', recentChat.id);
+                await this.loadChat(recentChat.id);
+            } else {
+                await this.newChat();
+            }
+            
+            // Verificar se a conversa foi criada/carregada corretamente
             if (!this.currentChatId) {
-                throw new Error('Falha ao criar nova conversa');
+                throw new Error('Falha ao criar/carregar conversa');
             }
         }
         
@@ -923,6 +933,17 @@ class GeminiChatMobile {
             if (!this.currentChatId) {
                 console.error('[DEBUG] ERRO: currentChatId perdido antes de salvar!');
                 throw new Error('ID da conversa perdido antes de salvar');
+            }
+            
+            // Atualizar título da conversa se ainda for "Nova Conversa" e temos mensagens
+            if (this.currentChatTitle === 'Nova Conversa' && this.messages.length >= 2) {
+                const firstUserMessage = this.messages.find(msg => msg.sender === 'user');
+                if (firstUserMessage && firstUserMessage.content) {
+                    const newTitle = this.generateChatTitle(firstUserMessage.content);
+                    this.currentChatTitle = newTitle;
+                    this.updateChatTitle(this.currentChatTitle);
+                    console.log(`[DEBUG] Título da conversa atualizado para: ${this.currentChatTitle}`);
+                }
             }
             
             console.log(`[DEBUG] Chamando autoSaveChat para conversa: ${this.currentChatId}`);
@@ -1063,6 +1084,16 @@ class GeminiChatMobile {
     // Gerar ID único para conversa
     generateChatId() {
         return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Gerar título baseado na primeira mensagem
+    generateChatTitle(firstMessage) {
+        // Limitar o título a 30 caracteres e remover quebras de linha
+        let title = firstMessage.replace(/\n/g, ' ').trim();
+        if (title.length > 30) {
+            title = title.substring(0, 30) + '...';
+        }
+        return title || 'Nova Conversa';
     }
 
     // Ensure chat exists in database before operations
@@ -4484,6 +4515,7 @@ ${message}`;
             // Definir o currentChatId ANTES de qualquer outra operação
             const previousChatId = this.currentChatId;
             this.currentChatId = chat.id;
+            localStorage.setItem('current_chat_id', this.currentChatId);
             this.messages = chat.messages || [];
             this.currentChatTitle = chat.title || 'Mestre';
             
@@ -4581,7 +4613,9 @@ ${message}`;
             if (response.ok) {
                 const lastChat = await response.json();
                 if (lastChat && lastChat.id) {
+                    console.log('[DEBUG] Carregando última conversa:', lastChat.id);
                     await this.loadChat(lastChat.id);
+                    console.log('[DEBUG] Última conversa carregada com sucesso, currentChatId:', this.currentChatId);
                     return; // Sair se conseguiu carregar a última conversa
                 }
             }
@@ -4589,6 +4623,7 @@ ${message}`;
             // Se não houver última conversa ou erro, criar uma nova conversa
             console.log('[DEBUG] Nenhuma conversa anterior encontrada, criando nova conversa');
             await this.newChat();
+            console.log('[DEBUG] Nova conversa criada em loadLastChat, currentChatId:', this.currentChatId);
             
             // Verificar se a nova conversa foi criada corretamente
             if (!this.currentChatId) {
@@ -4686,6 +4721,7 @@ ${message}`;
             
             // Se a conversa deletada era a atual, iniciar uma nova
             if (this.currentChatId === chatId) {
+                localStorage.removeItem('current_chat_id');
                 this.newChat();
             }
             

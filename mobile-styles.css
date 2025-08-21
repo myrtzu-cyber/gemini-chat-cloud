@@ -267,6 +267,16 @@ body.has-safe-areas {
     padding: var(--mobile-padding);
 }
 
+.settings-footer {
+    padding: 10px var(--mobile-padding);
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
+    text-align: center;
+}
+
+.version-info {
+    opacity: 0.8;
+}
+
 .setting-group {
     margin-bottom: 20px;
 }
