@@ -529,10 +529,64 @@ class GeminiChatMobile {
 
         this.updateApiKeyInput();
         this.updateStatisticsDisplay();
+        this.loadVersionInfo();
 
         // Mostrar status do servidor se já configurado
         if (this.serverUrl) {
             this.showToast(`🔗 Servidor: ${this.serverUrl}`);
+        }
+    }
+
+    // Carregar informações da versão da aplicação
+    loadVersionInfo() {
+        console.log('[VERSION] Carregando informações da versão');
+        
+        // Informações básicas da aplicação
+        const appName = "Mestre Gemini Mobile";
+        const appVersion = "2.0.0";
+        const buildDate = this.getBuildDate();
+
+        console.log('[VERSION] Dados:', { appName, appVersion, buildDate });
+
+        // Atualizar elementos na interface
+        const appNameElement = document.getElementById('appName');
+        const appVersionElement = document.getElementById('appVersion');
+        const buildDateElement = document.getElementById('buildDate');
+
+        if (appNameElement) {
+            appNameElement.textContent = appName;
+            console.log('[VERSION] Nome atualizado');
+        }
+        
+        if (appVersionElement) {
+            appVersionElement.textContent = appVersion;
+            console.log('[VERSION] Versão atualizada');
+        }
+        
+        if (buildDateElement) {
+            buildDateElement.textContent = buildDate;
+            console.log('[VERSION] Data de build atualizada');
+        }
+    }
+
+    // Obter data de build
+    getBuildDate() {
+        try {
+            let buildDate = localStorage.getItem('app_build_date');
+            
+            if (!buildDate) {
+                buildDate = new Date().toLocaleDateString('pt-BR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                localStorage.setItem('app_build_date', buildDate);
+            }
+            
+            return buildDate;
+        } catch (error) {
+            console.log('Erro ao obter data de build:', error);
+            return new Date().toLocaleDateString('pt-BR');
         }
     }
 
@@ -840,7 +894,14 @@ class GeminiChatMobile {
             this.addMessageToUI('assistant', response, [], assistantMessageId, 'sent');
 
             this.clearAttachedFiles();
+            
+            console.log('[CHAT-DEBUG] ========== ANTES autoSaveChat ==========');
+            console.log('[CHAT-DEBUG] currentChatId antes do save:', this.currentChatId);
+            
             await this.autoSaveChat();
+            
+            console.log('[CHAT-DEBUG] ========== DEPOIS autoSaveChat ==========');
+            console.log('[CHAT-DEBUG] currentChatId depois do save:', this.currentChatId);
 
         } catch (error) {
             this.hideTyping();
@@ -868,8 +929,20 @@ class GeminiChatMobile {
     }
 
     async autoSaveChat() {
-        if (!this.serverUrl) return;
-        if (this.messages.length === 0) return;
+        console.log('[CHAT-DEBUG] ========== INÍCIO autoSaveChat ==========');
+        console.log('[CHAT-DEBUG] serverUrl:', this.serverUrl);
+        console.log('[CHAT-DEBUG] currentChatId:', this.currentChatId);
+        console.log('[CHAT-DEBUG] Tipo currentChatId:', typeof this.currentChatId);
+        console.log('[CHAT-DEBUG] Número de mensagens:', this.messages.length);
+        
+        if (!this.serverUrl) {
+            console.log('[CHAT-DEBUG] ❌ Saindo: sem serverUrl');
+            return;
+        }
+        if (this.messages.length === 0) {
+            console.log('[CHAT-DEBUG] ❌ Saindo: sem mensagens');
+            return;
+        }
 
         // Se não houver ID de chat, a conversa é nova. O salvamento inicial vai criar um.
         if (!this.currentChatId) {
@@ -900,8 +973,20 @@ class GeminiChatMobile {
 
             if (response.ok) {
                 const result = await response.json();
-                this.currentChatId = result.id; // Garante que temos o ID mais recente
-                console.log('[DEBUG] Conversa salva com sucesso:', result.id);
+                console.log('[CHAT-DEBUG] ========== RESPOSTA DO SERVIDOR ==========');
+                console.log('[CHAT-DEBUG] Resposta completa:', result);
+                console.log('[CHAT-DEBUG] result.id:', result.id);
+                console.log('[CHAT-DEBUG] Tipo de result.id:', typeof result.id);
+                console.log('[CHAT-DEBUG] currentChatId ANTES:', this.currentChatId);
+                
+                if (result.id) {
+                    this.currentChatId = result.id; // Garante que temos o ID mais recente
+                    console.log('[CHAT-DEBUG] ✅ Conversa salva com sucesso:', result.id);
+                    console.log('[CHAT-DEBUG] currentChatId DEPOIS:', this.currentChatId);
+                } else {
+                    console.warn('[CHAT-DEBUG] ⚠️ Servidor não retornou ID válido!');
+                    console.warn('[CHAT-DEBUG] Mantendo currentChatId atual:', this.currentChatId);
+                }
 
                 // Atualiza todos os indicadores pendentes para 'salvo'
                 const pendingElements = document.querySelectorAll('.mobile-message .message-status.pending');
