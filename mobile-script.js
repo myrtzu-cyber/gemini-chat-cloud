@@ -1,8 +1,9 @@
-// Mobile Script para Mestre Gemini - Versão Mobile v2.0.1.1
-console.log('[INIT] =================================');
-console.log('[INIT] MESTRE GEMINI MOBILE v2.0.1.1');
-console.log('[INIT] Timestamp:', new Date().toISOString());
-console.log('[INIT] =================================');
+// Mobile Script para Mestre Gemini - Versão Mobile v20250821171203
+console.log('🚀🚀🚀 =================================');
+console.log('🚀🚀🚀 NOVA VERSÃO CARREGADA! v20250821171203');
+console.log('🚀🚀🚀 Timestamp:', new Date().toISOString());
+console.log('🚀🚀🚀 =================================');
+alert('🚀 NOVA VERSÃO CARREGADA! v20250821171203 - Cache quebrado com sucesso!');
 
 class GeminiChatMobile {
     constructor() {
@@ -4938,7 +4939,7 @@ ${message}`;
         
         // Informações básicas da aplicação
         const appName = "Mestre Gemini Mobile";
-        const appVersion = "2.0.1.1";
+        const appVersion = "v20250821171203";
         const buildDate = this.getBuildDate();
 
         console.log('[DEBUG] loadVersionInfo: Dados da versão:', { appName, appVersion, buildDate });
