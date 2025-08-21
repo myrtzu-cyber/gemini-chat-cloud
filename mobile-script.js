@@ -947,15 +947,16 @@ class GeminiChatMobile {
 
             if (response.ok) {
                 const result = await response.json();
-                
-                // CORREÇÃO: Preservar o ID existente - não sobrescrever
-                if (result.id && result.id === this.currentChatId) {
-                    console.log('[DEBUG] autoSaveChat: Conversa salva com sucesso, ID preservado:', this.currentChatId);
-                } else if (result.id && result.id !== this.currentChatId) {
-                    console.log('[DEBUG] autoSaveChat: AVISO - Servidor retornou ID diferente:', result.id, 'vs', this.currentChatId);
-                    // Manter o ID local para evitar confusão
+                // Sempre atualizar o currentChatId com o valor retornado do backend, se existir
+                if (result.id && typeof result.id === 'string') {
+                    if (result.id !== this.currentChatId) {
+                        console.log('[DEBUG] autoSaveChat: Atualizando currentChatId do retorno do backend:', result.id);
+                    } else {
+                        console.log('[DEBUG] autoSaveChat: Conversa salva com sucesso, ID preservado:', this.currentChatId);
+                    }
+                    this.currentChatId = result.id;
                 } else {
-                    console.log('[DEBUG] autoSaveChat: Conversa salva, usando ID local:', this.currentChatId);
+                    console.warn('[DEBUG] autoSaveChat: AVISO - Servidor não retornou ID. Mantendo currentChatId:', this.currentChatId);
                 }
 
                 // Atualiza todos os indicadores pendentes para 'salvo'
