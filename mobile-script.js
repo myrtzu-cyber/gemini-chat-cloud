@@ -1,4 +1,9 @@
-// Mobile Script para Mestre Gemini - Versão Mobile
+// Mobile Script para Mestre Gemini - Versão Mobile v2.0.1.1
+console.log('[INIT] =================================');
+console.log('[INIT] MESTRE GEMINI MOBILE v2.0.1.1');
+console.log('[INIT] Timestamp:', new Date().toISOString());
+console.log('[INIT] =================================');
+
 class GeminiChatMobile {
     constructor() {
         // Sistema de múltiplas API Keys
@@ -841,13 +846,20 @@ class GeminiChatMobile {
 
         const userMessageId = this.generateMessageId();
         
+        // CRÍTICO: Verificação detalhada do currentChatId
+        console.log('[CRITICAL] ========== INÍCIO sendMessage ==========');
+        console.log('[CRITICAL] currentChatId INICIAL em sendMessage:', this.currentChatId);
+        console.log('[CRITICAL] Tipo do currentChatId:', typeof this.currentChatId);
+        console.log('[CRITICAL] currentChatId é null?', this.currentChatId === null);
+        console.log('[CRITICAL] currentChatId é undefined?', this.currentChatId === undefined);
+        
         // CORREÇÃO: Melhor lógica para gerenciamento de conversa atual
         // Só criar nova conversa se realmente não existir uma ativa
         if (!this.currentChatId) {
-            console.log('[DEBUG] Nenhuma conversa ativa, criando nova conversa');
+            console.log('[CRITICAL] PROBLEMA: currentChatId está null/undefined - criando nova conversa');
             this.currentChatId = this.generateChatId();
             this.currentChatTitle = 'Nova Conversa';
-            console.log('[DEBUG] Nova conversa criada com ID:', this.currentChatId);
+            console.log('[CRITICAL] Nova conversa criada com ID:', this.currentChatId);
             
             // Garantir que a nova conversa seja criada no servidor imediatamente
             try {
@@ -898,14 +910,19 @@ class GeminiChatMobile {
             const assistantMessageId = this.addMessageToHistory('assistant', response);
             this.addMessageToUI('assistant', response, [], assistantMessageId, 'sent');
 
-            console.log('[DEBUG] sendMessage: Antes de chamar autoSaveChat - currentChatId:', this.currentChatId);
-            console.log('[DEBUG] sendMessage: Total de mensagens no array:', this.messages.length);
-            console.log('[DEBUG] sendMessage: Últimas mensagens:', this.messages.slice(-2).map(m => ({ id: m.id, sender: m.sender, status: m.status })));
+            console.log('[CRITICAL] ========== ANTES DE autoSaveChat ==========');
+            console.log('[CRITICAL] currentChatId ANTES de autoSaveChat:', this.currentChatId);
+            console.log('[CRITICAL] Tipo:', typeof this.currentChatId);
+            console.log('[CRITICAL] Total de mensagens no array:', this.messages.length);
+            console.log('[CRITICAL] Últimas mensagens:', this.messages.slice(-2).map(m => ({ id: m.id, sender: m.sender, status: m.status })));
 
             this.clearAttachedFiles();
+            
+            console.log('[CRITICAL] ========== CHAMANDO autoSaveChat ==========');
             await this.autoSaveChat();
             
-            console.log('[DEBUG] sendMessage: Depois de chamar autoSaveChat - currentChatId:', this.currentChatId);
+            console.log('[CRITICAL] ========== DEPOIS DE autoSaveChat ==========');
+            console.log('[CRITICAL] currentChatId DEPOIS de autoSaveChat:', this.currentChatId);
 
         } catch (error) {
             this.hideTyping();
@@ -4921,7 +4938,7 @@ ${message}`;
         
         // Informações básicas da aplicação
         const appName = "Mestre Gemini Mobile";
-        const appVersion = "2.0.1";
+        const appVersion = "2.0.1.1";
         const buildDate = this.getBuildDate();
 
         console.log('[DEBUG] loadVersionInfo: Dados da versão:', { appName, appVersion, buildDate });
