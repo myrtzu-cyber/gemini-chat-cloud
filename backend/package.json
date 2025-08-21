@@ -1,6 +1,6 @@
 {
   "name": "gemini-chat-backend",
-  "version": "2.0.1",
+  "version": "2.0.0",
   "description": "Backend para sistema de chat com Gemini AI - Cloud Version",
   "main": "server-cloud.js",
   "scripts": {

@@ -726,9 +726,8 @@ const server = http.createServer(async (req, res) => {
 
                 try {
                     const result = await db.createChat(data);
-                    const responseObj = { ...result, id: data.id };
-                    console.log('🔎 [DEBUG BACKEND] Resposta enviada ao frontend (POST /api/chats):', responseObj);
-                    sendJsonResponse(res, 200, responseObj);
+                    console.log(`✅ Chat criado/atualizado com sucesso: ${result.id}`);
+                    sendJsonResponse(res, 200, result);
                 } catch (error) {
                     console.log(`❌ Erro interno ao criar chat: ${error.message}`);
                     sendJsonResponse(res, 500, {
