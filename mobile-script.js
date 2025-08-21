@@ -947,6 +947,7 @@ class GeminiChatMobile {
 
             if (response.ok) {
                 const result = await response.json();
+                console.log('[DEBUG] autoSaveChat: Resposta completa do backend:', result);
                 // Sempre atualizar o currentChatId com o valor retornado do backend, se existir
                 if (result.id && typeof result.id === 'string') {
                     if (result.id !== this.currentChatId) {
