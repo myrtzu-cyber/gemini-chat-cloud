@@ -539,7 +539,13 @@ class GeminiChatMobile {
 
     // Mostrar configurações
     showSettings() {
+        console.log('[DEBUG] showSettings: Exibindo modal de configurações');
         document.getElementById('settingsModal').style.display = 'flex';
+        
+        // Carregar informações de versão quando o modal é exibido
+        setTimeout(() => {
+            this.loadVersionInfo();
+        }, 100); // Small delay to ensure DOM is ready
     }
 
     // Esconder configurações
@@ -892,8 +898,14 @@ class GeminiChatMobile {
             const assistantMessageId = this.addMessageToHistory('assistant', response);
             this.addMessageToUI('assistant', response, [], assistantMessageId, 'sent');
 
+            console.log('[DEBUG] sendMessage: Antes de chamar autoSaveChat - currentChatId:', this.currentChatId);
+            console.log('[DEBUG] sendMessage: Total de mensagens no array:', this.messages.length);
+            console.log('[DEBUG] sendMessage: Últimas mensagens:', this.messages.slice(-2).map(m => ({ id: m.id, sender: m.sender, status: m.status })));
+
             this.clearAttachedFiles();
             await this.autoSaveChat();
+            
+            console.log('[DEBUG] sendMessage: Depois de chamar autoSaveChat - currentChatId:', this.currentChatId);
 
         } catch (error) {
             this.hideTyping();
@@ -967,14 +979,32 @@ class GeminiChatMobile {
     }
 
     async autoSaveChat() {
-        if (!this.serverUrl) return;
-        if (this.messages.length === 0) return;
+        console.log('[DEBUG] ========== INÍCIO autoSaveChat ==========');
+        console.log('[DEBUG] autoSaveChat: serverUrl configurado:', !!this.serverUrl);
+        console.log('[DEBUG] autoSaveChat: Número de mensagens:', this.messages.length);
+        console.log('[DEBUG] autoSaveChat: currentChatId INICIAL:', this.currentChatId);
+        console.log('[DEBUG] autoSaveChat: Tipo de currentChatId:', typeof this.currentChatId);
+        console.log('[DEBUG] autoSaveChat: currentChatId é null?', this.currentChatId === null);
+        console.log('[DEBUG] autoSaveChat: currentChatId é undefined?', this.currentChatId === undefined);
+        console.log('[DEBUG] autoSaveChat: currentChatId é falsy?', !this.currentChatId);
+        
+        if (!this.serverUrl) {
+            console.log('[DEBUG] autoSaveChat: Saindo - servidor não configurado');
+            return;
+        }
+        if (this.messages.length === 0) {
+            console.log('[DEBUG] autoSaveChat: Saindo - nenhuma mensagem para salvar');
+            return;
+        }
 
         // CORREÇÃO: Verificar se temos um chatId válido
         if (!this.currentChatId) {
-            console.log('[DEBUG] autoSaveChat: Nenhum chatId encontrado, criando um novo');
+            console.log('[DEBUG] autoSaveChat: PROBLEMA - currentChatId está undefined/null, criando um novo');
+            console.log('[DEBUG] autoSaveChat: Estado atual das mensagens:', this.messages.map(m => ({ id: m.id, sender: m.sender, status: m.status })));
             this.currentChatId = this.generateChatId();
-            console.log('[DEBUG] autoSaveChat: Novo chatId gerado:', this.currentChatId);
+            console.log('[DEBUG] autoSaveChat: Novo chatId gerado como emergência:', this.currentChatId);
+        } else {
+            console.log('[DEBUG] autoSaveChat: currentChatId válido encontrado:', this.currentChatId);
         }
 
         // Garantir que o chat existe no servidor antes de salvar
@@ -1014,16 +1044,25 @@ class GeminiChatMobile {
             if (response.ok) {
                 const result = await response.json();
                 console.log('[DEBUG] autoSaveChat: Resposta completa do backend:', result);
+                console.log('[DEBUG] autoSaveChat: currentChatId ANTES de processar resposta:', this.currentChatId);
+                console.log('[DEBUG] autoSaveChat: result.id da resposta:', result.id);
+                console.log('[DEBUG] autoSaveChat: Tipo de result.id:', typeof result.id);
+                
                 // Sempre atualizar o currentChatId com o valor retornado do backend, se existir
                 if (result.id && typeof result.id === 'string') {
                     if (result.id !== this.currentChatId) {
                         console.log('[DEBUG] autoSaveChat: Atualizando currentChatId do retorno do backend:', result.id);
+                        console.log('[DEBUG] autoSaveChat: ANTES:', this.currentChatId, 'DEPOIS:', result.id);
                     } else {
                         console.log('[DEBUG] autoSaveChat: Conversa salva com sucesso, ID preservado:', this.currentChatId);
                     }
                     this.currentChatId = result.id;
+                    console.log('[DEBUG] autoSaveChat: currentChatId FINAL após atualização:', this.currentChatId);
                 } else {
-                    console.warn('[DEBUG] autoSaveChat: AVISO - Servidor não retornou ID. Mantendo currentChatId:', this.currentChatId);
+                    console.warn('[DEBUG] autoSaveChat: AVISO - Servidor não retornou ID válido');
+                    console.warn('[DEBUG] autoSaveChat: result.id recebido:', result.id);
+                    console.warn('[DEBUG] autoSaveChat: Tipo:', typeof result.id);
+                    console.warn('[DEBUG] autoSaveChat: Mantendo currentChatId atual:', this.currentChatId);
                 }
 
                 // Atualiza todos os indicadores pendentes para 'salvo'
@@ -4878,19 +4917,46 @@ ${message}`;
 
     // Carregar informações da versão da aplicação
     loadVersionInfo() {
+        console.log('[DEBUG] loadVersionInfo: Iniciando carregamento das informações de versão');
+        
         // Informações básicas da aplicação
         const appName = "Mestre Gemini Mobile";
         const appVersion = "2.0.1";
         const buildDate = this.getBuildDate();
+
+        console.log('[DEBUG] loadVersionInfo: Dados da versão:', { appName, appVersion, buildDate });
 
         // Atualizar elementos na interface
         const appNameElement = document.getElementById('appName');
         const appVersionElement = document.getElementById('appVersion');
         const buildDateElement = document.getElementById('buildDate');
 
-        if (appNameElement) appNameElement.textContent = appName;
-        if (appVersionElement) appVersionElement.textContent = appVersion;
-        if (buildDateElement) buildDateElement.textContent = buildDate;
+        console.log('[DEBUG] loadVersionInfo: Elementos encontrados:', {
+            appNameElement: !!appNameElement,
+            appVersionElement: !!appVersionElement,
+            buildDateElement: !!buildDateElement
+        });
+
+        if (appNameElement) {
+            appNameElement.textContent = appName;
+            console.log('[DEBUG] loadVersionInfo: Nome da app atualizado');
+        } else {
+            console.warn('[DEBUG] loadVersionInfo: Elemento appName não encontrado');
+        }
+        
+        if (appVersionElement) {
+            appVersionElement.textContent = appVersion;
+            console.log('[DEBUG] loadVersionInfo: Versão da app atualizada para', appVersion);
+        } else {
+            console.warn('[DEBUG] loadVersionInfo: Elemento appVersion não encontrado');
+        }
+        
+        if (buildDateElement) {
+            buildDateElement.textContent = buildDate;
+            console.log('[DEBUG] loadVersionInfo: Data de build atualizada');
+        } else {
+            console.warn('[DEBUG] loadVersionInfo: Elemento buildDate não encontrado');
+        }
     }
 
     // Obter data de build (baseada na última modificação ou data atual)
@@ -4914,6 +4980,109 @@ ${message}`;
             console.log('Erro ao obter data de build:', error);
             return new Date().toLocaleDateString('pt-BR');
         }
+    }
+
+    // Adicionar mensagem ao histórico interno
+    addMessageToHistory(sender, content, files = []) {
+        const messageId = this.generateMessageId();
+        console.log(`[DEBUG] addMessageToHistory: Adicionando mensagem ${sender} com ID: ${messageId}`);
+        console.log(`[DEBUG] addMessageToHistory: currentChatId ANTES de adicionar:`, this.currentChatId);
+        
+        const messageData = {
+            id: messageId,
+            sender: sender,
+            content: content,
+            files: files,
+            status: 'sent',
+            retryCount: 0,
+            timestamp: Date.now()
+        };
+
+        this.messages.push(messageData);
+        console.log(`[DEBUG] addMessageToHistory: Mensagem adicionada. Total de mensagens:`, this.messages.length);
+        console.log(`[DEBUG] addMessageToHistory: currentChatId DEPOIS de adicionar:`, this.currentChatId);
+        
+        return messageId;
+    }
+
+    // Adicionar mensagem à interface
+    addMessageToUI(sender, content, files = [], messageId = null, status = 'sent') {
+        const actualMessageId = messageId || this.generateMessageId();
+        console.log(`[DEBUG] addMessageToUI: Adicionando à UI - sender: ${sender}, messageId: ${actualMessageId}, status: ${status}`);
+        console.log(`[DEBUG] addMessageToUI: currentChatId na UI:`, this.currentChatId);
+
+        const messagesContainer = document.getElementById('mobileMessages');
+        if (!messagesContainer) {
+            console.error('[DEBUG] addMessageToUI: Container de mensagens não encontrado');
+            return;
+        }
+
+        // Remover welcome message se presente
+        const welcomeDiv = messagesContainer.querySelector('.mobile-welcome');
+        if (welcomeDiv) {
+            welcomeDiv.remove();
+        }
+
+        // Criar elemento da mensagem
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `mobile-message ${sender === 'user' ? 'user' : 'assistant'}`;
+        messageDiv.dataset.messageId = actualMessageId;
+
+        // Conteúdo da mensagem
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = content;
+
+        messageDiv.appendChild(contentDiv);
+
+        // Adicionar indicador de status se necessário
+        if (status && status !== 'sent') {
+            this.createStatusElement(messageDiv, actualMessageId, status);
+        }
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        console.log(`[DEBUG] addMessageToUI: Mensagem adicionada à UI com sucesso`);
+    }
+
+    // Criar elemento de status para mensagem
+    createStatusElement(messageElement, messageId, status) {
+        console.log(`[DEBUG] Criando status element para mensagem ${messageId} com status: ${status}`);
+        
+        const existingStatus = messageElement.querySelector('.message-status');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+
+        const statusElement = document.createElement('div');
+        statusElement.className = `message-status ${status}`;
+        statusElement.dataset.messageId = messageId;
+
+        switch (status) {
+            case 'pending':
+                statusElement.innerHTML = '<i class="fas fa-clock"></i>';
+                statusElement.title = 'Enviando...';
+                break;
+            case 'sent':
+                statusElement.innerHTML = '<i class="fas fa-check"></i>';
+                statusElement.title = 'Enviado';
+                break;
+            case 'saved':
+                statusElement.innerHTML = '<i class="fas fa-check-double"></i>';
+                statusElement.title = 'Salvo';
+                break;
+            case 'failed':
+                statusElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                statusElement.title = 'Falha no envio';
+                break;
+            default:
+                statusElement.innerHTML = '<i class="fas fa-question"></i>';
+        }
+
+        messageElement.appendChild(statusElement);
+        console.log(`[DEBUG] Status indicator adicionado para mensagem ${messageId} com status: ${status}`);
+        console.log(`[DEBUG] Status element anexado ao DOM para mensagem ${messageId}`);
     }
 }
 
