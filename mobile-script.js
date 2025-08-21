@@ -4795,8 +4795,10 @@ ${message}`;
 
 // Inicializar aplicação
 let geminiChat;
+let geminiChatMobile; // Add global reference for onclick handlers
 document.addEventListener('DOMContentLoaded', () => {
     geminiChat = new GeminiChatMobile();
+    geminiChatMobile = geminiChat; // Make it available globally for onclick handlers
 });
 
 // Adicionar CSS para animações do toast
