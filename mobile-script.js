@@ -529,6 +529,7 @@ class GeminiChatMobile {
 
         this.updateApiKeyInput();
         this.updateStatisticsDisplay();
+        this.loadVersionInfo();
 
         // Mostrar status do servidor se já configurado
         if (this.serverUrl) {
@@ -752,19 +753,24 @@ class GeminiChatMobile {
         this.currentChatId = this.generateChatId();
         console.log(`[DEBUG] newChat: Nova conversa criada com ID: ${this.currentChatId}`);
 
-        // Ensure the chat is immediately saved to database
-        try {
-            const chatCreated = await this.ensureChatExists();
-            if (chatCreated) {
-                this.showToast('✅ Nova conversa criada. O contexto já pode ser editado.');
-                console.log(`[DEBUG] newChat: Chat ${this.currentChatId} criado e salvo no servidor`);
-            } else {
+        // Verificar se temos servidor configurado antes de tentar salvar
+        if (this.serverUrl) {
+            try {
+                const chatCreated = await this.ensureChatExists();
+                if (chatCreated) {
+                    this.showToast('✅ Nova conversa criada. O contexto já pode ser editado.');
+                    console.log(`[DEBUG] newChat: Chat ${this.currentChatId} criado e salvo no servidor`);
+                } else {
+                    this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
+                    console.log(`[DEBUG] newChat: Chat ${this.currentChatId} criado apenas localmente`);
+                }
+            } catch (error) {
+                console.error('[DEBUG] newChat: Erro ao criar nova conversa:', error);
                 this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
-                console.log(`[DEBUG] newChat: Chat ${this.currentChatId} criado apenas localmente`);
             }
-        } catch (error) {
-            console.error('[DEBUG] newChat: Erro ao criar nova conversa:', error);
-            this.showToast('⚠️ Nova conversa criada localmente. Será salva ao enviar primeira mensagem.');
+        } else {
+            console.log('[DEBUG] newChat: Servidor não configurado, conversa criada apenas localmente');
+            this.showToast('💡 Nova conversa criada. Configure um servidor para salvar.');
         }
     }
 
@@ -839,8 +845,12 @@ class GeminiChatMobile {
             
             // Garantir que a nova conversa seja criada no servidor imediatamente
             try {
-                await this.ensureChatExists();
-                console.log('[DEBUG] Nova conversa garantida no servidor');
+                const chatCreated = await this.ensureChatExists();
+                if (chatCreated) {
+                    console.log('[DEBUG] Nova conversa garantida no servidor');
+                } else {
+                    console.log('[DEBUG] Falha ao criar conversa no servidor, mas continuando localmente');
+                }
             } catch (error) {
                 console.error('[DEBUG] Erro ao garantir conversa no servidor:', error);
                 // Continuar mesmo se falhar - será tentado novamente no autoSave
@@ -910,15 +920,71 @@ class GeminiChatMobile {
         }
     }
 
+    // Garantir que o chat existe no servidor antes de operações
+    async ensureChatExists() {
+        if (!this.serverUrl || !this.currentChatId) {
+            console.log('[DEBUG] ensureChatExists: Servidor ou chatId não disponível');
+            return false;
+        }
+
+        try {
+            // Verificar se o chat já existe
+            const checkResponse = await fetch(`${this.serverUrl}/api/chats/${this.currentChatId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (checkResponse.ok) {
+                console.log(`[DEBUG] ensureChatExists: Chat ${this.currentChatId} já existe no servidor`);
+                return true;
+            }
+
+            // Se não existe, criar o chat
+            console.log(`[DEBUG] ensureChatExists: Criando chat ${this.currentChatId} no servidor`);
+            const createResponse = await fetch(`${this.serverUrl}/api/chats`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: this.currentChatId,
+                    title: this.currentChatTitle || 'Nova Conversa',
+                    model: this.selectedModel,
+                    messages: [],
+                    context: this.currentChatContext
+                })
+            });
+
+            if (createResponse.ok) {
+                console.log(`[DEBUG] ensureChatExists: Chat ${this.currentChatId} criado com sucesso`);
+                return true;
+            } else {
+                console.error(`[DEBUG] ensureChatExists: Falha ao criar chat: ${createResponse.status}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('[DEBUG] ensureChatExists: Erro ao verificar/criar chat:', error);
+            return false;
+        }
+    }
+
     async autoSaveChat() {
         if (!this.serverUrl) return;
         if (this.messages.length === 0) return;
 
-        // CORREÇÃO: Não gerar novo ID se já temos um - isso previne duplicação
+        // CORREÇÃO: Verificar se temos um chatId válido
         if (!this.currentChatId) {
-            console.log('[DEBUG] autoSaveChat: Nenhum chatId encontrado, isso não deveria acontecer');
+            console.log('[DEBUG] autoSaveChat: Nenhum chatId encontrado, criando um novo');
             this.currentChatId = this.generateChatId();
-            console.log('[DEBUG] autoSaveChat: Gerado novo chatId como fallback:', this.currentChatId);
+            console.log('[DEBUG] autoSaveChat: Novo chatId gerado:', this.currentChatId);
+        }
+
+        // Garantir que o chat existe no servidor antes de salvar
+        try {
+            const chatExists = await this.ensureChatExists();
+            if (!chatExists) {
+                console.warn('[DEBUG] autoSaveChat: Não foi possível garantir existência do chat, tentando salvar mesmo assim');
+            }
+        } catch (error) {
+            console.error('[DEBUG] autoSaveChat: Erro ao verificar existência do chat:', error);
         }
 
         // Only save messages that are not pending or failed
@@ -4807,6 +4873,46 @@ ${message}`;
                 const modelName = stats.lastModel.includes('pro') ? 'Pro' : 'Flash';
                 lastTokenElement.title = `Última requisição: ${lastTokenCount} tokens (${modelName})`;
             }
+        }
+    }
+
+    // Carregar informações da versão da aplicação
+    loadVersionInfo() {
+        // Informações básicas da aplicação
+        const appName = "Mestre Gemini Mobile";
+        const appVersion = "2.0.1";
+        const buildDate = this.getBuildDate();
+
+        // Atualizar elementos na interface
+        const appNameElement = document.getElementById('appName');
+        const appVersionElement = document.getElementById('appVersion');
+        const buildDateElement = document.getElementById('buildDate');
+
+        if (appNameElement) appNameElement.textContent = appName;
+        if (appVersionElement) appVersionElement.textContent = appVersion;
+        if (buildDateElement) buildDateElement.textContent = buildDate;
+    }
+
+    // Obter data de build (baseada na última modificação ou data atual)
+    getBuildDate() {
+        try {
+            // Tenta obter do localStorage se já foi salvo
+            let buildDate = localStorage.getItem('app_build_date');
+            
+            if (!buildDate) {
+                // Se não existe, cria uma baseada na data atual
+                buildDate = new Date().toLocaleDateString('pt-BR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                localStorage.setItem('app_build_date', buildDate);
+            }
+            
+            return buildDate;
+        } catch (error) {
+            console.log('Erro ao obter data de build:', error);
+            return new Date().toLocaleDateString('pt-BR');
         }
     }
 }
