@@ -139,8 +139,55 @@ class GoogleDriveBackup {
                     console.log(`📁 Created backup folder: ${folderName} (${this.backupFolderId})`);
                 }
             }
+
+            // Share folder with user email if specified
+            await this.shareFolderWithUser();
+            
         } catch (error) {
             console.error('❌ Error initializing backup folder:', error.message);
+        }
+    }
+
+    async shareFolderWithUser() {
+        if (!this.backupFolderId || !process.env.USER_EMAIL_FOR_SHARING) {
+            return;
+        }
+
+        try {
+            console.log(`🔗 Sharing backup folder with: ${process.env.USER_EMAIL_FOR_SHARING}`);
+            
+            // Check if already shared
+            const permissions = await this.drive.permissions.list({
+                fileId: this.backupFolderId,
+                fields: 'permissions(id, emailAddress, role)'
+            });
+
+            const existingPermission = permissions.data.permissions.find(
+                p => p.emailAddress === process.env.USER_EMAIL_FOR_SHARING
+            );
+
+            if (existingPermission) {
+                console.log(`✅ Folder already shared with ${process.env.USER_EMAIL_FOR_SHARING}`);
+                return;
+            }
+
+            // Share folder with viewer permissions
+            await this.drive.permissions.create({
+                fileId: this.backupFolderId,
+                resource: {
+                    role: 'reader', // 'reader' for view-only, 'writer' for edit access
+                    type: 'user',
+                    emailAddress: process.env.USER_EMAIL_FOR_SHARING
+                },
+                sendNotificationEmail: true,
+                emailMessage: 'Você agora tem acesso aos backups automáticos do Gemini Chat. Esta pasta contém backups regulares dos seus dados de conversas.'
+            });
+
+            console.log(`✅ Successfully shared backup folder with ${process.env.USER_EMAIL_FOR_SHARING}`);
+            
+        } catch (error) {
+            console.error('❌ Error sharing folder with user:', error.message);
+            console.error('   Make sure the email address is valid and the service account has sharing permissions');
         }
     }
 
