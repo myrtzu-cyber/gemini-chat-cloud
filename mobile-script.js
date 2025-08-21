@@ -543,7 +543,7 @@ class GeminiChatMobile {
         
         // Informações básicas da aplicação
         const appName = "Mestre Gemini Mobile";
-        const appVersion = "2.0.0";
+        const appVersion = "2.0.1";
         const buildDate = this.getBuildDate();
 
         console.log('[VERSION] Dados:', { appName, appVersion, buildDate });
@@ -975,16 +975,17 @@ class GeminiChatMobile {
                 const result = await response.json();
                 console.log('[CHAT-DEBUG] ========== RESPOSTA DO SERVIDOR ==========');
                 console.log('[CHAT-DEBUG] Resposta completa:', result);
-                console.log('[CHAT-DEBUG] result.id:', result.id);
-                console.log('[CHAT-DEBUG] Tipo de result.id:', typeof result.id);
+                console.log('[CHAT-DEBUG] result.chatId:', result.chatId);
+                console.log('[CHAT-DEBUG] Tipo de result.chatId:', typeof result.chatId);
                 console.log('[CHAT-DEBUG] currentChatId ANTES:', this.currentChatId);
                 
-                if (result.id) {
-                    this.currentChatId = result.id; // Garante que temos o ID mais recente
-                    console.log('[CHAT-DEBUG] ✅ Conversa salva com sucesso:', result.id);
+                // O servidor retorna 'chatId', não 'id'
+                if (result.chatId) {
+                    this.currentChatId = result.chatId; // Garante que temos o ID mais recente
+                    console.log('[CHAT-DEBUG] ✅ Conversa salva com sucesso:', result.chatId);
                     console.log('[CHAT-DEBUG] currentChatId DEPOIS:', this.currentChatId);
                 } else {
-                    console.warn('[CHAT-DEBUG] ⚠️ Servidor não retornou ID válido!');
+                    console.warn('[CHAT-DEBUG] ⚠️ Servidor não retornou chatId válido!');
                     console.warn('[CHAT-DEBUG] Mantendo currentChatId atual:', this.currentChatId);
                 }
 
