@@ -727,7 +727,8 @@ const server = http.createServer(async (req, res) => {
                 try {
                     const result = await db.createChat(data);
                     console.log(`✅ Chat criado/atualizado com sucesso: ${result.id}`);
-                    sendJsonResponse(res, 200, result);
+                    // Garante que o campo 'id' sempre esteja presente na resposta
+                    sendJsonResponse(res, 200, { ...result, id: data.id });
                 } catch (error) {
                     console.log(`❌ Erro interno ao criar chat: ${error.message}`);
                     sendJsonResponse(res, 500, {
