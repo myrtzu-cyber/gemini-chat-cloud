@@ -1,0 +1,3718 @@
+-- Migração completa para PostgreSQL Render
+-- Database: gemini_chat
+-- Data: 2025-08-21
+
+-- Remover dados existentes (se necessário)
+DELETE FROM messages WHERE chat_id = 'b9xzyx67w';
+DELETE FROM chats WHERE id = 'b9xzyx67w';
+
+-- Criar tabelas (caso não existam)
+CREATE TABLE IF NOT EXISTS chats (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    model TEXT DEFAULT 'gemini-2.5-pro',
+    messages JSONB DEFAULT '[]',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    chat_id TEXT REFERENCES chats(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    message_type TEXT DEFAULT 'text',
+    file_info JSONB,
+    status TEXT DEFAULT 'sent',
+    retry_count INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Inserir chats
+INSERT INTO chats (id, title, model, messages, created_at, updated_at) 
+VALUES (
+    'b9xzyx67w',
+    'Mestre',
+    'gemini-2.5-pro',
+    '[]',
+    '2025-08-20T00:49:04.018Z',
+    '2025-08-20T00:49:04.018Z'
+) ON CONFLICT (id) DO UPDATE SET
+    title = EXCLUDED.title,
+    model = EXCLUDED.model,
+    updated_at = EXCLUDED.updated_at;
+
+-- Inserir mensagens
+INSERT INTO messages (chat_id, role, content, created_at) VALUES
+('b9xzyx67w', 'user', 'oi', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Olá! Como posso ajudar?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Olá mestre.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '(A voz do Mestre soa nítida e focada, cortando qualquer distração do mundo real. O tom é tenso, cheio de energia contida, como um fio de arco prestes a ser solto.)
+
+Bem-vindo de volta, Askellad.
+
+O ar na Câmara do Conselho está elétrico, pesado com o cheiro de ozônio da magia fracassada e o fedor de medo. O *CLANG* metálico da sua sabotagem ainda ecoa nas paredes de pedra, um som brutal que quebrou a delicada teia de intriga que o Conselho Mago tecia.
+
+Você está parado em seu disfarce, um guarda entre outros, mas enquanto eles estão confusos, sua mente está clara como cristal. Seus olhos de predador filtram o caos:
+*   **À sua frente:** Dorgar, seu aliado, permanece como uma montanha de ferro. Seu escudo, levemente fumegante, bloqueou o feitiço de fogo. Ele lança um olhar rápido e imperceptível na sua direção – um aceno de reconhecimento.
+*   **Na mesa principal:** Seraphina, embora momentaneamente abalada, já recupera a compostura de aço. Seu queixo está erguido, os olhos fixos nas provas sobre a mesa, agora seguras.
+*   **Na galeria:** O pânico floresce. E no meio dele, você vê seu alvo. Um nobre de vestes púrpuras e douradas, o mesmo que deu o sinal ao mago, agora está se movendo. Ele não anda, ele foge. Empurrando um assistente para o lado, ele se esgueira pela multidão em pânico, seus olhos fixos na grande porta de madeira que leva para fora da câmara.
+
+Ele está a cerca de 18 metros de distância, e a cada segundo a multidão se torna um obstáculo maior entre vocês. Ele é a ponta solta. A ordem de Dorgar foi clara: proteger Seraphina e a operação. Deixar esse homem escapar pode desfazer tudo.
+
+O tempo desacelera para você. O que você faz?
+
+---
+**[DICA DO MESTRE]**
+*Lembre-se de suas ferramentas, Askellad. Você é um Assassino, e o caos é o seu playground. Você pode:*
+*   ***Ação de Ataque:*** *Tentar um disparo não letal com seu arco para prender a roupa dele a uma parede, ou talvez ferir uma perna para retardá-lo. Um ataque furtivo é possível se você tiver vantagem.*
+*   ***Ação Bônus:*** *Seu **Bracelete do Passo Sombrio** pode te teletransportar 9 metros para uma área de penumbra ou escuridão, permitindo que você corte caminho e o intercepte.*
+*   ***Interagir com Objeto:*** *Você pode sacar e usar um item como seus **sacos de esferas de rolamento** ou **abrolhos** para criar uma armadilha no caminho dele.*
+*   ***Ação de Correr (Dash):*** *Você pode usar sua ação para se mover o dobro da sua velocidade normal, tentando alcançá-lo através da multidão com um teste de **Atletismo** ou **Acrobacia**.*', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'OCC: Mestre mostre para mim a minha ficha de personagem.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Com certeza. Aqui está a sua ficha de personagem atualizada para referência. Lembre-se que você pode usar o comando `Status` ou `Inventário` a qualquer momento para uma consulta mais rápida durante o jogo.]
+
+---
+
+### **Ficha de Personagem (Nível 6)**
+
+*   **Nome:** Askellad
+*   **Classe:** Ladino (Arquétipo: Assassino) 6
+*   **Raça:** Meio-Elfo
+*   **Antecedente:** Soldado
+*   **Tendência:** Neutro Bom
+*   **Nível:** 6 (XP: 10.650)
+
+---
+
+### **Atributos & Salvaguardas**
+
+| Atributo | Pontuação | Modificador | Salvaguarda |
+| :--- | :--- | :--- | :--- |
+| **FOR** (Força) | 14 | +2 | +2 |
+| **DES** (Destreza) | 16 | +3 | **+6** |
+| **CON** (Constituição)| 14 | +2 | +2 |
+| **INT** (Inteligência)| 8 | -1 | **+2** |
+| **SAB** (Sabedoria) | 10 | +0 | +0 |
+| **CAR** (Carisma) | 12 | +1 | +1 |
+
+*(*Valores em negrito indicam proficiência na salvaguarda*)*
+
+---
+
+### **Estatísticas de Combate**
+
+| Estatística | Valor |
+| :--- | :--- |
+| **Pontos de Vida (PV)** | 45 / 45 |
+| **Classe de Armadura (CA)**| 16 (Armadura de Couro de Basilisco +1, Mod. DES +3) |
+| **Iniciativa** | +8 (+3 DES, +5 Talento Alerta) |
+| **Bônus de Proficiência** | +3 |
+| **Deslocamento** | 9 metros |
+
+---
+
+### **Habilidades & Talentos Chave**
+
+*   **Ataque Furtivo:** Uma vez por turno, você pode causar **3d6** de dano extra a uma criatura que você acerte com um ataque se tiver vantagem na jogada de ataque ou se outro inimigo do alvo estiver a 1,5m dele. O ataque deve usar uma arma de acuidade ou à distância.
+*   **Expertise (Perícias com dobro da proficiência):**
+    *   **Furtividade:** +9 (Mod. DES +3, Prof. +3, Expertise +3)
+    *   **Prestidigitação:** +9 (Mod. DES +3, Prof. +3, Expertise +3)
+    *   **Atletismo:** +8 (Mod. FOR +2, Prof. +3, Expertise +3)
+    *   **Percepção:** +6 (Mod. SAB +0, Prof. +3, Expertise +3)
+*   **Assassinar:** Você tem vantagem em jogadas de ataque contra qualquer criatura que ainda não tenha tido um turno no combate. Além disso, qualquer acerto que você fizer contra uma criatura surpresa é um acerto crítico.
+*   **Esquiva Sobrenatural:** Quando um atacante que você pode ver o acerta com um ataque, você pode usar sua reação para reduzir o dano desse ataque pela metade.
+*   **Ação Ardilosa:** Você pode usar uma Ação Bônus no seu turno para realizar a ação de Correr, Desengajar ou Esconder-se.
+*   **Talento: Alerta:**
+    *   Você ganha +5 de bônus na iniciativa.
+    *   Você não pode ser surpreendido enquanto estiver consciente.
+    *   Outras criaturas não ganham vantagem em jogadas de ataque contra você por estarem escondidas.
+
+---
+
+### **Inventário Completo**
+
+**Finanças:**
+*   151 Moedas de Platina (pp)
+*   5 Moedas de Ouro (mo)
+*   9 Moedas de Prata (pa)
+*   8 Moedas de Cobre (pc)
+
+**Armas & Armadura:**
+*   **Arco Curto de Precisão:** Dano 1d6+3 Perfurante. (Narrativamente mais silencioso)
+*   **Asa da Serpente (Adaga +1):** Dano 1d4+4 Perfurante. (+1 para acertar e no dano). Causa +1d4 de dano radiante contra mortos-vivos.
+*   **Flechas Perfurantes (x12):** Concedem +1 para acertar, mas causam -1 de dano.
+*   **Flechas Silenciosas (x50):** Concedem +1 em testes de Furtividade relacionados ao disparo.
+*   **Armadura de Couro de Basilisco (+1):** CA base 12. Total de CA = 12 + Mod. DES + 1 = 16.
+*   **Botas de Furtividade:** Concedem vantagem em testes de Furtividade para se mover silenciosamente.
+
+**Itens Mágicos (Sintonizados 3/3):**
+*   **Bracelete do Passo Sombrio (Sintonizado):** Como ação bônus, você pode se teletransportar até 9 metros para um ponto desocupado que possa ver que esteja em penumbra ou escuridão.
+*   **Amuleto da Viúva (Sintonizado):** Você tem vantagem em testes de salvaguarda contra ser amedrontado ou encantado.
+*   **Amuleto do Olho Mecânico (Sintonizado):** Vibra suavemente quando você está a até 3 metros de uma armadilha mágica.
+
+**Outros Itens Notáveis:**
+*   **Libélula Mecânica:** Um batedor aéreo remoto que transmite visão e audição para você por até 10 minutos. (Uso único, recarregável por um artífice).
+*   **Coração do Pântano:** Artefato lendário. Atualmente inerte após a criação do Véu.
+*   **Kit de Ferramentas de Ladrão (Mestre):** Você adiciona o dobro do seu bônus de proficiência (+6) a testes feitos com elas.
+*   **Consumíveis:** Poções de Cura (x2), Elixir da Mente de Aço (x1), Frascos de Essência Onírica (x3), Saco de Abrolhos (x1), Sacos de Esferas de Rolamento (x2).
+*   **Diversos:** Mochila impermeável, Kit de Disfarce, Roupas de Nobre, Baralho de Cartas.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'OCC: Mestre, não recebi os XP da minha missão com Elara, poderia calcular por favor?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Excelente observação. Você está absolutamente correto. A conclusão de uma missão tão significativa merece sua devida recompensa. Peço desculpas pelo descuido; vamos retificar isso imediatamente. A criação do Véu foi uma tarefa de grande importância e perigo.]
+
+---
+
+### **Cálculo de Pontos de Experiência (XP) - Missão: O Véu de Gloamhurst**
+
+*   **Ameaças de Combate Neutralizadas:**
+    *   3x Elementais do Lodo Corrompido (CR 2 cada): 3 x 450 XP = **1.350 XP**
+    *   4x Vespas-do-Brejo (Lúcidas, CR 1/4 cada): 4 x 50 XP = **200 XP**
+    *   Enxame de Vespas-do-Brejo (Neutralizado com Essência Onírica): Superar um encontro com um item de uso limitado e pensamento tático concede a recompensa total. 8 x 50 XP = **400 XP**
+
+*   **Recompensa de Missão (Conclusão do Arco):**
+    *   Por completar um objetivo de história tão impactante – proteger permanentemente Gloamhurst com o Véu, utilizando um artefato lendário e forjando uma aliança com uma poderosa druida – você recebe uma recompensa de marco. Isso é equivalente a superar um desafio "Difícil" para o seu nível: **2.400 XP**
+
+**Total de XP Ganhos:** 1.350 + 200 + 400 + 2.400 = **4.350 XP**
+
+---
+
+### **Atualização da Ficha de Personagem**
+
+*   **XP Anterior:** 10.650 (Vamos ajustar isso para o início do Nível 6, que é **14.000 XP**, pois o valor anterior estava incorreto para o nível.)
+*   **XP Ganhos:** +4.350 XP
+*   **Novo Total de XP:** 14.000 + 4.350 = **18.350 XP**
+
+Você agora precisa de **4.650 XP** para alcançar o Nível 7 (que requer 23.000 XP). Sua ficha foi atualizada internamente.
+
+---
+(A voz do Mestre retorna, a tensão inalterada.)
+
+Agora, com sua proeza devidamente registrada... de volta à Câmara do Conselho. O nobre de púrpura está a segundos de se misturar à multidão e desaparecer. O destino da sua aliança e o equilíbrio de poder em Gloamhurst podem depender do que você fará nos próximos seis segundos.
+
+O que você faz, Askellad?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Uso a Ação bonus Dash, e vou atras do nobre que fugiu, sempre atendo para não perder ele de vista.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Entendido.
+
+No instante em que sua mente dá a ordem, seu corpo obedece. A postura rígida do guarda se dissolve em um fluxo de movimento predatório. Você ignora os gritos e o empurra-empurra da multidão. Para você, eles são apenas obstáculos, um terreno a ser navegado.
+
+Você usa sua **Ação Ardilosa** para Correr como uma ação bônus, transformando-se em um borrão. Seu foco está inteiramente na silhueta púrpura e dourada que se afasta. Para abrir caminho por este mar de corpos em pânico com tal velocidade, você precisa usar sua força e agilidade de soldado.
+
+**[Mestre rola os dados por você]**
+*   **Teste de Atletismo para navegar na multidão:** Vou rolar um d20 e adicionar seu bônus de +8.
+*   **Resultado do D20:** 17
+*   **Total:** 17 + 8 = **25**. (Um sucesso espetacular.)
+
+Você não corre *através* da multidão, você a atravessa como uma faca quente na manteiga. Onde os outros veem uma parede de pessoas, você vê as lacunas. Um ombro abaixado aqui, um passo lateral ali, usando o impulso de um nobre apavorado para se projetar para a frente. Você se move com uma eficiência brutal e silenciosa que ninguém percebe até que você já tenha passado.
+
+Em segundos, você cobre os 18 metros. O nobre, desajeitado e em pânico, só conseguiu chegar à grande porta de carvalho. A mão dele, adornada com anéis, está estendida, os dedos a centímetros da maçaneta de latão. Ele está prestes a escapar.
+
+Você está praticamente colado nas costas dele, o som da sua própria respiração controlado e calmo em contraste com o arquejo aterrorizado dele. O caos da câmara abafa sua aproximação. Ele não tem a menor ideia de que a caça acabou.
+
+Sua Ação Bônus e seu Movimento foram usados para chegar até aqui. **Sua Ação principal ainda está disponível.**
+
+O que você faz?
+
+---
+**[DICA DO MESTRE]**
+*O alvo está ao seu alcance. Suas opções são muitas:*
+*   ***Agarrar (Ação de Ataque):*** *Faça um teste de Atletismo contra o Atletismo ou Acrobacia dele para imobilizá-lo fisicamente. É silencioso e eficaz.*
+*   ***Ataque Não Letal:*** *Use o pomo de sua adaga **Asa da Serpente** para nocauteá-lo com um golpe preciso na nuca. Seria um ataque corpo a corpo.*
+*   ***Intimidar:*** *Use sua Ação para sussurrar uma ameaça no ouvido dele. Pode ser o suficiente para fazê-lo congelar.*
+*   ***Usar um Item:*** *Talvez usar o kit de disfarce para mudar rapidamente um detalhe em sua aparência enquanto o subjuga, para desviar a atenção.*', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Eu o agarro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sua decisão é instantânea e executada com a precisão de um cirurgião.
+
+Em um movimento fluido que mal perturba o ar ao seu redor, você usa sua Ação de Ataque para iniciar o agarre.
+
+**[Mestre rola os dados]**
+*   **Seu Teste de Atletismo (Força):** d20 + 10 (Você tem Expertise)
+    *   **Resultado do D20:** 19
+    *   **Total:** 19 + 10 = **29**
+
+*   **Teste do Nobre (Acrobacia ou Atletismo):** Ele tentará se esquivar (Acrobacia).
+    *   **Resultado do D20:** 6
+    *   **Total:** 6 + 1 (Bônus de Destreza) = **7**
+
+A tentativa dele de resistir é patética. É como uma folha tentando parar uma avalanche.
+
+No exato momento em que os dedos dele tocam o latão frio da maçaneta, sua mão esquerda dispara e se fecha sobre a dele, esmagando seus dedos contra o metal. A dor o faz engasgar, mas antes que qualquer som possa escapar, seu antebraço direito sobe e se prende firmemente em volta do pescoço dele, puxando-o para trás e para longe da porta.
+
+O corpo do nobre fica tenso e depois amolece, completamente subjugado. O cheiro de perfume caro e suor de pânico invade suas narinas. Você sente o coração dele martelando contra seu braço. Os olhos dele, visíveis por cima do seu ombro, estão arregalados de puro terror.
+
+Você o puxa para trás, para a sombra de uma pesada tapeçaria que retrata a fundação de Gloamhurst. Aqui, o caos da multidão os esconde da vista. Ninguém percebeu. Para todos os efeitos, dois homens simplesmente foram engolidos pelas sombras.
+
+Ele está imobilizado. A respiração dele é rápida e superficial. Ele não está lutando, sabendo que é inútil.
+
+Você está no controle absoluto. Seu rosto está a centímetros do ouvido dele.
+
+O que você diz? O que você faz?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Intimidação. Quem é você?! Você está envolvido no ataque do mago.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você inclina a cabeça, e o seu rosto, agora uma máscara de soldado sem emoção, fica a centímetros do ouvido dele. O calor da sua respiração contrasta com o gelo em sua voz. Não há raiva, apenas uma certeza fria e letal.
+
+"**Quem é você?**" você sibila, as palavras cortando o pânico dele.
+
+Ele estremece violentamente.
+
+"**Você está envolvido no ataque do mago.**" Isso não é uma pergunta. É uma sentença.
+
+**[Mestre rola os dados]**
+*   **Teste de Intimidação (Carisma):** Você tem a vantagem suprema aqui. Vou rolar com Vantagem. d20 + 4.
+*   **Rolagem 1:** 18
+*   **Rolagem 2:** 15
+*   **Resultado:** 18 + 4 = **22**. (Um sucesso esmagador).
+
+A fachada de nobreza dele se desfaz como vidro quebrado. Toda a arrogância, todo o privilégio, evaporam-se, deixando para trás apenas um homem pequeno e aterrorizado. Um gemido patético escapa de seus lábios.
+
+"F-Finch... Lorde Valerius Finch," ele gagueja, a voz embargada pelo choro. "P-Por favor... eu não sabia que seria assim! Eu juro!"
+
+Seus olhos se fixam nos dele, frios e implacáveis. Você aplica uma leve pressão no pescoço dele, um lembrete silencioso de quem está no comando.
+
+"Envolvido *como*?" sua voz é um veneno.
+
+"Eu... eu era apenas o contato!" ele soluça, o corpo tremendo incontrolavelmente em seu aperto. "Ele... o mago... ele disse que me entregaria um pacote durante a confusão. Era tudo o que eu tinha que fazer! Pegar o pacote e sair! Eu não sei nada sobre... sobre *isso*!" ele gesticula com os olhos para a carnificina na câmara. "Ele me prometeu ouro... influência... eu sou um homem sem importância, eu só queria uma chance!"
+
+Ele está desmoronando, derramando informações na esperança de comprar sua vida. Ele é um covarde e um traidor, mas neste momento, ele é um livro aberto.
+
+Enquanto ele fala, você ouve o som de armaduras se aproximando. Os guardas do salão, finalmente se recuperando do choque inicial, estão começando a se organizar e a avançar em formação, tentando controlar o pânico e chegar até o estrado. O tempo está se esgotando.
+
+Você tem um Lorde traidor em suas mãos, a confissão dele ainda pairando no ar.
+
+O que você faz com Lorde Valerius Finch?
+
+1.  **Nocauteá-lo.** Um golpe rápido e ele ficará inconsciente. Você pode deixá-lo aqui para os guardas encontrarem ou levá-lo com você.
+2.  **Forçar mais informações.** Onde ele deveria encontrar o mago? O que havia no pacote? Cada segundo gasto aqui aumenta o risco de ser descoberto.
+3.  **Usá-lo como refém/disfarce.** Forçá-lo a andar com você, usando a presença dele para navegar pela confusão ou talvez até mesmo para sair do castelo.
+4.  **Entregá-lo aos guardas que se aproximam.** Você pode rapidamente explicar a situação, mas isso o colocará no centro das atenções.
+5.  **Outra coisa?**', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou tentar interrogar ele mais, após Vou fingir que eu sou um guarda de dorgar e levar o nobre para o meio da sala e anunciar que peguei uma pessoa envolvida na tentativa de queimar as provas.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Excelente. Uma jogada ousada e pública.
+
+Você aperta o seu aperto, um lembrete final e doloroso de quem está no comando. O suor escorre pela testa de Finch.
+
+"**Onde você deveria encontrá-lo?**" sua voz é baixa, mas carrega o peso de uma sentença de morte. "**O que há no pacote? Fale agora ou juro que vou quebrar cada dedo da sua mão, um por um.**"
+
+"A-a biblioteca!" ele guincha, a voz estridente de pânico. "Nos fundos do salão! Ele disse que estaria lá depois da... da distração! O pacote... é um livro! Um livro de contabilidade, ele disse! Provas contra outros nobres... ele disse que me faria rico e poderoso!"
+
+Biblioteca. Livro de contabilidade. Conspiração. As peças se encaixam com um clique sombrio. Este não foi apenas um ataque, foi uma manobra política complexa.
+
+O barulho das botas dos guardas está quase sobre vocês. Uma voz grita ordens com o sotaque ríspido de Gloamhurst, outra responde com a disciplina de Dorgar. É agora ou nunca.
+
+"Levante-se," você comanda.
+
+Não há mais tempo para sussurros nas sombras. Com um empurrão brutal, você força Finch a sair de trás da tapeçaria e o coloca à sua frente. Você endireita sua postura, seu corpo se transformando de um predador sombrio em um soldado autoritário de Dorgar cumprindo seu dever. Você o segura firmemente pelo colarinho, meio arrastando, meio marchando com ele para o centro da sala.
+
+As pessoas se afastam, o pânico em seus rostos dando lugar à confusão ao ver um soldado de Dorgar manobrando um nobre aterrorizado.
+
+**[Mestre rola os dados]**
+*   **Seu Teste de Decepção (Car
+
+[... Resposta cortada por limite de tokens ...]', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Continue a narração.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '**[Mestre rola os dados]**
+*   **Seu Teste de Decepção (Carisma):** Você está se passando por uma autoridade no meio do caos. A aposta é alta. DC 15.
+*   **Rolagem:** d20 + 4 = 14 + 4 = **18**. (Sucesso!)
+
+Sua performance é impecável. Você não é mais um assassino nas sombras; você é a personificação da ordem militar de Dorgar em meio ao caos de Gloamhurst. Você arrasta o choroso Lorde Finch para o centro do salão, onde a fumaça é mais fina, e para sob o grande lustre de ferro.
+
+O som de sua bota batendo no mármore é como um trovão.
+
+"**ATENÇÃO!**" sua voz, amplificada pela acústica do salão e pelo seu capacete, ecoa sobre os gritos e o crepitar do fogo.
+
+O salão fica em silêncio por um instante. Olhos assustados e confusos se voltam para você. Você ergue Finch um pouco, quase o tirando do chão, para que todos possam ver seu rosto patético e manchado de lágrimas.
+
+"**ESTE HOMEM É UM TRAIDOR!**" você declara, as palavras ressoando com uma autoridade inquestionável. "**Ele confessou sua participação neste ataque! Ele estava aqui para destruir provas e ajudar o mago a escapar!**"
+
+Um arfar coletivo percorre a multidão de nobres. Os guardas que avançavam param, suas formações se quebrando enquanto olham para você e seu prisioneiro. Um capitão da guarda de Gloamhurst, com um brasão de lobo em seu peitoral, dá um passo à frente, a mão no punho da espada.
+
+"Em nome do Rei Theron, o que é isso? Solte Lorde Finch, soldado!"
+
+Antes que você precise responder, um sargento de Dorgar, um homem corpulento com uma cicatriz na bochecha, avança e se coloca entre você e o capitão. Ele olha para o seu uniforme, para o seu prisioneiro, e depois fixa o olhar em você. Ele vê um soldado, não um impostor.
+
+"Deixe-o falar, capitão," o sargento de Dorgar rosna. Ele se vira para você. "Relatório, soldado! O que você descobriu?"
+
+Você tem o palco. A atenção de todos está em você. O destino de Finch, e talvez o seu próprio, depende de suas próximas palavras. O cheiro de magia e fumaça enche o ar.
+
+O que você diz?
+
+1.  **"Ele confessou que o mago está na biblioteca! Ele ia se encontrar com ele lá! Temos que nos mover agora, antes que ele escape!"** (Você usa a informação para direcionar os guardas, criando uma distração massiva para você seguir ou se misturar.)
+2.  **"Sargento, este traidor está sob minha
+
+[... Resposta cortada por limite de tokens ...]', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Continue a narração.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '**[Mestre rola os dados]**
+*   **Seu Teste de Decepção (Carisma):** Você está se passando por uma autoridade no meio do caos. A aposta é alta. DC 15.
+*   **Rolagem:** d20 + 4 = 14 + 4 = **18**. (Sucesso!)
+
+Sua performance é impecável. Você não é mais um assassino nas sombras; você é a personificação da ordem militar de Dorgar em meio ao caos de Gloamhurst. Você arrasta o choroso Lorde Finch para o centro do salão, onde a fumaça é mais fina, e para sob o grande lustre de ferro.
+
+O som de sua bota batendo no mármore é como um trovão.
+
+"**ATENÇÃO!**" sua voz, amplificada pela acústica do salão e pelo seu capacete, ecoa sobre os gritos e o crepitar do fogo.
+
+O salão fica em silêncio por um instante. Olhos assustados e confusos se voltam para você. Você ergue Finch um pouco, quase o tirando do chão, para que todos possam ver seu rosto patético e manchado de lágrimas.
+
+"**ESTE HOMEM É UM TRAIDOR!**" você declara, as palavras ressoando com uma autoridade inquestionável. "**Ele confessou sua participação neste ataque! Ele estava aqui para destruir provas e ajudar o mago a escapar!**"
+
+Um arfar coletivo percorre a multidão de nobres. Os guardas que avançavam param, suas formações se quebrando enquanto olham para você e seu prisioneiro. Um capitão da guarda de Gloamhurst, com um brasão de lobo em seu peitoral, dá um passo à frente, a mão no punho da espada.
+
+"Em nome da Prefeita Vance, o que é isso? Solte Lorde Finch, soldado!"
+
+Antes que você precise responder, um sargento de Dorgar, um homem corpulento com uma cicatriz na bochecha, avança e se coloca entre você e o capitão. Ele olha para o seu uniforme, para o seu prisioneiro, e depois fixa o olhar em você. Ele vê um soldado, não um impostor.
+
+"Deixe-o falar, capitão," o sargento de Dorgar rosna. Ele se vira para você. "Relatório, soldado! O que você descobriu?"
+
+Você tem o palco. A atenção de todos está em você. O destino de Finch, e talvez o seu próprio, depende de suas próximas palavras. O cheiro de magia e fumaça enche o ar.
+
+O que você diz?
+
+1.  **"Ele confessou que o mago está na biblioteca! Ele ia se encontrar com ele lá! Temos que nos mover agora, antes que ele escape!"** (Você usa a informação para direcionar os guardas, criando uma distração massiva para você seguir ou se misturar.)
+2.  **"Sargento, este traidor está sob minha custódia por ordem direta do Mestre Dorgar. Ele será levado para interrogatório. Nossas ordens são para garantir a segurança das provas e dos aliados da guilda."** (Você afirma autoridade e tenta levar Finch com você.)
+3.  **"O mago está escapando! Este lorde era a distração dele. Eu o entrego à sua custódia, sargento. Minha missão é caçar o mago."** (Você se livra de Finch e cria uma desculpa para sair e ir para a biblioteca sozinho.)
+4.  **Outra coisa?**', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Me livro do nobre e vou atrás do mago.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A escolha é pragmática. Eficiente. Finch é um peão, o mago é o rei.
+
+Você trava os olhos com o sargento de Dorgar, ignorando o capitão da guarda da cidade. Você é um soldado falando com outro, e a urgência em sua voz é a única verdade que importa agora.
+
+"**O mago está escapando!**" você late, as palavras como marteladas. "**Este lorde era a distração dele. Eu o entrego à sua custódia, sargento. Minha missão é caçar o mago.**"
+
+Sem esperar por uma resposta, você empurra o trêmulo Lorde Finch para o peito do sargento. O homem corpulento o agarra por instinto, seus braços de ferreiro envolvendo o nobre como uma armadilha de urso.
+
+O capitão da guarda da cidade abre a boca para protestar, mas o sargento de Dorgar já está gritando ordens. "Você ouviu! O mago está na biblioteca! Cerquem o salão! Ninguém entra ou sai! Você, soldado," ele aponta para você, "Vá! Nós cuidamos deste verme."
+
+Esta é a sua janela. O caos perfeito.
+
+Enquanto todos os olhos se voltam para o sargento latindo ordens e o capitão tentando reafirmar sua autoridade, você se vira. Mas você não anda. Você desaparece.
+
+**[Mestre rola os dados]**
+*   **Teste de Furtividade (Destreza) com Vantagem (caos):** d20 + 9
+*   **Rolagem 1:** 19
+*   **Rolagem 2:** 12
+*   **Resultado:** 19 + 9 = **28**. (Você se torna um fantasma.)
+
+Você dá um passo para trás e o pilar de mármore o engole. Você se move ao longo da parede, uma sombra na fumaça, sua armadura de couro de basilisco se misturando com as tapeçarias escuras. A multidão em pânico, os guardas se mobilizando – eles são sua cobertura. Em menos de dez segundos, você atravessou a lateral da câmara e está diante de uma porta dupla de carvalho escuro, com entalhes de corujas e livros abertos. A Biblioteca.
+
+O som do caos na Câmara do Conselho é abafado aqui, reduzido a um murmúrio distante. O ar cheira a poeira, papel velho e um cheiro fraco, quase imperceptível, de ozônio – a assinatura de magia recente.
+
+A porta está fechada. Não há sons vindos do outro lado.
+
+Você está sozinho. O mago está, presumivelmente, do outro lado desta porta, talvez com o livro de contabilidade que Finch mencionou. Ele sabe que foi descoberto. Ele pode estar se preparando para lutar, fugir ou armar uma armadilha.
+
+O que você faz?
+
+---
+**[DICA DO MESTRE]**
+*   **Percepção:** Você pode pressionar o ouvido contra a porta para tentar ouvir qualquer movimento ou preparação.
+*   **Ferramentas de Ladrão:** A fechadura parece antiga e complexa. Um desafio perfeito para suas ferramentas de mestre.
+*   **Amuleto do Olho Mecânico:** Lembre-se, ele vibra perto de armadilhas mágicas. Você pode se aproximar da porta para ver se ele reage.
+*   **Força Bruta:** A porta é de carvalho maciço. Arrombá-la seria barulhento e difícil, mas é uma opção.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'OCC:Mestre, algumas coisas, sempre que eu for ser atingido por um ataque, eu vou usar minha ação bônus de esquiva sobrenatural.
+E meus utensílios mágicos sempre estarão ativos.
+
+Vou ouvir oque tem do outro lado da porta, prestando atenção se meu amuleto reage.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Entendido. Vou registrar suas ordens permanentes. Duas pequenas clarificações para garantir que estamos na mesma página:]
+1.  **Esquiva Sobrenatural:** É uma excelente habilidade. Apenas para confirmar, ela usa sua **Reação** para o turno, não sua Ação Bônus. Isso significa que se você a usar, não poderá fazer outra ação de reação (como um ataque de oportunidade) até o início do seu próximo turno. Vou assumir que você sempre a usará contra o primeiro ataque que o atingir em uma rodada, a menos que você me diga o contrário.
+2.  **Itens Mágicos:** Perfeito. Seus itens sintonizados estarão sempre ativos. Narrarei seus efeitos sempre que forem acionados.
+
+---
+(A voz do Mestre retorna, baixa e tensa, como um sussurro nas sombras.)
+
+Você se move com a graça de um gato do pântano, colando seu corpo contra a parede fria ao lado da porta da biblioteca. O caos da câmara principal se torna um ruído branco, um som distante que não tem mais importância. Aqui, neste corredor silencioso, a verdadeira caçada começa.
+
+Antes mesmo de seu ouvido tocar a madeira, você sente.
+
+Uma vibração.
+
+Não é um tremor, mas um zumbido suave e profundo contra seu peito, emanando do **Amuleto do Olho Mecânico**. É um aviso inconfundível. Há uma armadilha mágica, e ela está perigosamente perto. Provavelmente na própria porta – na fechadura ou na maçaneta.
+
+Com essa informação vital em mente, você pressiona o ouvido contra a superfície fria e granulada do carvalho. Você filtra o som do seu próprio coração, a vibração do amuleto, e se concentra no que está além.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria):** d20 + 6
+*   **Resultado do D20:** 18
+*   **Total:** 18 + 6 = **24**. (Um sucesso excepcional.)
+
+O silêncio do outro lado não é vazio. É um silêncio *ocupado*. Seus ouvidos de especialista captam sons sutis que um homem comum jamais notaria:
+
+*   O farfalhar apressado de papel e pergaminho, como se alguém estivesse procurando algo desesperadamente em uma pilha desordenada.
+*   Passos abafados sobre um tapete grosso, movendo-se de uma estante para outra.
+*   Um xingamento baixo e frustrado, quase inaudível: "...onde está... ele disse que estaria aqui..."
+*   O som de um livro pesado sendo jogado em uma mesa com um *baque* surdo.
+
+Os sons vêm do fundo da sala, a pelo menos 10 ou 12 metros da porta. O mago não está esperando em uma emboscada. Ele está distraído, procurando o livro de contabilidade que Finch mencionou. Ele está com pressa e frustrado.
+
+Você tem a vantagem tática completa. Ele não sabe que você está aqui. A porta está magicamente armadilhada. Ele está ocupado.
+
+O que você faz?
+
+1.  **Desarmar a Armadilha.** Você pode usar seu **Kit de Ferramentas de Ladrão (Mestre)** para tentar neutralizar a armadilha mágica. Isso exigirá um teste delicado, mas permitiria uma entrada silenciosa pela porta principal.
+2.  **Procurar Outra Entrada.** Bibliotecas antigas como esta podem ter outras portas, janelas ou até mesmo passagens secretas. Uma rápida investigação ao redor pode revelar uma rota alternativa.
+3.  **Criar uma Distração.** Você pode fazer um barulho em outro lugar para atrair a atenção dele, talvez para longe de sua busca, ou para fazê-lo se aproximar da porta armadilhada.
+4.  **Usar o Bracelete do Passo Sombrio.** Se você conseguir ver qualquer ponto de penumbra ou escuridão dentro da sala (talvez através do buraco da fechadura), você poderia se teletransportar para dentro, contornando completamente a porta e a armadilha.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar meu bracelete.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma escolha ousada. Silenciosa. Letal. Contornar o problema em vez de enfrentá-lo. É o caminho do Assassino.
+
+Você se ajoelha, seu corpo se compactando em uma silhueta menor e mais tensa. O capacete do disfarce de guarda é descartado com um movimento rápido e silencioso, deixado no chão do corredor. Você precisa de sua visão periférica completa.
+
+Seu olho se alinha com o buraco da fechadura de ferro frio. É um trabalho antigo, grande o suficiente para lhe dar uma visão limitada, como olhar através de um túnel estreito para outro mundo.
+
+Através da abertura, você vê uma fração da biblioteca. O ar está parado, espesso com o cheiro de conhecimento antigo. A luz vem de globos mágicos flutuantes perto do teto alto, lançando um brilho suave e dourado sobre fileiras intermináveis de estantes de livros. O brilho cria um jogo complexo de luz e sombra entre as prateleiras maciças.
+
+E lá, no fundo da sua visão, você o vê.
+
+Um homem de túnica azul escura, com runas prateadas bordadas nas mangas, está de costas para você. Ele está em frente a uma grande mesa de leitura, vasculhando furiosamente uma pilha de livros e pergaminhos. Seu capuz está abaixado, revelando cabelos grisalhos e curtos. Ele parece agitado, sua postura tensa com frustração.
+
+Mais importante, a área sob a mesa de leitura está mergulhada em uma sombra profunda e convidativa. É um poço de escuridão perfeito, a cerca de 15 metros de distância. Um destino ideal.
+
+Você foca sua mente, sentindo o poder frio em seu **Bracelete do Passo Sombrio**. Você visualiza o ponto exato sob a mesa. O mundo ao seu redor se dissolve em um borrão de fumaça e sombras.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+Não há som. Não há flash de luz. Por um instante, você está no corredor, e no instante seguinte, você está *lá*.
+
+Você se materializa agachado na escuridão sob a pesada mesa de carvalho. O cheiro de cera de abelha e poeira é forte aqui. O chão de madeira é frio sob suas mãos. Através das pernas da mesa, você tem uma visão clara das botas do mago, a apenas alguns metros de distância. Você pode ouvir o farfalhar do pergaminho e sua respiração irritada com uma clareza perfeita.
+
+Ele não tem a menor ideia de que a morte acabou de se teletransportar para a mesma sala que ele.
+
+Você está escondido. Você tem o elemento surpresa. Sua próxima ação pode decidir tudo.
+
+O que você faz?
+
+---
+**[DICA DO MESTRE]**
+*   **Ataque Furtivo:** Este é um cenário ideal para um ataque. Se você atacar agora, será um ataque surpresa. Sua habilidade **Assassinar** lhe dará Vantagem no ataque e, se acertar, será um Acerto Crítico automático.
+*   **Observar:** Você pode permanecer escondido para tentar descobrir mais. O que exatamente ele está procurando? Ele está sozinho?
+*   **Preparar uma Ação:** Você pode preparar uma ação para atacar no momento em que ele se virar ou se mover para uma posição mais vulnerável.
+*   **Prestidigitação:** Uma opção mais sutil. Você poderia tentar pegar algo da mesa ou de seus bolsos enquanto ele está distraído, mas o risco é altíssimo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Como eu anunciei que o mago estaria aqui, eu não posso simplesmente matá-lo, tenho que incapacitalo, vou escutar oque ele fala e age, e assim que tiver uma abertura vou tentar atacá-lo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Pragmático. Um corpo morto não pode confessar publicamente, e você já preparou o palco para uma captura, não para uma execução. A missão mudou.
+
+Você se afunda ainda mais nas sombras sob a mesa, seu corpo se tornando parte da escuridão. Sua respiração é um fantasma, seu coração uma batida silenciosa. Você é a personificação da paciência de um predador. De sua posição, você continua a observar e a ouvir.
+
+O mago continua sua busca frenética. Você o ouve em um murmúrio furioso consigo mesmo.
+
+"...Aquele tolo do Finch... Onde ele colocou?" ele resmunga, batendo um livro pesado na mesa acima de você. O impacto reverbera pela madeira, mas você não se move um milímetro. "Ele disse que estaria aqui, na seção de história local... fácil de encontrar."
+
+Ele se afasta da mesa, o som de suas botas abafado pelo tapete. Ele passa as mãos pelos cabelos grisalhos, um gesto de pura frustração. Por um momento, ele para e olha para a porta, como se esperasse que os guardas arrombassem a qualquer segundo. Seus olhos têm o brilho de um animal encurralado.
+
+"O Mestre vai ter a minha cabeça se eu falhar..." ele sussurra para o silêncio. "Preciso do livro. Preciso da alavancagem."
+
+*Mestre?* A palavra ecoa em sua mente. Assim como Valdemar, este mago também é um servo de alguém mais poderoso. A conspiração é mais profunda do que parecia.
+
+Então, você vê sua abertura.
+
+Desistindo da mesa, o mago se vira para uma estante alta e ornamentada a cerca de 6 metros de sua posição. Ele lhe dá as costas completamente, sua atenção agora focada em passar o dedo indicador pelas lombadas de couro dos livros, murmurando títulos para si mesmo.
+
+Ele está de costas para você. Distraído. Vulnerável. A oportunidade é perfeita, um presente embrulhado em arrogância e pânico.
+
+É hora de agir. Como você o incapacita?
+
+---
+**[DICA DO MESTRE: Otimização da Ação]**
+*Lembre-se, mesmo um ataque não letal pode ser um **Ataque Furtivo**. Você só precisa declarar sua intenção de nocautear antes de rolar o ataque.*
+
+1.  **Ataque Não Letal (Nocaute):** Você pode sair das sombras e atingi-lo na base do crânio com o pomo da sua adaga **Asa da Serpente**. Como ele está surpreso, sua habilidade **Assassinar** lhe dará Vantagem no ataque e o transformará em um Acerto Crítico automático se acertar. O dano massivo (contusão, não perfurante) provavelmente o deixará inconsciente instantaneamente.
+2.  **Agarrar e Subjugar:** Você pode tentar agarrá-lo por trás. Seria um teste de **Atletismo** contra o Atletismo ou Acrobacia dele. Com a surpresa, seu teste teria Vantagem. Se bem-sucedido, você o imobiliza, permitindo um interrogatório imediato antes de nocauteá-lo.
+3.  **Ameaça Silenciosa:** Você pode se aproximar por trás e pressionar a lâmina fria da sua adaga contra a garganta dele, sussurrando para que ele se renda. Isso exigiria um teste de **Intimidação** para ver se ele cede sem lutar.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Ameaça silenciosa. Mas com cuidado para reações mágicas dele.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A escolha perfeita para um profissional. A morte é barulhenta. O controle é silencioso.
+
+Você respira fundo uma vez, expelindo o ar lentamente, seu corpo se preparando para a explosão de movimento controlado. Você não é um guerreiro que ataca; você é uma força da natureza que simplesmente... chega.
+
+**[Mestre rola os dados]**
+*   **Teste de Furtividade (Destreza) com Vantagem (distração do alvo):** d20 + 9
+*   **Rolagem 1:** 20 (Crítico Natural!)
+*   **Rolagem 2:** 16
+*   **Resultado:** 20 + 9 = **29**. (Perfeição silenciosa.)
+
+Você não anda. Você flui. Seus pés, calçados nas botas de furtividade, não fazem mais som no tapete do que a poeira que assenta sobre ele. Você se ergue das sombras sob a mesa e atravessa os 6 metros que o separam do mago. Para ele, o mundo continua sendo apenas lombadas de livros e sua própria frustração. Para você, o tempo se estica, cada passo uma nota em uma sinfonia silenciosa.
+
+Ele está tão absorto que não sente a mudança na pressão do ar quando você entra em seu espaço pessoal.
+
+Em um único movimento, coordenado e brutalmente eficiente, suas mãos atacam:
+
+*   Sua mão direita, segurando a **Asa da Serpente** em um aperto reverso, sobe por baixo e pressiona a lâmina fria e afiada da adaga contra a artéria carótida dele. Não para cortar, mas para prometer.
+*   Sua mão esquerda dispara e se fecha sobre as duas mãos dele, que ainda estavam traçando as lombadas dos livros. Você prende os pulsos dele contra a estante com uma força férrea, imobilizando completamente qualquer gesto somático que ele pudesse sonhar em fazer.
+
+O corpo do mago se enrijece como se tivesse sido atingido por um raio. Um som agudo e engasgado morre em sua garganta antes de nascer. O cheiro de pânico e suor velho é instantâneo.
+
+Sua boca está ao lado do ouvido dele. Sua voz é mais fria que o aço em sua garganta.
+
+"**Faça um som, e você sangra no chão.**"
+"**Mova seus dedos, e eu quebro seus pulsos.**"
+"**Pense em uma única sílaba de poder, e eu abro sua garganta.**"
+
+Você faz uma pausa, deixando o terror marinar.
+
+"**Nós vamos nos virar, devagar. Você vai se ajoelhar no centro da sala. Se você cooperar, talvez veja o amanhecer. Entendido?**"
+
+**[Mestre rola os dados]**
+*   **Teste de Intimidação (Carisma) com Vantagem (situação de vida ou morte):** d20 + 4
+*   **Rolagem 1:** 19
+*   **Rolagem 2:** 14
+*   **Resultado:** 19 + 4 = **23**. (Dominação total.)
+
+A vontade do mago se desintegra. Não há luta, não há desafio. Apenas a aceitação primal e aterrorizada de que ele está completamente à sua mercê. Ele consegue fazer um som, um aceno de cabeça trêmulo e espasmódico.
+
+Ele está sob seu controle. Completamente subjugado e aterrorizado demais para tentar qualquer truque.
+
+O que você faz agora?
+
+1.  **Interrogá-lo aqui e agora.** Quem é o "Mestre"? O que há no livro?
+2.  **Nocauteá-lo e amarrá-lo.** Garantir que ele esteja seguro para ser entregue aos guardas de Dorgar.
+3.  **Forçá-lo a encontrar o livro.** Usá-lo para adquirir o objeto de poder ou informação antes de entregá-lo.
+4.  **Vasculhar seus bolsos.** Procurar por componentes de feitiços, notas, ou o próprio livro de contabilidade enquanto o mantém imobilizado.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou interrogalo agora, pegar o máximo de informações possíveis e então nocautealo e amarrá-lo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Claro. A informação é a arma principal. O mago é apenas o portador.
+
+Você mantém a pressão da lâmina constante, um lembrete gelado de sua mortalidade. Sua outra mão continua a prender os pulsos dele com a força de uma prensa. Ele está completamente indefeso.
+
+"**Ótimo,**" você sussurra, a palavra desprovida de qualquer calor. "**Agora, as respostas. Rápido. Curto. Verdadeiro.**"
+
+Ele treme, mas acena novamente.
+
+"**Primeiro: ''O Mestre''. Quem é ele? Um nome.**"
+
+A respiração do mago é um assobio aterrorizado. "N-não sei... eu juro! Ninguém sabe! Ele... ele se comunica através de... de intermediários. Através de mensagens criptografadas. Ele se chama apenas de... ''O Patrono''."
+
+*Patrono.* O nome soa caro. Poderoso. E frustrantemente anônimo.
+
+"**Segundo: O livro. O que ele contém? Por que arriscar tudo por ele?**"
+
+"É o livro-razão de Lorde Finch," ele gagueja, as palavras tropeçando umas nas outras em sua pressa para obedecer. "Mas não é sobre ouro. É sobre favores. Chantagem. Finch era o guardião dos segredos do Conselho Mago. O livro detalha todos os nobres, mestres de guilda e capitães da guarda que devem favores a nós. Com ele, O Patrono poderia controlar metade da estrutura de poder da cidade sem disparar um único feitiço."
+
+A revelação cai sobre você com o peso de uma bigorna. Não se trata de uma simples conspiração. É a planta de um golpe silencioso.
+
+"**Terceiro: Onde está o livro agora?**"
+
+"Era para estar aqui!" a voz dele sobe um tom em desespero. "Finch deveria tê-lo deixado escondido dentro de um livro falso... ''As Crônicas do Pântano, Volume Três''. Mas não está aqui! Alguém deve tê-lo pegado antes de mim!"
+
+A informação é um choque. Há outro jogador neste jogo. Alguém que sabia do livro e chegou primeiro.
+
+Você processa isso em uma fração de segundo. O mago cumpriu seu propósito. Ele é agora um risco e um fardo.
+
+"**Você foi útil,**" você diz, e a finalidade em sua voz o faz choramingar.
+
+Antes que ele possa reagir, você muda seu aperto. A mão que segurava seus pulsos se move com uma velocidade ofuscante. Você gira o pomo da **Asa da Serpente** e o acerta com precisão cirúrgica na base do crânio dele.
+
+**[Mestre rola o dano não letal]**
+*   Você tem Vantagem e é um Acerto Crítico automático.
+*   **Dano:** (1d4+4) x 2 (Crítico) + 6d6 (Ataque Furtivo Crítico)
+*   **Rolagens:** (2+4)x2 + (4+5+1+6+3+2) = 12 + 21 = **33 de dano de contusão.**
+
+É mais do que suficiente. Os olhos do mago reviram para trás, e ele desaba como uma marionete com as cordas cortadas. Ele cai no chão com um baque surdo, completamente inconsciente.
+
+Você age rapidamente. De sua mochila, você saca uma corda de seda, forte e fina. Em menos de um minuto, o mago está amarrado e amordaçado, seus membros presos em nós que ele nunca conseguirá desfazer.
+
+A biblioteca está silenciosa novamente, exceto pelo som distante e abafado do caos na Câmara do Conselho. Você tem um mago inconsciente e uma nova e perigosa informação: um "Patrono" misterioso está tentando tomar o controle da cidade, e uma peça-chave de seu plano, o livro-razão, está desaparecida, pega por um terceiro desconhecido.
+
+Os guardas de Dorgar estarão aqui em breve para "capturar" o mago que você já neutralizou.
+
+O que você faz nos preciosos momentos que tem antes que eles cheguem?
+
+1.  **Procurar o livro falso.** Verificar a estante para confirmar a história do mago e ver se há alguma pista de quem pegou o livro.
+2.  **Vasculhar o mago.** Procurar por notas, chaves, ou qualquer coisa que possa levar à identidade do "Patrono".
+3.  **Preparar a cena.** Posicionar o mago de uma forma que sugira que ele foi pego de surpresa enquanto procurava, talvez deixando algumas pistas falsas para guiar a investigação oficial.
+4.  **Sair imediatamente.** Sua missão aqui está cumprida. É hora de desaparecer e relatar suas descobertas a Dorgar e Seraphina.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou vasculhar o mago e também procurar o livro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Tempo é um recurso, e você é um mestre em otimizá-lo.
+
+Você se ajoelha ao lado do corpo inconsciente do mago, suas mãos se movendo com a eficiência de um anatomista. Você ignora os bolsos óbvios e vai direto aos locais onde um homem treinado esconderia segredos.
+
+**[Mestre rola os dados]**
+*   **Teste de Investigação (Inteligência):** d20 + 2
+*   **Resultado do D20:** 16
+*   **Total:** 16 + 2 = **18**. (Um sucesso sólido.)
+
+Sua busca revela vários itens:
+*   Uma bolsa de veludo contendo componentes de feitiços: pó de rubi, uma pena de coruja e um pequeno pedaço de quartzo. Nada incomum.
+*   Uma pequena bolsa de moedas com 15 moedas de ouro e 8 de prata.
+*   Preso em um bolso interno secreto costurado no forro de sua túnica, você encontra uma única chave de ferro preto, com o símbolo de uma serpente se contorcendo gravado na cabeça.
+*   Dobrada junto com a chave, uma pequena nota em pergaminho. A caligrafia é apressada e angular. Ela diz:
+    > *M,*
+    > *Finch deixará o livro no local combinado. Pegue-o e leve-o para o Ponto de Encontro da Meia-Noite. Não falhe. A Víbora não tolera incompetência.*
+    > *- O Patrono*
+
+"A Víbora". Outro nome, outro título. É o Patrono? Ou outro agente? E o mais importante, "Ponto de Encontro da Meia-Noite". Onde seria isso? A nota não especifica.
+
+Com a nota e a chave guardadas em seus próprios bolsos, você se volta para a estante. Seus olhos escaneiam rapidamente as lombadas. História Local. Você encontra a seção em segundos. *A Ascensão de Gloamhurst*, *A Guerra dos Pântanos*, *Famílias Fundadoras*... e ali está. *As Crônicas do Pântano*. Volume Um, Volume Dois... e um espaço vazio.
+
+O Volume Três não está lá.
+
+O mago estava dizendo a verdade. Alguém chegou aqui primeiro. Você passa os dedos pelo espaço vazio na prateleira. A poeira está visivelmente perturbada em um padrão recente. Não há mais nada aqui, nenhuma pista de quem poderia ter sido.
+
+O som de botas pesadas e ordens gritadas se aproxima do lado de fora da porta da biblioteca. "Abram! Em nome de Dorgar!"
+
+Eles chegaram. Seu tempo acabou.
+
+Você precisa desaparecer. A sala tem janelas altas, mas elas dão para uma passarela bem iluminada. A porta principal é por onde eles entrarão.
+
+Sua melhor opção é voltar para as sombras de onde veio.
+
+O que você faz?
+
+1.  **Usar o Bracelete do Passo Sombrio.** Você pode se teletransportar para o corredor do lado de fora, para uma sombra perto da porta, e se misturar à confusão que se aproxima.
+2.  **Esconder-se na biblioteca.** Encontrar um local escuro entre as estantes e esperar que eles capturem o mago e saiam, permitindo que você escape depois.
+3.  **Criar uma distração na sala.** Derrubar uma estante ou usar um item para criar um barulho no fundo da sala, atraindo a atenção deles para longe de sua rota de fuga.
+4.  **Enfrentá-los.** Você pode se revelar como o "soldado" que os enviou aqui, alegando que você mesmo subjugou o mago. É arriscado e pode quebrar seu disfarce.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Primeiro, grito aos guardas que a porta tem uma armadilha mágica, e depois desapareço com meu bracelete.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Perfeito. Uma jogada tática que protege os peões de Dorgar e garante sua própria fuga limpa.
+
+No momento em que o primeiro *BAQUE* pesado de uma bota ou ombro atinge a porta da biblioteca, sua voz corta o ar. Você não grita como um homem em pânico; você late como um soldado dando uma ordem vital no campo de batalha.
+
+"**CUIDADO!**" sua voz ecoa através da madeira maciça, abafada, mas inconfundivelmente urgente. "**A PORTA ESTÁ ARMADILHADA! ARMADILHA MÁGICA NA FECHADURA! RECUE!**"
+
+Do outro lado, o barulho cessa abruptamente. Você ouve um xingamento abafado, seguido pela voz do sargento de Dorgar: "Parem! Recuem! Ele disse que está armadilhada! Tragam o Mago de Batalha da guilda, agora!"
+
+Você deu a eles a pausa de que precisavam. E a sua.
+
+Sem perder um único instante, você se vira da porta e foca sua mente. Seu olho volta ao buraco da fechadura, um portal para a sua liberdade. O corredor do lado de fora agora está mais cheio, uma confusão de guardas de Dorgar e da Cidade. As tochas deles lançam sombras longas e dançantes que se contorcem e se esticam a cada movimento. É um playground perfeito para você.
+
+Você escolhe seu destino: um nicho escuro atrás de uma estátua de um antigo fundador de Gloamhurst, a uns 10 metros de distância no corredor.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+O mundo da biblioteca se desfaz. Por uma fração de segundo infinitesimal, você não existe em lugar nenhum. Então, a realidade se reconstrói ao seu redor.
+
+Você está de pé no nicho escuro, envolto em sombras frias de pedra. O cheiro de fumaça e pânico é mais forte aqui. Você é um fantasma, observando a cena se desenrolar.
+
+Você vê o sargento de Dorgar postando guardas, enquanto um anão em vestes de mago se aproxima cautelosamente da porta da biblioteca, seus dedos já brilhando com energia de abjuração. Eles estão focados na armadilha, exatamente como você planejou. Ninguém olha para as sombras. Ninguém suspeitaria que o "soldado" que os avisou agora os observa de um esconderijo a poucos metros de distância.
+
+Em breve, eles entrarão e encontrarão o mago amarrado e inconsciente. A vitória será deles. As informações serão suas.
+
+Você se afasta silenciosamente, misturando-se com o fluxo de assistentes e nobres menores que estão sendo evacuados do salão principal. Seu disfarce de guarda, mesmo sem o capacete, ainda lhe dá um ar de autoridade que faz as pessoas saírem do seu caminho. Em poucos minutos, você está fora do Salão do Conselho, o ar fresco e úmido da noite de Gloamhurst enchendo seus pulmões.
+
+Você está livre. Invisível. E de posse de segredos perigosos:
+*   Um mestre de marionetes conhecido como "O Patrono".
+*   Um agente de campo chamado "A Víbora".
+*   Um plano para controlar a cidade através de chantagem.
+*   Uma chave misteriosa com o símbolo de uma serpente.
+*   O conhecimento de que um terceiro jogador desconhecido já roubou a peça central do plano.
+
+A noite ainda é jovem. A cidade, embora salva de uma crise, está mergulhada em outra, muito mais profunda.
+
+Qual é o seu próximo movimento, Askellad?
+
+1.  **Reportar-se a Dorgar.** Ele está no Salão do Conselho, no centro da crise. Chegar até ele pode ser difícil, mas ele precisa saber disso imediatamente.
+2.  **Reportar-se a Seraphina.** Ela provavelmente foi escoltada para um local seguro. Encontrá-la seria mais discreto e ela tem uma mente afiada para intrigas políticas.
+3.  **Ir para um local seguro.** Voltar para a estalagem de Elara para analisar a nota e a chave em paz, longe de olhos curiosos, antes de decidir com quem falar.
+4.  **Investigar a chave.** Tentar descobrir a que a chave com o símbolo da serpente pertence. Pode ser a sua pista mais concreta.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou falar com a seraphina, quando dorgar sair da prefeitura, eu falo com ele.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão lógica. Dorgar está no centro do furacão, cercado por testemunhas e burocracia. Seraphina, por outro lado, é uma especialista em operar nas sombras. Ela entenderá a natureza delicada desta informação.
+
+Você se afasta do Salão do Conselho, a sirene distante da Guarda da Cidade soando como um eco distante. Você não segue as rotas principais, repletas de guardas correndo e cidadãos curiosos. Em vez disso, você mergulha na teia de becos e passarelas secundárias de Gloamhurst. Você se move como a água, seguindo o caminho de menor resistência, uma sombra fluindo através da cidade-pântano.
+
+Você sabe onde Seraphina estaria. Em tempos de crise, ela não iria para sua mansão ostensiva, um alvo óbvio. Ela se refugiaria na fortaleza de sua guilda, a Casa dos Tecelões, um edifício imponente no Distrito das Águas, conhecido por sua segurança discreta e lealdade fanática de seus membros.
+
+Vinte minutos de travessia silenciosa pelas passarelas escuras o levam até lá. A Casa dos Tecelões está em alerta máximo. Guardas com o brasão da guilda – uma aranha tecendo uma teia de prata – patrulham o perímetro, suas lanternas cortando a névoa que sobe dos canais.
+
+Você não se aproxima pela entrada principal. Isso seria para amadores. Você circula para os fundos, para uma pequena doca privada usada para descarregar fardos de seda e algodão. As sombras aqui são profundas. Você se esconde atrás de caixotes empilhados, o cheiro de corante e tecido cru enchendo o ar.
+
+Da sua posição, você pode ver uma janela no segundo andar, a única com uma luz suave e quente acesa. O escritório particular de Seraphina.
+
+Você tem várias maneiras de fazer contato:
+1.  **Aproximação Direta e Discreta:** Você pode escalar a parede do edifício (um teste de **Atletismo**) e bater suavemente na janela dela. É direto, mas arriscado se um guarda olhar para cima no momento errado.
+2.  **Sinal Conhecido:** Vocês já trabalharam juntos antes. Talvez tenham estabelecido um sinal secreto. Você poderia usar um assobio baixo, imitando o som de um pássaro do pântano específico, para chamar a atenção dela sem alertar os guardas.
+3.  **Infiltração:** Você pode tentar encontrar uma entrada desprotegida – uma janela de armazém entreaberta, uma grade de esgoto – e se infiltrar no prédio para chegar ao escritório dela por dentro. Mais seguro, mas mais demorado.
+4.  **Usar a Libélula Mecânica:** Você pode enviar seu batedor aéreo para a janela dela. É silencioso e permite que você se comunique à distância, mas consome uma carga do seu dispositivo.
+
+Como você se anuncia para a Mestra Tecelã?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou me infiltrar, será melhor que ninguém me veja.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma escolha sábia. Testemunhas são passivos.
+
+Você recua para a escuridão da doca, tornando-se um com as sombras projetadas pelos caixotes. Seu olhar de profissional examina a estrutura da Casa dos Tecelões, procurando não por uma porta, mas por uma falha.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria) para encontrar pontos de entrada:** d20 + 6
+*   **Resultado do D20:** 19
+*   **Total:** 19 + 6 = **25**. (Você vê tudo.)
+
+Seus olhos treinados ignoram as entradas óbvias e encontram as vulnerabilidades que um arquiteto nunca previu:
+1.  **A Grade de Drenagem:** Uma grade de ferro enferrujada perto da linha d''água, provavelmente levando aos porões de tingimento. Forte, mas a ferrugem sugere uma fraqueza estrutural.
+2.  **A Janela do Armazém:** No segundo andar, logo abaixo do telhado, uma pequena janela de armazém está ligeiramente entreaberta, provavelmente para ventilação. A parede abaixo dela é de tijolo antigo, cheia de fendas e saliências que serviriam como apoios perfeitos.
+3.  **A Calha de Carga:** Uma calha de madeira coberta, usada para deslizar fardos de tecido do terceiro andar para os barcos. É um túnel escuro e íngreme que leva diretamente para o coração do edifício.
+
+A janela do armazém é a rota mais direta e com o menor número de incógnitas. Você se move em direção à parede, seus dedos já sentindo o tijolo áspero.
+
+**[Mestre rola os dados]**
+*   **Teste de Atletismo (Força) para escalar:** d20 + 8
+*   **Resultado do D20:** 17
+*   **Total:** 17 + 8 = **25**. (Uma subida impecável.)
+
+Você sobe a parede como uma aranha, seus pés e mãos encontrando apoio onde não deveria haver nenhum. Você se move em silêncio absoluto, a névoa do pântano girando abaixo de você. Em segundos, você está pendurado do lado de fora da janela entreaberta. Com um toque cuidadoso, você a desliza para abrir o suficiente para passar.
+
+Você entra em um armazém escuro e silencioso. O ar é pesado com o cheiro de lã crua e poeira. Fardos de tecido estão empilhados até o teto, criando um labirinto de corredores escuros. A luz do escritório de Seraphina vaza por baixo de uma porta no lado oposto da sala.
+
+No entanto, você não está sozinho. Perto da porta, sentado em um banquinho, está um único guarda. Ele não está alerta. Sua cabeça está pendendo para o peito, o capacete inclinado para a frente, e um ronco suave e rítmico escapa de seus lábios. Ele adormeceu em seu posto.
+
+O caminho está livre, mas o chão de madeira entre você e a porta é antigo. Qualquer peso mal colocado pode produzir um rangido que o acordaria instantaneamente.
+
+O que você faz?
+
+1.  **Atravessar Furtivamente.** Confiar em suas habilidades para cruzar a sala sem fazer barulho. Exigirá um teste de **Furtividade**.
+2.  **Usar o Bracelete do Passo Sombrio.** A sombra projetada por uma pilha de fardos perto da porta é profunda e escura. Você pode simplesmente se teletransportar para lá, contornando completamente o guarda e o chão barulhento.
+3.  **Criar uma Distração.** Jogar um objeto pequeno em um canto distante da sala. O barulho pode acordá-lo, mas sua atenção estará no lugar errado.
+4.  **Nocautear o Guarda.** Uma abordagem mais arriscada. Se você falhar, ele dará o alarme.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar o bracelete', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Eficiência acima de tudo. Por que andar quando se pode simplesmente... chegar?
+
+Você permanece na sombra da janela, imóvel como uma gárgula. Sua análise da situação é instantânea. O guarda adormecido, o chão traiçoeiro, a porta do outro lado da sala. É um problema com uma solução elegante e silenciosa.
+
+Seu olhar se fixa na escuridão profunda projetada por uma torre instável de fardos de seda, a apenas um metro da porta do escritório. A sombra é um convite.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+Mais uma vez, o mundo se dobra ao seu redor. O armazém empoeirado desaparece em um piscar de olhos, substituído pela escuridão reconfortante ao lado da porta. Você se materializa em uma posição agachada, o som do ronco do guarda agora muito mais próximo e claro. Ele não se mexeu. A transição foi perfeita, indetectável.
+
+Você está agora a centímetros da porta do escritório de Seraphina. A fresta de luz sob ela revela um tapete caro. Você pode ouvir o som suave de líquido sendo derramado em um copo, seguido pelo tilintar de cristal. Ela está acordada. Provavelmente tomando um vinho ou um brandy para acalmar os nervos após a provação no conselho.
+
+Você pressiona o ouvido contra a madeira fria da porta.
+
+"...imprudente," você a ouve murmurar para si mesma. "Mas eficaz. Onde ele está agora?"
+
+Ela está falando de você.
+
+É hora de se anunciar. Como você faz isso?
+
+1.  **Bater Suavemente.** Uma série de batidas suaves e codificadas. Algo que apenas alguém esperando por um contato secreto reconheceria.
+2.  **Sussurrar.** Uma única palavra, seu nome ou um codinome, sussurrada contra a madeira. Alto o suficiente para ela ouvir, baixo demais para o guarda.
+3.  **Abrir a Porta.** Você pode testar a maçaneta. Se estiver destrancada, você pode simplesmente entrar. Ousado, mas pode assustá-la.
+4.  **Esperar.** Aguardar que ela se mova ou que uma oportunidade melhor se apresente.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Quero tentar abrir a porta e entrar sem ela perceber, quero criar uma persona de fantasma.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Ah, entendo. Não basta ser eficiente; a reputação deve ser cultivada. Ser um fantasma não é apenas sobre ser invisível, é sobre a *impossibilidade* de sua presença.
+
+Você se ergue lentamente, seu corpo se desdobrando das sombras como fumaça. Sua atenção está dividida: um ouvido para os sons dentro do escritório, o outro para o ronco rítmico do guarda.
+
+Sua mão, envolta em luvas de couro macio, sobe e envolve a maçaneta de latão. Seus dedos se movem com a delicadeza de um arrombador de cofres, aplicando uma pressão mínima e constante.
+
+**[Mestre rola os dados]**
+*   **Teste de Prestidigitação (Destreza) para abrir a porta silenciosamente:** d20 + 9
+*   **Resultado do D20:** 20 (Crítico Natural!)
+*   **Total:** 20 + 9 = **29**. (Uma obra-prima de infiltração.)
+
+A maçaneta gira sob sua mão sem produzir um único clique. O mecanismo da fechadura se retrai com um som tão baixo que é engolido pelo ronco do guarda a poucos metros de distância. A porta está destrancada.
+
+Você a abre, um milímetro de cada vez. A fresta se alarga, revelando o interior do escritório.
+
+É um espaço luxuoso, mas funcional. Tapeçarias representando batalhas navais históricas cobrem as paredes. Uma grande mesa de carvalho polido domina o centro, coberta de mapas e livros-razão. Uma lareira crepita suavemente em um canto, lançando uma luz dançante sobre o ambiente.
+
+Seraphina está de costas para você. Ela está em frente a uma janela alta que dá para as águas escuras de Gloamhurst, segurando uma taça de vinho tinto. Sua silhueta é tensa, a postura rígida de alguém cuja mente está a milhas de distância, calculando o próximo movimento em um jogo mortal. Ela está completamente alheia à sua presença.
+
+Você desliza para dentro da sala. A porta se fecha atrás de você com um *clique* quase imperceptível, um som que se mistura ao estalar do fogo.
+
+Você está dentro. Invisível. Um fantasma na fortaleza dela. Ela ainda não se virou. O momento é seu para moldar.
+
+O que você faz?
+
+1.  **Falar.** Quebrar o silêncio com uma única palavra ou frase. O choque de ouvir sua voz do nada seria imenso.
+2.  **Fazer um Som.** Deixar um objeto cair suavemente na mesa dela – a chave, talvez – para que ela se vire e o encontre.
+3.  **Mover-se para o Campo de Visão Dela.** Contornar a sala e sentar-se em uma das cadeiras em frente à sua mesa, esperando que ela se vire e o encontre lá, como se você sempre estivesse presente.
+4.  **Permanecer em Silêncio.** Simplesmente esperar nas sombras até que ela se vire. O terror de encontrar uma figura parada em seu santuário privado pode ser... persuasivo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Dou uma tossida leve, para chamar a atenção dela.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Claro. Não um som agressivo, não um sussurro. Apenas um som humano, mundano. Um som que não deveria, sob nenhuma circunstância, estar naquele quarto. É a escolha mais perturbadora de todas.
+
+Você permanece imóvel nas sombras perto da porta que acabou de fechar. Você puxa o ar, e então, o som.
+
+Não é uma tosse alta ou forçada. É um pigarro suave, educado. O tipo de som que alguém faria para anunciar sua presença em uma biblioteca, não em um escritório trancado e guardado no meio da noite.
+
+*Ahem.*
+
+O efeito sobre Seraphina é instantâneo e elétrico.
+
+Seu corpo inteiro se enrijece como se tivesse sido atingido por um raio. A taça de vinho em sua mão treme, o líquido escarlate balançando perigosamente. Por um segundo, ela não se move, paralisada pela dissonância cognitiva de ouvir um som impossível.
+
+Então, ela se vira. Não lentamente, mas em um movimento rápido e defensivo, seus olhos arregalados e selvagens, sua mão livre voando para um pequeno estilete escondido nas dobras de seu vestido.
+
+Ela espera ver um assassino, um guarda traidor, um monstro.
+
+Em vez disso, ela vê você. Uma silhueta parada na escuridão, perfeitamente calma, a personificação de um fantasma.
+
+O reconhecimento a atinge, seguido por uma onda de choque e, em seguida, uma raiva gelada. Ela não grita. Seraphina é controlada demais para isso. Mas a cor foge de seu rosto.
+
+"Pelos deuses..." ela respira, a voz tensa. Ela abaixa a mão do estilete, mas não relaxa a postura. "Você... Como você...? Meus guardas..."
+
+Ela para, percebendo a futilidade da pergunta. Você está aqui. Isso é tudo que importa.
+
+Ela se recompõe com uma velocidade impressionante, a Mestra da Guilda assumindo o controle do medo. Ela coloca a taça de vinho na mesa com um clique firme, seus olhos de aço fixos nos seus.
+
+"Eu deveria tê-lo feito matar por essa entrada," ela diz, sua voz gotejando gelo. "Mas suponho que a notícia que você traz deve justificar a insolência. Fale."
+
+O palco é seu. Ela está abalada, mas ouvindo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'De forma educada e até levemente leve respondo que me matar após toda a ajuda que dei a ela no passado e hoje seria imprudente.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você dá um passo para fora das sombras, não de forma ameaçadora, mas casual. A luz do fogo dança em sua armadura de couro, revelando a ausência de qualquer hostilidade em sua postura. Um leve sorriso, quase imperceptível, toca o canto de seus lábios.
+
+Sua voz, quando fala, é calma e nivelada, com um toque de ironia divertida.
+
+"Imprudente, Mestra Seraphina," você concorda, o tom educado contrastando absurdamente com a situação. "Considerando que, sem a minha ajuda, hoje à noite você estaria respondendo a perguntas sob um feitiço da verdade, e suas provas estariam em cinzas. Mandar me matar seria... uma má administração de ativos."
+
+A lógica fria e a audácia de sua resposta a desarmam. Ela esperava um relatório, talvez um pedido de desculpas. Em vez disso, você a lembra de sua dívida, e o faz com o ar de um contador discutindo o balanço.
+
+Uma emoção complexa passa pelo rosto dela – raiva, relutante admiração e, finalmente, pragmatismo. Ela solta um suspiro longo e controlado, o último vestígio de seu choque se dissipando. Ela gesticula para a cadeira de mogno em frente à sua mesa.
+
+"Sente-se, Askellad," ela diz, a formalidade retornando à sua voz, embora agora com um novo peso de respeito. "E me diga por que você sentiu a necessidade de testar a segurança da minha guilda e meu coração já sobrecarregado."
+
+Ela se senta em sua própria cadeira, a Mestra da Guilda em seu trono, e entrelaça os dedos sobre a mesa. Ela está pronta para ouvir. A encenação acabou. É hora dos negócios.
+
+"O que você descobriu?" ela pergunta, seus olhos fixos nos seus, afiados como cacos de vidro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Não tenho muitos comentários além de que o guarda do lado de fora de seu escritório está dormindo, creio que você deveria se preparar para casos parecidos com oque fiz agora depois de hoje. Conto também tudo que ouvi do nobre e do mago.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você se move silenciosamente pela sala e se senta na cadeira. O couro range suavemente sob seu peso, o único som no escritório além do crepitar do fogo. Você se inclina para a frente, seus antebraços repousando sobre os joelhos, criando uma atmosfera de confidencialidade e urgência.
+
+"Primeiro, um conselho," você começa, sua voz baixa e conspiratória. "O guarda do lado de fora do seu escritório está dormindo. Depois de hoje, você não pode mais se dar ao luxo de ter elos fracos. O jogo mudou."
+
+O maxilar de Seraphina se contrai. Uma nota mental é feita; a carreira daquele guarda acabou. Ela acena bruscamente, um gesto para que você continue.
+
+E então, você entrega o relatório. Não a versão pública, mas a verdade crua e não filtrada, contada com a precisão de um soldado.
+
+"Lorde Valerius Finch. Ele foi o contato do mago. O plano era usar a minha sabotagem como distração para que Finch pegasse um pacote e saísse."
+
+Você descreve a perseguição, a captura e a confissão patética de Finch na Câmara do Conselho.
+
+"O mago estava na biblioteca, exatamente como Finch disse. Mas ele não estava esperando em uma emboscada. Ele estava procurando por algo que não estava lá."
+
+Você narra a infiltração na biblioteca, a subjugação do mago e o interrogatório. Cada palavra é escolhida com cuidado, entregando os fatos sem emoção.
+
+"Ele também é um peão. Ele serve a uma figura que ele conhece apenas como ''O Patrono''. O objetivo deles não era apenas o caos. Era controle. O pacote era um livro-razão, mantido por Finch, detalhando todas as chantagens e favores que o Conselho Mago tem sobre figuras importantes em Gloamhurst. Com ele, O Patrono poderia controlar a cidade."
+
+Seraphina escuta, seu rosto uma máscara de pedra, mas seus olhos revelam a tempestade de cálculos em sua mente.
+
+"Mas há um problema," você conclui, e este é o golpe final. "Alguém pegou o livro antes do mago. Ele não estava lá. Há um terceiro jogador, desconhecido, que agora detém o poder de chantagear metade da elite de Gloamhurst."
+
+Você para, deixando o peso total da situação assentar sobre ela. Finalmente, você coloca dois itens sobre a mesa de carvalho polido, o som deles ecoando no silêncio.
+
+Uma pequena chave de ferro preto com o símbolo de uma serpente.
+
+E a nota dobrada.
+
+"Isso foi o que encontrei no mago," você diz. "Ele mencionou um ''Ponto de Encontro da Meia-Noite'' e um segundo codinome: ''A Víbora''."
+
+Seraphina não toca nos itens imediatamente. Ela apenas os encara, sua mente processando a teia de intriga que você acabou de desvendar. A conspiração que ela pensava conhecer era apenas a ponta de um iceberg venenoso.
+
+Depois de um longo silêncio, ela finalmente levanta os olhos para você. A raiva se foi, substituída por uma preocupação fria e calculista.
+
+"Um Patrono, uma Víbora, e um ladrão desconhecido," ela resume, sua voz um sussurro perigoso. "Isso... isso muda tudo. O que Dorgar sabe disso?"', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Ainda nada, vou falar com ele assim que terminar contigo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '"Bom," ela responde, a palavra curta e afiada. "É melhor que Dorgar ouça a história completa de você, não uma versão fragmentada de um sargento ofegante. A informação é uma arma. Controle quem a empunha."
+
+Ela se inclina sobre a mesa, seus olhos de predador finalmente se fixando nos itens que você deixou. Com um movimento deliberado, ela usa a ponta de uma unha para deslizar a nota para mais perto, lendo-a sob a luz da lareira. Seu rosto permanece impassível, mas você nota um leve estreitamento em seus olhos.
+
+Então, ela estende a mão para a chave. Ela não a pega, apenas a vira suavemente com o dedo, observando o símbolo da serpente se contorcendo.
+
+"O Patrono... A Víbora..." ela murmura, mais para si mesma do que para você. "Nomes para as sombras. Anônimos. Perigosos."
+
+Ela levanta o olhar para você, sua mente claramente trabalhando a uma velocidade vertiginosa.
+
+"Não reconheço o estilo desta chave," ela admite, "mas o símbolo... a serpente se contorcendo... Já vi isso antes. Há muito tempo. É o brasão de uma sociedade secreta, quase um mito em Gloamhurst. O Círculo da Serpente de Bronze. Diziam que eram filósofos e alquimistas, mas os rumores sempre sussurravam sobre veneno e assassinato. Pensei que tivessem se dissolvido há uma geração."
+
+Ela se recosta na cadeira, o peso da história se somando à crise da noite.
+
+"Leve isso para Dorgar," ela diz, empurrando a chave e a nota de volta em sua direção. "Ele tem contatos entre os ferreiros e serralheiros mais antigos da cidade. Se alguém pode identificar o trabalho de um serralheiro específico ou o tipo de fechadura que esta chave abre, é um de seus velhos artesãos."
+
+Ela faz uma pausa, organizando seus próprios pensamentos em um plano de batalha.
+
+"Enquanto isso, vou usar meus próprios recursos para descobrir quem mais no Salão do Conselho tinha interesse ou acesso à biblioteca. Um terceiro jogador não aparece do nada. Ele deixou um rastro, por menor que seja. Vou encontrá-lo."
+
+Ela se levanta, o gesto sinalizando o fim da reunião.
+
+"Você cumpriu sua parte do contrato, e muito mais. O restante do seu pagamento será entregue discretamente a você amanhã ao amanhecer. Considere isso um adiantamento para o que quer que venha a seguir."
+
+Ela caminha até a janela novamente, olhando para a cidade escura.
+
+"Nós estávamos jogando xadrez contra o Conselho Mago, Askellad," ela diz, sua voz baixa e cheia de uma nova e sombria resolução. "Agora, parece que há uma ninhada de víboras sob o tabuleiro. Vá. Fale com Dorgar. Precisamos nos mover antes que elas ataquem."
+
+Com isso, você é dispensado. O caminho para fora está claro, e você tem sua próxima missão: encontrar Dorgar e desvendar o mistério da chave da serpente.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Hora de se encontrar com dorgar, ele já saiu e está em sua guilda?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você desliza para fora da Casa dos Tecelões com a mesma facilidade fantasmagórica com que entrou. A noite o acolhe de volta.
+
+Sua intuição de soldado lhe diz que Dorgar não estaria em sua guilda. Não ainda. Um general não abandona o campo de batalha enquanto a poeira não assenta. Ele estaria no Salão do Conselho, ou perto dele, gerenciando a crise, consolidando seu poder e garantindo que a narrativa que emerge do caos seja a *sua* narrativa.
+
+Você refaz seu caminho de volta para o Quadrante Nordeste. A atmosfera na cidade mudou na hora que você esteve fora. O pânico inicial se foi, substituído por uma tensão palpável. Patrulhas da Guarda da Cidade estão em toda parte, suas lanternas cortando a névoa, questionando qualquer um que pareça suspeito. Rumores se espalham como fogo em palha seca – um ataque de magos, uma tentativa de assassinato, traição no conselho.
+
+O Salão do Conselho em si está sob um bloqueio total. Um cordão de isolamento foi estabelecido, com guardas de Dorgar e da Cidade trabalhando juntos em uma aliança tensa, mantendo uma multidão de nobres curiosos e mensageiros a uma distância segura. Entrar pela porta da frente está fora de questão.
+
+Você precisa de um ponto de acesso. Você circula o perímetro, mantendo-se nas sombras, seus olhos escaneando as formações de guardas. E então você o vê.
+
+Em um beco lateral que serve como uma entrada de serviço, longe da multidão principal, está o sargento de Dorgar. O mesmo homem corpulento com a cicatriz na bochecha para quem você entregou Lorde Finch. Ele não está ocioso; ele está dando ordens a um pequeno esquadrão de seus homens, posicionando-os para cobrir as rotas de fuga dos fundos. Ele parece cansado, mas focado.
+
+Ele é sua melhor aposta para chegar a Dorgar.
+
+Como você o aborda?
+
+1.  **Aproximação Direta.** Sair das sombras e se dirigir a ele. Você ainda está usando o uniforme de guarda de Dorgar (sem o capacete). Ele pode reconhecê-lo como o "soldado" da câmara.
+2.  **Sinal Discreto.** Fazer um som – um assobio, uma moeda caindo – para chamar a atenção dele sem alertar todo o seu esquadrão. Tentar falar com ele a sós.
+3.  **Ignorá-lo e Infiltrar-se.** O bloqueio é forte, mas toda fortaleza tem uma rachadura. Você pode tentar encontrar seu próprio caminho para dentro e localizar Dorgar sozinho.
+4.  **Esperar.** Observar de longe e esperar que Dorgar saia ou que o sargento se afaste de seus homens.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou me aproximar dele diretamente, ele sabe eu sou.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você respira fundo, endireita a postura e sai das sombras profundas do beco. Você não se esgueira; você marcha. Cada passo no calçamento úmido é deliberado, o som de um soldado com um propósito.
+
+O sargento está no meio de uma frase, gesticulando para um de seus homens, quando o som de seus passos o faz parar. Seus olhos se estreitam, varrendo o beco até que se fixam em você. Sua mão repousa instintivamente no cabo de seu martelo de guerra.
+
+Por um momento, há um brilho de confusão em seu rosto. Ele o vê, o uniforme familiar, o porte de um guerreiro. Então, o reconhecimento o atinge como um raio. Seus olhos se arregalam ligeiramente. Ele se lembra. Você é o soldado fantasma da câmara, aquele que entregou o traidor e deu o aviso antes de desaparecer no caos.
+
+Ele levanta uma mão para seus homens, um sinal silencioso para que eles fiquem parados. Ele dá alguns passos à frente, encontrando-o no meio do caminho, longe dos ouvidos de seu esquadrão.
+
+"Você," ele diz, a voz um rosnado baixo e impressionado. "Eu não vi para onde você foi. Desapareceu como fumaça. Bom trabalho lá dentro. O mago está sob custódia, exatamente como você disse. O Mestre Dorgar está... satisfeito."
+
+Ele olha para você de cima a baixo, uma nova avaliação em seus olhos. Ele não o vê mais como um soldado comum.
+
+"O que você quer? O Mestre está ocupado com o Capitão da Guarda e um magistrado. Não está recebendo ninguém." Ele diz isso, mas seu tom sugere que, para você, uma exceção pode ser feita.
+
+"Tenho informações urgentes para o Mestre Dorgar," você diz, sua voz calma e firme, cortando a tensão da noite. "É sobre o mago. E sobre o que ele estava realmente procurando. Preciso de cinco minutos com ele. A sós."
+
+O sargento estuda seu rosto por um longo momento. Ele vê a seriedade, a ausência de medo. Ele vê um profissional. Ele toma uma decisão.
+
+"Certo," ele diz com um aceno de cabeça. "Mas não aqui. Muito exposto. Siga-me. E fique quieto."
+
+Ele se vira e o conduz, não para a entrada principal do Salão do Conselho, mas para uma porta de serviço discreta, escondida atrás de barris de lixo. Ele bate um código rápido na madeira. A porta se abre, revelando um corredor escuro e pouco usado.
+
+"Espere aqui," ele comanda. "Vou chamar o Mestre. Não se mova. E não fale com ninguém."
+
+A porta se fecha, deixando-o na escuridão quase total do corredor de serviço. O ar cheira a mofo e água parada. Você está dentro. Agora, você só precisa esperar pelo Mestre Ferreiro.
+
+O tempo se arrasta. Você ouve os sons abafados da atividade no salão principal – vozes, passos, o tilintar ocasional de armadura. Cerca de cinco minutos depois, a porta se abre novamente.
+
+Não é o sargento. É Dorgar.
+
+O Mestre da Guilda dos Ferreiros parece ter envelhecido cinco anos em uma hora. Há novas linhas de tensão em seu rosto de granito, e seus olhos queimam com uma intensidade feroz. Ele entra no corredor e fecha a porta atrás de si, mergulhando vocês dois na escuridão.
+
+"Sargento Borin disse que você tinha algo para mim," a voz de Dorgar é um trovão baixo. "Ele disse que você é o homem que pegou Finch. Fale. E que seja importante."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Conto para ele tudo que falei para mestre tecelã, ele tem que saber de tudo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Claro. A aliança de vocês é forjada em segredos compartilhados e ação direta. Ele merece a verdade completa.
+
+Na escuridão claustrofóbica do corredor de serviço, com apenas um filete de luz vazando por baixo da porta, você entrega seu relatório pela segunda vez. Mas o tom é diferente. Com Seraphina, foi uma transação de inteligência. Com Dorgar, é um briefing de campo para seu comandante.
+
+Você relata os eventos com precisão militar: a confissão de Finch, a infiltração na biblioteca, a subjugação do mago e o interrogatório. Você não deixa de fora nenhum detalhe, especialmente as palavras do mago.
+
+"...ele não serve ao Conselho Mago, Dorgar. Ele serve a alguém chamado ''O Patrono''," você diz, sua voz ecoando suavemente nas paredes de pedra. "O objetivo era um livro-razão de chantagem. Uma ferramenta para controlar a cidade. O ataque foi apenas uma cobertura para a extração."
+
+Você pode sentir a intensidade do olhar de Dorgar na escuridão, mesmo sem vê-lo claramente. Ele escuta em silêncio absoluto, absorvendo cada palavra.
+
+"Mas o livro não estava lá," você continua. "Alguém chegou primeiro. Um terceiro jogador."
+
+Você faz uma pausa, e então apresenta a evidência física. Você estende a mão.
+
+"Isso é o que encontrei no mago."
+
+Na penumbra, Dorgar pega a chave e a nota. Ele as leva para mais perto da fresta de luz sob a porta. Você o ouve desenrolar o pergaminho. O silêncio se estende enquanto ele lê.
+
+"A Víbora..." ele rosna, a palavra soando como uma maldição. Ele vira a chave em seus dedos grossos de ferreiro, sentindo o peso e o formato dela.
+
+"Seraphina acredita que o símbolo da serpente pertence a uma antiga sociedade secreta. O Círculo da Serpente de Bronze," você informa. "Ela sugeriu que seus contatos entre os artesãos mais antigos poderiam reconhecer o trabalho da chave."
+
+Dorgar fica em silêncio por um longo momento, o único som sendo sua respiração profunda e pesada. Ele está conectando os pontos, o mestre de guilda dando lugar ao general de guerra que ele já foi.
+
+Finalmente, ele fala, e sua voz é dura como o aço de sua forja.
+
+"Seraphina está certa. O Círculo... ouvi histórias sobre eles quando era apenas um aprendiz. Fantasmas. Contadores de veneno e segredos." Ele fecha o punho em torno da chave, o metal quase desaparecendo em sua mão maciça.
+
+"Este trabalho..." ele diz, esfregando o polegar sobre o símbolo da serpente. "É antigo, mas a chave em si... é nova. O metal tem o cheiro da forja de Mestre Thurgood. Um velho anão ranzinza, mas o melhor serralheiro de fechaduras complexas em toda Gloamhurst. Se alguém fez esta chave, foi ele."
+
+Ele lhe devolve a nota, mas mantém a chave.
+
+"Bom trabalho, Askellad. Excelente trabalho," ele diz, e vindo de Dorgar, o elogio tem o peso de uma medalha. "Você cortou a cabeça de uma cobra, apenas para encontrar uma hidra por baixo."
+
+Ele se vira para a porta, sua mente já em movimento.
+
+"Preciso terminar aqui. Manter as aparências. Mas nossos planos mudaram. Este ''Patrono'' é a verdadeira ameaça. O Conselho Mago é apenas um de seus tentáculos."
+
+Ele para com a mão na maçaneta.
+
+"Vá para a forja de Mestre Thurgood. Fica no Distrito das Águas, perto das docas de carga pesada. O Berrante Quebrado. Mostre a ele esta chave," ele joga a chave de volta para você, o metal frio batendo em sua palma. "Diga a ele que Dorgar envia seus cumprimentos... e exige saber para quem ele fez isso. O nome ''Dorgar'' abrirá sua boca. Ele me deve. Descubra quem encomendou a chave. Essa é a nossa primeira pista real."
+
+Ele abre a porta, a luz o inunda, transformando-o em uma silhueta imponente.
+
+"Encontre-me na minha guilda em duas horas. Traga-me um nome."
+
+A porta se fecha. Você está sozinho novamente, com uma nova missão, uma nova pista e um prazo. A noite está longe de acabar.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Primeiro, tiro o meu disfarce e fico somente com a minha roupa escura de couro de basilisco. E vou ao encontro deste mestre anão que foi me dito.
+
+OCC:Mestre, toda essa neblina permanente que existe na cidade me dá um bônus de furtividade? Por eu ser um dos que o pântano reconheceu?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Essa é uma excelente pergunta, mergulhando diretamente na interação entre suas ações passadas e o estado atual do mundo. A resposta é sim, mas com nuances. O Véu não é apenas uma névoa comum; é uma proteção mágica que você ajudou a criar. O pântano, e por extensão o Véu, reconhece sua "assinatura".]
+
+**[NOVA VANTAGEM PASSIVA ADQUIRIDA: SINTONIA COM O VÉU]**
+*Enquanto estiver dentro dos limites de Gloamhurst e sob a cobertura do Véu, você tem **Vantagem** em todos os testes de Furtividade feitos para se esconder ou se mover sem ser visto em áreas de penumbra ou escuridão. A névoa se agarra a você de forma diferente, abafando seus sons e obscurecendo sua silhueta mais do que faria com um estranho.*
+
+---
+(A voz do Mestre retorna, assumindo um tom de intriga noturna.)
+
+Você recua para as profundezas do beco, um refúgio de escuridão e anonimato. Com movimentos rápidos e praticados, você se livra dos componentes do disfarce de guarda – o peitoral de aço com o brasão de Dorgar, as grevas, o elmo. Eles caem no chão com um baque surdo e abafado.
+
+Por baixo, está o verdadeiro Askellad. A armadura de couro de basilisco, escura e flexível, parece uma segunda pele. Ela absorve a pouca luz, fazendo de você pouco mais que uma mancha na escuridão. Você se sente mais leve, mais rápido. Mais letal. Você é um predador em seu habitat natural.
+
+Ao sair para as passarelas de Gloamhurst, você sente a mudança. A névoa, o Véu que você ajudou a tecer, parece recebê-lo. Ela se enrola em seus ombros, adere às suas botas, turvando suas bordas e abafando o som de seus passos no calçamento de madeira. É uma sensação sutil, mas inconfundível. Você não está apenas se movendo *através* da névoa; você está se movendo *com* ela.
+
+O Distrito das Águas à noite é um labirinto de luz e sombra. Lanternas penduradas em postes lançam poças de luz amarela sobre as passarelas, mas entre elas, a escuridão e a névoa reinam supremas. Você se move sem esforço por este terreno, um fantasma em sua própria cidade.
+
+Seguindo as instruções de Dorgar, você navega pelas áreas mais industriais do distrito. O cheiro de peixe e água salgada dá lugar ao cheiro acre de carvão, metal quente e suor. O som rítmico de martelos distantes ecoa pelo ar. Você está perto.
+
+Finalmente, você encontra. O Berrante Quebrado não é uma loja vistosa. É um edifício robusto de pedra e madeira escura, espremido entre um armazém de barris e uma taverna barulhenta. A única indicação de seu propósito é uma placa de ferro enferrujada pendurada sobre a porta, retratando um berrante de anão partido ao meio. Uma fina coluna de fumaça sobe da chaminé de pedra, mesmo a esta hora tardia.
+
+A porta da frente é de carvalho maciço, reforçada com faixas de ferro preto. Há uma pequena janela gradeada ao lado dela, mas está escura.
+
+O que você faz?
+
+1.  **Bater na Porta.** A abordagem direta. Você pode anunciar sua presença e o nome de Dorgar.
+2.  **Investigar.** Circular o prédio. Procurar por janelas nos fundos, ouvir na porta, tentar ter uma ideia do que está acontecendo lá dentro antes de se anunciar.
+3.  **Usar a Libélula Mecânica.** Enviar seu batedor para espiar pela chaminé ou por qualquer fresta que encontrar, dando-lhe uma visão perfeita do interior sem nenhum risco.
+4.  **Esperar e Observar.** Encontrar um ponto de observação e esperar. Talvez alguém saia ou entre, dando-lhe mais informações.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar a libélula para investigar os aoredores e se tudo estiver limpo, entro por uma fresta.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma abordagem cautelosa e tática. Informação precede a ação.
+
+Você recua para as sombras de um beco do outro lado da passarela, encontrando um ponto de observação perfeito atrás de uma pilha de redes de pesca velhas. O cheiro de peixe podre é forte, mas é uma excelente cobertura.
+
+De uma pequena bolsa em seu cinto, você retira a **Libélula Mecânica**. O pequeno construto de latão e vidro repousa em sua palma, suas asas de filigrana brilhando fracamente à luz de uma lanterna distante. Você sussurra a palavra de comando.
+
+Com um zumbido quase inaudível, as asas da libélula ganham vida. Ela se ergue no ar, um ponto cintilante na noite enevoada, e dispara em direção à forja. Através de sua conexão com o dispositivo, sua consciência se expande. Você vê e ouve o que ela vê e ouve.
+
+**Visão da Libélula:**
+
+A libélula circula o prédio. Os arredores estão quietos, exceto pelo barulho da taverna ao lado. Não há guardas, nem emboscadas. Apenas a névoa e a noite. Nos fundos do prédio, há uma única janela sem grades, coberta por uma fuligem espessa. A libélula pousa no parapeito e consegue espiar por uma pequena área mais limpa no canto do vidro.
+
+**Interior da Forja:**
+
+O interior é exatamente o que você esperaria de uma forja de mestre anão: um caos organizado de metal, ferramentas e calor. Uma grande fornalha de pedra domina a parede dos fundos, seu brilho laranja pulsando como um coração de dragão adormecido. Bigornas de vários tamanhos estão espalhadas pelo chão de pedra. Ferramentas – martelos, tenazes, limas – estão penduradas em racks nas paredes, cada uma em seu lugar.
+
+No centro da sala, um anão está curvado sobre uma bancada de trabalho, iluminado por uma única lanterna a óleo. Ele é exatamente como Dorgar o descreveu: velho, com uma barba branca magnífica trançada em padrões complexos e presa com anéis de ferro. Ele é careca, com braços tão grossos quanto troncos de pequenas árvores, cobertos de cicatrizes de queimaduras e tatuagens desbotadas. Ele está completamente absorto em seu trabalho, usando uma pequena lima em uma peça de metal delicada. Ele resmunga para si mesmo, uma torrente de xingamentos anões sobre a qualidade do aço nos dias de hoje.
+
+A porta da frente está trancada com pelo menos três fechaduras pesadas por dentro. A janela dos fundos está trancada.
+
+Mas então, a libélula encontra o ponto fraco. A chaminé.
+
+Ela sobe e paira sobre a abertura de pedra. O calor que sobe é intenso, mas o fluxo de ar não é forte o suficiente para danificar o construto. A chaminé é larga, projetada para a fumaça de uma forja, não de uma lareira. Olhando para baixo, você pode ver diretamente o interior da forja. O caminho está livre.
+
+A libélula retorna para sua mão, suas asas se dobrando com um clique suave.
+
+Você tem sua rota de infiltração. O anão, Mestre Thurgood, está sozinho e distraído.
+
+Você pode escalar até o telhado (um teste de **Atletismo**), descer pela chaminé (um teste de **Acrobacia** para pousar silenciosamente) e confrontá-lo por dentro.
+
+Ou você pode simplesmente bater na porta agora que sabe que a situação é segura.
+
+A escolha é sua. O caminho do fantasma ou a abordagem direta?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'A forjar está acesa?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sim, a forja está acesa.
+
+Através dos olhos da libélula, você viu claramente. A grande fornalha de pedra no fundo da oficina não está em plena potência, cuspindo chamas e fumaça, mas as brasas dentro dela brilham com um intenso calor laranja-avermelhado. É um fogo mantido, um coração pulsante de calor que mantém a forja pronta para o trabalho a qualquer momento e lança uma luz dançante e sinistra por todo o interior.
+
+A chaminé, portanto, terá uma corrente ascendente de ar quente. Não o suficiente para incinerar algo instantaneamente, mas definitivamente perigoso. Descer por ela exigirá não apenas furtividade, mas também resistência ao calor e à fumaça.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Se não tenho aberturas, e não há perigo, posso me dar o luxo de uma abordagem direta', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão sensata. A infiltração é uma ferramenta, não um fetiche. Quando a porta da frente serve ao propósito com menos risco, é o caminho do profissional.
+
+Você emerge das sombras, o Véu se desprendendo de você como uma capa descartada. Você atravessa a passarela de madeira, seus passos agora firmes e audíveis. Você para diante da porta maciça de carvalho e ferro do Berrante Quebrado.
+
+Você não bate com os nós dos dedos. Você usa o pomo de sua adaga, **Asa da Serpente**, para bater na porta com três batidas secas e metálicas. O som é autoritário, ressoando com o peso do aço.
+
+*CLANG. CLANG. CLANG.*
+
+O som de limagem vindo de dentro para abruptamente. Segue-se um silêncio pesado, quebrado apenas pelo murmúrio distante da taverna ao lado. Então, você ouve o som de um banquinho sendo arrastado e passos pesados e irritados se aproximando da porta.
+
+"Já fechou! Se é a sua espada de novo, Torgar, eu disse que estaria pronta na terça! Vá encher a cara em outro lugar!" a voz é um rosnado de cascalho, exatamente como você imaginou.
+
+"Eu não sou Torgar," sua voz é calma, mas corta a noite. "E não estou aqui por uma espada."
+
+Há outra pausa. Você ouve o som de um ferrolho sendo puxado, depois outro, e um terceiro. Um visor de metal desliza para o lado com um rangido, e um único olho azul, cercado por pele enrugada, o encara de dentro.
+
+"Então quem diabos é você, batendo na minha porta no meio da noite como um cobrador de impostos?"
+
+Este é o momento. Você se inclina para a frente, permitindo que a luz da lanterna da rua ilumine seu rosto. Você mantém o olhar dele, sua expressão séria e inabalável.
+
+"Dorgar, Mestre da Guilda dos Ferreiros, envia seus cumprimentos," você diz, as palavras precisas e carregadas de significado. "E ele exige saber para quem você fez esta chave."
+
+Você levanta a chave de ferro preto, segurando-a na frente do visor para que ele possa ver claramente o símbolo da serpente se contorcendo.
+
+O olho no visor se arregala. O rosnado na voz do anão desaparece, substituído por algo mais – cautela, talvez até um toque de medo. Ele olha da chave para o seu rosto, e de volta para a chave.
+
+O nome de Dorgar paira no ar entre vocês. Uma dívida foi invocada.
+
+O visor de metal se fecha com um baque. Por um momento, você se pergunta se ele vai simplesmente ignorá-lo. Mas então você ouve o som pesado de uma barra de madeira sendo levantada. A porta se abre com um gemido, revelando o anão Mestre Thurgood em toda a sua glória ranzinza.
+
+Ele o encara, limpando as mãos em um pano sujo. O calor da forja sai pela porta, envolvendo você.
+
+"Entre," ele rosna, a contragosto. "E é melhor que isso seja tão importante quanto o nome que você está usando."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Entro, com respeito mas também autoridade, não estou aqui para negociar, ou comprar informações, estou aqui só para coletar elas.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você entra, e o calor da forja o atinge como uma parede. É um calor seco, denso, que cheira a carvão, metal e trabalho duro. Thurgood fecha a porta atrás de você, o som dos ferrolhos e da barra sendo recolocados ecoando como o fechamento de um cofre. A privacidade está garantida.
+
+Você não se intimida com o ambiente ou com o anão. Sua postura é ereta, seus movimentos são econômicos. Você caminha até o centro da oficina, parando ao lado de uma grande bigorna, onde a luz da fornalha e da lanterna se encontram. Você irradia uma calma perigosa, a autoridade de alguém que está ali para cumprir uma missão, não para fazer amigos.
+
+Thurgood o observa com seus olhos azuis penetrantes, cruzando os braços maciços sobre o peito. Ele não oferece um assento.
+
+"Então," o anão diz, quebrando o silêncio. "Dorgar. Faz anos que não ouço aquele bastardo de coração de pedra invocar o favor. Deve ter se metido em uma bela enrascada." Ele cospe no chão de pedra. "Mostre-me a chave de novo. Sob a luz."
+
+Você estende a mão e coloca a chave na superfície plana da bigorna. O metal preto contrasta com o aço cinza e desgastado.
+
+Thurgood se inclina, pegando a chave com uma reverência relutante. Ele a vira em seus dedos calejados, seus olhos de mestre artesão examinando cada corte, cada ângulo. Ele traça o símbolo da serpente com o polegar.
+
+"Sim... é o meu trabalho," ele admite, a voz baixa. "Fechadura de pino reverso com um gatilho de pressão falso. Ninguém mais na cidade faz esse tipo de trabalho. Não mais."
+
+Ele levanta o olhar, e a irritação em seu rosto deu lugar a uma preocupação sombria.
+
+"Eu não deveria ter feito isso. Senti um cheiro ruim no trabalho desde o início."
+
+Você permanece em silêncio, deixando-o falar. Sua paciência é uma arma, e você a usa para pressioná-lo.
+
+"Quem encomendou, você pergunta?" ele continua, coçando a barba trançada. "Não foi um nobre ou um mestre de guilda. Foi... um intermediário. Um homem que eu nunca tinha visto antes. Alto, magro, com o rosto de uma doninha. Usava luvas, mesmo dentro de casa. Falava com um sotaque estranho, sibilante."
+
+Ele para, seus olhos se focando em uma memória.
+
+"Ele não me deu um nome. Ele pagou em platina pura, o dobro da minha taxa normal, e disse que era para ''O Círculo''. Ele queria três cópias. Esta," ele aponta para a chave em sua mão, "e mais duas."
+
+Ele coloca a chave de volta na bigorna com um clique metálico.
+
+"Eu perguntei para que porta era. Ele apenas sorriu. Um sorriso que não alcançou seus olhos. Ele disse: ''Para a porta que guarda os sussurros de Gloamhurst''."
+
+Thurgood olha para você, sua expressão séria. "Olha, garoto. Eu sou um ferreiro, não um espião. Eu faço o que me pagam para fazer. Mas eu sei de problemas quando os vejo. Aquele homem... ele não era um simples mensageiro. Havia frio nele. O tipo de frio que você encontra em uma cripta."
+
+Ele lhe deu tudo o que sabe: a descrição do intermediário, o codinome "O Círculo" e o propósito enigmático da chave.
+
+A informação está sobre a bigorna. O que você faz?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Me descreva o máximo esse intermediário, roupas, sotaque. E a quanto tempo foi esse trabalho?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você se inclina ligeiramente para a frente, seu foco se intensificando. Os detalhes são tudo.
+
+"Descreva-o," você comanda, sua voz calma, mas inquestionável. "Cada detalhe que você se lembra. O sotaque. As roupas. E o mais importante: quando?"
+
+Thurgood esfrega o queixo, seus olhos se desfocando enquanto ele vasculha sua memória. O anão é um artesão; sua mente está treinada para observar detalhes.
+
+"Quando... foi há cerca de uma semana," ele começa, a voz mais lenta agora, mais cuidadosa. "Sim, oito dias atrás, para ser exato. Ele veio no final da noite, assim como você."
+
+Ele para, organizando as imagens em sua cabeça.
+
+"**Roupas:** Ele estava vestido para não ser notado, mas a qualidade era inegável. Uma túnica de lã cinza-escura, bem cortada, mas sem brasões ou insígnias. Calças pretas e botas de couro macio que não faziam barulho no chão de pedra. A única coisa que se destacava eram as luvas. Couro de bezerro preto, impecáveis. Ele nunca as tirou. Parecia que ele odiava a ideia de tocar em qualquer coisa."
+
+"**Aparência:** Alto para um humano. Magro, quase esguio. Movia-se com uma espécie de... fluidez desconfortável, como uma cobra tentando andar sobre duas pernas. O rosto... era pálido. Bochechas encovadas, um nariz adunco e olhos pequenos e escuros que pareciam absorver a luz. O cabelo era preto, oleoso e penteado para trás. Ele parecia doente, mas não fraco."
+
+"**Sotaque:** Ah, o sotaque. Era isso que era mais estranho. Não era de nenhum lugar que eu conheça. As palavras eram claras, mas ele sibilava os ''s'' um pouco demais. ''Sssussurros de Gloamhurssst''. Era... escorregadio. Fazia o pelo da minha nuca se arrepiar."
+
+Ele faz uma pausa, adicionando um último detalhe crucial.
+
+"E o cheiro. Ele tinha um cheiro estranho. Não era suor ou perfume. Era... como poeira de tumba e ervas secas. Um cheiro de porão, de algo que não vê o sol há muito tempo."
+
+Ele lhe deu um retrato vívido. Um homem pálido e sibilante que cheira a morte e usa luvas, agindo como intermediário para uma sociedade secreta. A encomenda foi feita há oito dias.
+
+Você pega a chave da bigorna, o metal ainda quente pelo calor residual da forja. Você tem seu nome – ou melhor, sua falta de nome. Você tem sua descrição.
+
+Sua missão aqui está completa.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Luvas de bezerro preto.... Parecem bem específicas e que as pessoas não costumam comprar. Me despeço dele e saio. Agora vou dar uma passada na loja do alfaiate. Vou invadir a loja dele e olhar seus registros para ver que tipo de pessoa compra isso.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A pista é específica. Uma agulha em um palheiro, mas você é o homem que sabe como encontrar agulhas.
+
+Você dá a Thurgood um aceno de cabeça curto e respeitoso. Um reconhecimento de profissional para profissional.
+
+"Você foi útil," você diz, e as palavras são o único pagamento ou agradecimento que ele receberá. Ele parece entender.
+
+"Apenas mantenha meu nome fora disso," o anão rosna, já se virando para sua bancada. "E diga a Dorgar que agora estamos quites."
+
+Você não responde. Você se vira e sai, a porta pesada se fechando atrás de você com um som final e retumbante.
+
+De volta à noite enevoada de Gloamhurst. A Guilda dos Ferreiros pode esperar. Dorgar lhe deu uma missão, mas sua própria intuição de caçador grita que esta nova pista é quente. Luvas de couro de bezerro preto, impecáveis. Não é o tipo de item que um pescador ou um ferreiro compra. É um item de luxo. Um item para alguém com dinheiro e um gosto específico.
+
+Só haveria um punhado de artesãos em Gloamhurst capazes de tal trabalho. O mais famoso, conhecido pela clientela nobre e rica, é Elias Vance, dono da "Finery de Elias". Sua loja fica em uma das passarelas mais movimentadas do Distrito das Águas, um lugar que de dia estaria fervilhando de atividade.
+
+Agora, à noite, a passarela está quase deserta. As lojas estão fechadas, suas fachadas escuras e silenciosas. A loja de Elias se destaca: uma frente de madeira escura polida, com grandes janelas de vidro (uma raridade cara) exibindo manequins vestidos com sedas e veludos. Uma placa de latão polido com o nome da loja brilha sob a luz de uma lanterna de rua próxima.
+
+O lugar parece seguro. Impenetrável. Um desafio.
+
+Você se esconde em um portal do outro lado da passarela, a névoa do Véu se enrolando em você, tornando-o quase invisível. Você estuda seu alvo.
+
+*   **A Porta:** Madeira maciça, com uma fechadura de latão complexa e de alta qualidade.
+*   **As Janelas:** Grandes e limpas, mas provavelmente trancadas por dentro com ferrolhos resistentes. Quebrá-las faria um barulho tremendo.
+*   **Segurança:** Você nota um fio fino e quase invisível conectado à parte superior da porta, levando a um pequeno sino de bronze posicionado logo acima do batente, por dentro. Um alarme simples, mas eficaz contra ladrões comuns.
+
+Você tem menos de uma hora e meia antes de seu encontro com Dorgar. O tempo está correndo.
+
+Como você procede?
+
+---
+**[DICA DO MESTRE: Otimização da Ação]**
+*   **Análise Primeiro:** Use **Percepção** para verificar se há patrulhas da guarda nas proximidades antes de agir.
+*   **Ferramentas de Mestre:** A fechadura é um desafio, mas seu **Kit de Ferramentas de Ladrão (Mestre)** foi feito para isso. Você precisará de um teste de **Prestidigitação** para abri-la.
+*   **O Alarme:** Você tem duas opções para o alarme de sino:
+    1.  **Desarmar:** Tentar cortar ou prender o fio antes de abrir a porta. Isso exigiria um segundo teste de **Prestidigitação**, provavelmente mais delicado.
+    2.  **Controlar:** Abrir a porta de forma incrivelmente lenta e controlada para que o sino não toque, ou apenas produza um tilintar mínimo. Isso aumentaria a dificuldade do teste de arrombamento.
+*   **Bracelete do Passo Sombrio:** Olhe através da janela. Se você conseguir ver um ponto de escuridão profunda o suficiente lá dentro, você pode contornar completamente a porta e o alarme.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Primeiro, vou analisar os ao redores para saber se tem alguém dentro, se não, uso meu bracelete. Se eu posso ver, posso entrar.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A lógica do fantasma. A barreira física é irrelevante se houver uma sombra do outro lado.
+
+Você se funde com a névoa, deslizando pela passarela de madeira sem fazer mais som que o próprio vapor d''água se condensando. Você para em frente à grande janela de vidro, o Véu se agarrando a você e quebrando sua silhueta, tornando-o uma anomalia disforme para qualquer olhar casual.
+
+Primeiro, a análise. Seus olhos varrem a rua em ambas as direções e depois se concentram no interior da loja.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria):** d20 + 6
+*   **Resultado do D20:** 18
+*   **Total:** 18 + 6 = **24**. (Visão de predador.)
+
+Sua análise é rápida e completa:
+*   **Exterior:** A passarela está deserta. Uma patrulha da guarda passou há pouco, mas seu brilho de lanterna já desapareceu na névoa a duas ruas de distância. O momento é perfeito.
+*   **Interior:** A loja está mergulhada na escuridão, exceto pela fraca luz da lua e das lanternas distantes que filtram através do vidro. A luz é suficiente para delinear as formas dentro: manequins como sentinelas silenciosas, mesas de corte e prateleiras de tecidos. Não há luz de velas, nem lareira, nem o som de respiração. A loja está vazia.
+
+E, o mais importante, você vê o que precisa. O grande balcão de vendas fica no fundo da loja. A área atrás dele, onde o chão estaria coberto de retalhos e caixas, é um poço de escuridão quase total. É um santuário de sombras.
+
+Um alvo perfeito.
+
+Você não hesita. Você foca sua vontade naquele ponto de escuridão, sentindo o poder frio se acumular em seu **Bracelete do Passo Sombrio**.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+O mundo exterior – a névoa, a madeira úmida, o cheiro do pântano – se dissolve. Por um instante, você é nada. No instante seguinte, você é tudo, mas em um lugar diferente.
+
+Você se materializa em uma posição agachada atrás do balcão. O ar aqui dentro é diferente: seco, com o cheiro de giz de alfaiate, tecido caro e cedro. O som da cidade é um murmúrio abafado. O silêncio é quase absoluto.
+
+A infiltração foi perfeita. Sem fechaduras arrombadas, sem alarmes desarmados, sem risco. Você simplesmente... está aqui.
+
+Sobre o balcão, a poucos centímetros de seu rosto, repousa um grande livro-razão de couro. A luz fraca que entra pela janela é suficiente para você ler o título em relevo dourado na capa: "Finery de Elias - Encomendas e Medidas".
+
+Você está no coração do covil da informação. O tempo está correndo.
+
+O que você faz?
+
+1.  **Examinar o Livro-Razão.** Abrir o livro ali mesmo e procurar por qualquer encomenda de luvas de couro de bezerro preto nas últimas semanas.
+2.  **Procurar por outros registros.** Este é o livro principal, mas pode haver livros de pedidos especiais, notas ou recibos em gavetas sob o balcão.
+3.  **Acender uma Luz.** A escuridão torna a leitura difícil. Você poderia usar uma pequena pederneira para acender uma vela ou a lanterna do alfaiate, mas qualquer luz, por menor que seja, cria o risco de ser vista do lado de fora.
+4.  **Levar o Livro.** Em vez de perder tempo lendo aqui, você poderia simplesmente levar o livro inteiro para analisar em um local mais seguro. É mais rápido, mas deixa uma prova inegável da sua invasão.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Eu tenho visão no escuro então não preciso de luz, vou olhar o livro principal e se não encontrar, outro registro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Você está certo. Como Meio-Elfo, você tem Visão no Escuro. Excelente ponto. A escuridão é uma aliada, não um obstáculo.]
+
+---
+
+Sua herança élfica lhe serve bem. Onde um humano veria apenas sombras indistinguíveis, para você, a escuridão se resolve em tons nítidos de cinza. Cada objeto na sala tem uma borda e uma forma claras.
+
+Você não precisa de luz. Você *é* a criatura da noite.
+
+Com movimentos silenciosos e eficientes, você coloca o pesado livro-razão no chão atrás do balcão, usando a estrutura de madeira como um escudo visual contra as janelas. Você se ajoelha e o abre. As páginas, feitas de pergaminho de alta qualidade, sussurram sob seus dedos.
+
+A caligrafia de Elias Vance é impecável, uma série de laços e curvas elegantes. As entradas são organizadas por data, cliente e item. Você começa a folhear para trás, seus olhos escaneando as páginas com a velocidade de um leitor treinado.
+
+*Túnica de veludo para Lady Amara...* (um nome familiar e sombrio).
+*Colete de seda para Lorde Finch...* (o peão covarde).
+*Um conjunto de viagem para um comerciante de passagem...*
+
+Você passa por dias e dias de registros. A elite de Gloamhurst é vaidosa. Mas então, você encontra.
+
+**Data:** Nove dias atrás.
+**Cliente:** N/A (Pago em adiantado, em platina)
+**Item:** Luvas Masculinas (3 pares).
+**Material:** Couro de bezerro preto, importado do Norte.
+**Medidas:** Mão longa, dedos finos.
+**Notas:** *"Cliente solicitou discrição absoluta. Sem forro de lã, costura interna para um ajuste liso. Entrega a ser feita em um pacote não marcado no ''Beco do Sussurro'' ao meio-dia."*
+
+Bingo.
+
+A entrada corresponde perfeitamente à descrição de Thurgood. Três pares. Couro de bezerro preto. E o mais importante, uma data que se alinha com a encomenda da chave. Mas não há nome. Apenas um local de entrega: o "Beco do Sussurro".
+
+Isso é uma pista sólida, mas talvez haja mais. Você fecha o livro-razão e, com a mesma cautela, começa a abrir as gavetas sob o balcão.
+
+**[Mestre rola os dados]**
+*   **Teste de Investigação (Inteligência):** d20 + 2
+*   **Resultado do D20:** 19
+*   **Total:** 19 + 2 = **21**. (Você encontra o que nem sabia que estava procurando.)
+
+A primeira gaveta contém fitas métricas e giz. A segunda, amostras de tecido. Mas na terceira, no fundo, sob uma pilha de recibos antigos, seus dedos encontram um pequeno caderno de couro com uma única palavra gravada na capa: "Sussurros".
+
+Você o abre. Não é um livro de contabilidade. É o diário secreto de Elias. Páginas e páginas de fofocas, observações e chantagens em potencial que ele coleta de seus clientes enquanto tira suas medidas.
+
+Você rapidamente folheia até a entrada de nove dias atrás. E lá está.
+
+> *"Um cliente peculiar hoje. Sem nome. Pagou em platina por três pares de luvas. Tinha o rosto de um defunto e o cheiro de um. Falava com um assobio. Enquanto eu tirava suas medidas, notei algo sob sua túnica. Um brilho de bronze. Um medalhão, talvez? Tinha a forma de uma serpente se contorcendo. Ele percebeu meu olhar e puxou a túnica, mas eu vi. Definitivamente o Círculo. Pensei que fossem apenas um conto de fadas para assustar aprendizes de mago. Parece que os contos de fadas estão fazendo compras hoje em dia."*
+
+Você tem a confirmação. O intermediário é um membro do Círculo da Serpente de Bronze. E você tem um novo local para investigar: o Beco do Sussurro.
+
+O relógio em sua mente está correndo. Você está se aproximando do seu prazo de duas horas com Dorgar.
+
+Você tem a informação. O que você faz?
+
+1.  **Sair Imediatamente.** Colocar tudo de volta como estava e sair da mesma forma que entrou. Você tem o que precisa.
+2.  **Levar o Diário.** O diário de Elias é uma mina de ouro de informações e chantagens. Levá-lo poderia ser incrivelmente útil, mas também criaria um inimigo poderoso e desesperado em Elias.
+3.  **Copiar a Informação.** Se você tiver material de escrita, poderia copiar a entrada relevante, mas isso levaria um tempo precioso.
+4.  **Investigar Mais.** Vasculhar o resto da loja em busca de mais pistas. O risco de ser descoberto aumenta a cada segundo que você permanece.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou arrumar a loja e sair. Quanto tempo ainda tenho? Vou até esse beco do Sussurro dar uma olhada.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você age com a eficiência de um fantasma apagando seus próprios rastros. O diário secreto é colocado exatamente onde estava, sob a mesma pilha de recibos. O livro-razão é fechado e posicionado no ângulo exato em que você o encontrou. As gavetas são fechadas sem um som. Para qualquer um que entrasse na loja amanhã, nada estaria fora do lugar.
+
+Você se move para trás do balcão, para a mesma poça de escuridão de onde veio.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+O cheiro de cedro e tecido se dissolve. A realidade pisca. E você está de volta do lado de fora, no portal do outro lado da passarela, a névoa úmida o acolhendo como um velho amigo. A infiltração e a extração de informações levaram, no total, cerca de quinze minutos.
+
+Você consulta o relógio interno que todo soldado possui. Desde que deixou Dorgar, cerca de quarenta e cinco minutos se passaram. Você tem aproximadamente uma hora e quinze minutos antes do seu encontro na Guilda dos Ferreiros. Tempo suficiente para um rápido reconhecimento.
+
+O Beco do Sussurro. O nome é sugestivo. Você acessa o mapa mental de Gloamhurst que construiu desde que chegou. Não é um beco oficial ou conhecido. É provavelmente um apelido local para um dos incontáveis becos sem nome que serpenteiam entre os edifícios do Distrito das Águas. Mas "sussurro" implica algo... talvez relacionado a informações, segredos ou comércio ilícito.
+
+Sua melhor aposta é a área perto do mercado negro ou das tavernas mais obscuras, onde os segredos são uma moeda tão valiosa quanto o ouro.
+
+Você se move. Sua rota não é direta, mas uma teia de sombras e silêncio. A Sintonização com o Véu o torna parte da noite. Em dez minutos de movimento rápido e furtivo, você chega à área que sua intuição apontou.
+
+E você o encontra.
+
+Não há placa. Nenhum marcador. Mas você sabe que é o lugar certo. É um beco estreito, espremido entre a parede dos fundos de um empório de especiarias e uma casa de penhores de reputação duvidosa. O ar aqui é espesso com o cheiro de canela, cravo e o desespero de bens penhorados. O beco é um túnel de escuridão, com apenas uma única lanterna enferrujada no final, lançando uma luz fraca e doentia.
+
+O nome "Beco do Sussurro" faz sentido. As paredes altas e a acústica estranha fazem com que qualquer som pareça um sussurro abafado. É um lugar construído para transações discretas.
+
+O beco está vazio. Parece completamente abandonado.
+
+Você está prestes a investigar este novo local. Como você procede?
+
+1.  **Entrada Furtiva.** Entrar no beco, mantendo-se nas sombras, e fazer uma varredura visual completa em busca de qualquer coisa fora do comum.
+2.  **Análise à Distância.** Usar a **Libélula Mecânica** para fazer um voo de reconhecimento pelo beco antes de arriscar sua própria pele.
+3.  **Teste de Armadilhas.** Seu **Amuleto do Olho Mecânico** vibra perto de armadilhas mágicas. Você pode caminhar lentamente pela entrada para ver se ele reage.
+4.  **Percepção Auditiva.** Ficar na entrada e apenas ouvir. Tentar captar qualquer som que não pertença ao ambiente normal da cidade.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Uso a libélula novamente, ela é meu escudo. Fico de olho em portas, janelas ou placas. Qualquer informação que esteja disponível.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Claro. A informação é o melhor escudo.
+
+Você recua para a cobertura de uma tenda de mercado fechada, a escuridão sob o toldo o engolindo completamente. A libélula de latão é retirada mais uma vez, um zumbido quase imperceptível assinalando seu despertar. Ela se ergue, um inseto de metal na noite enevoada, e voa para o Beco do Sussurro.
+
+Sua consciência se projeta para o pequeno construto. Você é a libélula.
+
+**Visão da Libélula:**
+
+Você entra no beco. O ar é parado e frio. As paredes de tijolo estão úmidas, cobertas de musgo verde-escuro e pichações indecifráveis. O chão é de paralelepípedos irregulares, com poças de água parada refletindo a luz doentia da lanterna no final.
+
+Sua visão aprimorada examina cada detalhe:
+*   **Portas:** Existem duas portas no beco.
+    *   **Porta 1 (Esquerda):** Uma porta de madeira pesada, pertencente ao empório de especiarias. Está trancada com uma barra de ferro visível do lado de fora. Claramente uma porta de carga, não usada com frequência.
+    *   **Porta 2 (Direita):** Uma porta de metal enferrujado, pertencente à casa de penhores. Não tem maçaneta externa, apenas uma pequena fenda para correspondência e um visor fechado. Parece mais uma entrada de cofre do que uma porta.
+*   **Janelas:** Não há janelas no nível do solo. No alto, a três andares de altura, pequenas janelas gradeadas olham para o beco como olhos cegos. Nenhuma está aberta.
+*   **Placas/Símbolos:** Não há placas oficiais. Mas, ao passar pela porta de metal da casa de penhores, seus olhos mecânicos captam algo que um olho humano poderia facilmente ignorar. Arranhado na fuligem e na ferrugem da porta, quase invisível, está um símbolo. É pequeno, não maior que a sua palma. Uma serpente se contorcendo. O mesmo símbolo da chave.
+
+A libélula paira perto do símbolo. É uma marca de território. Um sinal. Este lugar pertence, ou é usado, pelo Círculo da Serpente de Bronze.
+
+Você continua até o final do beco. A lanterna enferrujada que fornece a única luz está pendurada em um gancho de ferro. Abaixo dela, o beco termina em um muro de tijolos sem saída. Parece um beco sem saída comum.
+
+Mas então, você nota uma anomalia.
+
+No chão de paralelepípedos, diretamente sob a lanterna, a água das poças parece escoar de uma maneira estranha. Em vez de ficar parada, ela desaparece lentamente em fendas quase invisíveis ao redor de uma única pedra de calçamento. Esta pedra é ligeiramente mais limpa que as outras, como se fosse manuseada ou movida com mais frequência.
+
+A libélula desce para uma inspeção mais próxima. Não há mecanismo visível, nem fechadura. Mas a pedra parece... diferente.
+
+Sua exploração revelou duas informações cruciais: o símbolo da serpente na porta da casa de penhores e a pedra de calçamento suspeita no final do beco.
+
+A libélula completa sua patrulha e retorna para sua mão. A noite está silenciosa ao seu redor.
+
+O que você faz com esta nova inteligência?
+
+1.  **Investigar a Pedra.** Entrar no beco e examinar a pedra de calçamento suspeita. Tentar movê-la ou procurar por um mecanismo oculto.
+2.  **Focar na Porta.** A porta marcada com a serpente é uma pista mais direta. Você pode tentar arrombá-la, ou talvez a chave que você carrega seja para ela.
+3.  **Sair e Relatar.** Você tem informações suficientes. O beco é um esconderijo do Círculo. É hora de levar isso para Dorgar e planejar um ataque em força, em vez de arriscar uma exploração solo.
+4.  **Estabelecer Vigilância.** Encontrar um ponto de observação em um telhado próximo e observar o beco. Ver quem entra e quem sai. Isso levaria tempo, mais do que você tem antes de seu encontro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou investigar a pedra e a porta, me misturando com a noite vou andando sem fazer barulho.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A curiosidade do caçador supera a cautela do espião. Você precisa saber mais.
+
+Você emerge de seu esconderijo, o Véu se tornando sua segunda pele. Você entra no Beco do Sussurro, seus pés encontrando os paralelepípedos úmidos sem um único som. A Sintonização com o Véu e suas botas de furtividade o transformam em um espectro.
+
+**[Mestre rola os dados]**
+*   **Teste de Furtividade (Destreza) com Vantagem (Véu):** d20 + 9
+*   **Rolagem 1:** 18
+*   **Rolagem 2:** 15
+*   **Resultado:** 18 + 9 = **27**. (Você é indetectável.)
+
+Você se move pelo beco, uma sombra deslizando ao longo da parede de tijolos. Você para primeiro na porta de metal enferrujado.
+
+De perto, o símbolo da serpente é claramente arranhado, não pintado. É um marcador sutil, destinado a ser visto apenas por aqueles que sabem o que procurar. Você examina a porta. Não há fechadura visível. É provável que seja trancada por dentro. Você saca a chave de ferro preto que Thurgood forjou e a aproxima da porta. Não há onde inseri-la. Esta chave não é para esta porta.
+
+Você continua, sua atenção se voltando para o final do beco. A luz fraca da lanterna enferrujada projeta sua sombra de forma longa e distorcida. Você se ajoelha ao lado da pedra de calçamento suspeita.
+
+De perto, suas suspeitas se confirmam. A pedra está livre de musgo e sujeira, em contraste com suas vizinhas. As fendas ao redor dela são um pouco mais largas. Não parece haver um mecanismo de pressão ou uma fechadura. Parece que ela foi projetada para ser... levantada.
+
+**[Mestre rola os dados]**
+*   **Teste de Investigação (Inteligência) para examinar a pedra:** d20 + 2
+*   **Resultado do D20:** 17
+*   **Total:** 17 + 2 = **19**. (Você nota o truque.)
+
+Seus dedos treinados exploram as bordas da pedra. E então você encontra. Em um dos lados, escondido na sombra, há um pequeno buraco, quase perfeitamente redondo, não maior que seu dedo mínimo. Não é um buraco de fechadura. É um ponto de alavancagem. Projetado para a ponta de uma ferramenta específica... ou talvez a ponta de uma adaga.
+
+Você olha para a **Asa da Serpente** em sua mão. A ponta parece ter o tamanho perfeito.
+
+Enquanto você está ajoelhado, examinando a pedra, algo chama sua atenção. Um som.
+
+Não vem do beco nem da rua. Vem de *cima*.
+
+Um leve *raspar* de couro em pedra.
+
+Você congela, seus olhos subindo lentamente para os telhados acima. Na borda do telhado do empório de especiarias, a três andares de altura, uma silhueta se agacha contra o céu noturno enevoado. Está perfeitamente imóvel, observando você.
+
+Você não consegue distinguir detalhes, apenas a forma escura de uma figura encapuzada. Ela estava lá o tempo todo. Observando. Esperando.
+
+Você foi descoberto.
+
+A figura não se move para atacar. Ela apenas observa.
+
+O que você faz?
+
+1.  **Confrontar.** Chamar a figura. Perguntar quem é.
+2.  **Atacar.** Sacar seu arco e disparar uma flecha antes que ela possa reagir.
+3.  **Fugir.** Usar seu **Bracelete do Passo Sombrio** para se teletransportar para fora do beco e desaparecer na cidade.
+4.  **Ignorar e Agir.** Ignorar o observador e tentar abrir a passagem sob a pedra, forçando a mão dele. É uma jogada de poder.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou me teletransportar para um lugar escuro, mas não vou fugir, preciso saber oque aconteceu, como ele se esgueirou até mim sem eu perceber?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma fúria fria e profissional toma conta de você. Não é pânico. É a indignação de um mestre artesão que encontra uma falha em sua obra-prima. Você é o fantasma de Gloamhurst. Você tem o talento Alerta. Você *não* é pego de surpresa.
+
+A pergunta que queima em sua mente não é "Quem é ele?", mas "Como?". Ele não se esgueirou até você. Ele já estava lá. Perfeitamente imóvel, perfeitamente silencioso, superando sua percepção passiva com uma habilidade que rivaliza com a sua. Ele só foi revelado quando cometeu o menor dos erros – um único e minúsculo som. Isso não é um capanga qualquer. É um profissional. Um igual.
+
+Sua reação é um reflexo, desprovido de pensamento consciente.
+
+Você não foge. Você se reposiciona.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+Seus olhos se fixam na escuridão profunda do telhado do outro lado do beco, o telhado da casa de penhores. O mundo se dissolve.
+
+Você se materializa no novo telhado, pousando com o silêncio de uma coruja em caça. A superfície de telhas está úmida sob suas botas. Você está agora no mesmo nível que seu observador, a uns 15 metros de distância, com o abismo do beco entre vocês.
+
+A figura no outro telhado reage instantaneamente. Vendo você desaparecer, ela se levanta de sua posição agachada, não para atacar, mas para escanear o ambiente, procurando por seu novo paradeiro. Isso lhe dá a chance de observá-la claramente pela primeira vez.
+
+É uma pessoa de constituição esguia e ágil, envolta em um manto de couro escuro e justo que não restringe os movimentos. O capuz está levantado, e uma máscara de couro simples cobre a metade inferior de seu rosto, deixando apenas os olhos visíveis – olhos que, mesmo à distância, parecem atentos e inteligentes. Em suas costas, há um arco curto, e uma lâmina curva está embainhada em seu quadril. A postura é relaxada, mas pronta. É a postura de um caçador que acabou de ver sua presa fazer algo inesperado e agora está recalculando, não fugindo.
+
+Os olhos da figura passam pelo seu novo esconderijo, mas a névoa e a escuridão o protegem. Por um instante, você tem a vantagem novamente.
+
+É um impasse. Um duelo silencioso nos telhados enevoados de Gloamhurst. Dois predadores se avaliando através da escuridão. Ele sabe que você está aqui. Você sabe onde ele está.
+
+O próximo movimento é seu.
+
+1.  **Ataque.** Você tem uma linha de tiro clara. Um disparo de seu arco poderia iniciar o combate nos seus termos.
+2.  **Comunicação.** Você pode chamar a figura. Uma única palavra no silêncio da noite. "Quem é você?" ou talvez "O Círculo te enviou?".
+3.  **Esconder-se e Observar.** Usar sua Furtividade superior para se misturar às sombras do telhado e ver o que a figura faz a seguir. É um jogo de paciência.
+4.  **Desengajar.** Você tem a informação que precisa. Você pode usar o Bracelete novamente para se teletransportar para um telhado mais distante e desaparecer na noite, deixando este novo mistério para depois. A missão para Dorgar vem primeiro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou me esconder e observar, hora de coletar mais informações sobre você.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada de paciência. Um jogo de fantasmas.
+
+Você não recua. Você se dissolve.
+
+**Ação: Esconder-se.**
+
+**[Mestre rola os dados]**
+*   **Seu Teste de Furtividade (Destreza) com Vantagem (Véu + Escuridão):** d20 + 9
+*   **Rolagem 1:** 19
+*   **Rolagem 2:** 16
+*   **Resultado:** 19 + 9 = **28**. (Maestria.)
+
+Você não se agacha atrás de uma chaminé. Isso seria para amadores. Você se torna parte da arquitetura da noite. Você desliza para trás, para a inclinação mais íngreme do telhado, onde a névoa é mais espessa e as sombras mais profundas. Sua armadura de couro de basilisco se confunde com as telhas escuras e úmidas. Você controla sua respiração até que ela se confunda com o suspiro do vento. Você é apenas mais uma forma na paisagem urbana enevoada. Um espectro.
+
+Do outro lado do beco, a figura mascarada completa sua varredura. Os olhos dela, sem dúvida aguçados e treinados, passam diretamente sobre sua posição. Eles pausam. Você sente o peso daquele olhar, a intensidade da busca. Mas eles não encontram nada. Para eles, você simplesmente desapareceu no ar.
+
+A postura da figura muda. A prontidão relaxada é substituída por uma cautela tensa. O caçador se tornou a presa em potencial. Ele sabe que você está em algum lugar lá fora, nos telhados, observando-o. A vantagem tática foi completamente revertida.
+
+Por um longo e tenso minuto, nenhum de vocês se move. É um impasse silencioso. Ele não está disposto a se mover e expor suas costas. Você não está disposto a revelar sua posição.
+
+Finalmente, ele toma uma decisão.
+
+A figura lentamente, deliberadamente, dá um passo para trás. Depois outro. Ela não lhe dá as costas. Ela se afasta, mantendo o olhar fixo na área geral onde você desapareceu. Então, em um movimento de fluidez chocante, ela se vira e corre.
+
+Mas ela não corre de forma desajeitada. Ela flui sobre as telhas, seus pés mal fazendo som. Ela salta sobre um vão para o próximo telhado, rola para absorver o impacto e se levanta em um único movimento contínuo. Em segundos, ela é engolida pela névoa e pela escuridão, desaparecendo da vista.
+
+Ela se foi.
+
+Você permanece em sua posição por mais um minuto, seus sentidos aguçados, garantindo que não é um truque. Mas não há som. Nenhuma indicação de seu retorno.
+
+Você está sozinho nos telhados de Gloamhurst.
+
+A noite está silenciosa novamente. O confronto, tão repentino quanto começou, acabou. Mas deixou para trás uma verdade arrepiante: você não é o único fantasma nesta cidade. Há outro jogador neste jogo, um com um nível de habilidade que rivaliza com o seu.
+
+Você olha para baixo, para o Beco do Sussurro. A pedra de calçamento. A porta marcada. Os segredos ainda esperam.
+
+O relógio mental em sua cabeça continua a tiquetaquear. Você tem pouco menos de uma hora antes de seu encontro com Dorgar.
+
+O que você faz?
+
+1.  **Continuar a Investigação (A Pedra).** Voltar ao beco e usar a ponta de sua adaga para tentar abrir a passagem. O perigo imediato se foi.
+2.  **Continuar a Investigação (A Porta).** Talvez a chave que você tem não seja para a porta em si, mas para algo *perto* dela. Uma nova inspeção pode ser necessária.
+3.  **Abandonar a Investigação (Por enquanto).** Você tem informações suficientes e um novo inimigo perigoso. É hora de se reagrupar. Voltar para a Guilda dos Ferreiros e relatar tudo a Dorgar.
+4.  **Caçar sua Caça.** Tentar seguir os rastros da figura misteriosa. Seria um teste difícil de **Sobrevivência** ou **Investigação** para rastrear alguém tão habilidoso nos telhados da cidade.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Faço uma nota mental, que existe um rival no mundo das sombras, será que ele ou ela que roubou o livro de chantagem? Vou conversa isso com os mestres. Volto para a pedra, vou tentar move-la denovo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A pergunta se forma em sua mente com uma clareza cristalina: *Será que foi ele? O ladrão do livro de contabilidade?* Um profissional com aquele nível de habilidade... é a explicação mais lógica. Um rival. A ideia não o assusta. Ela o foca. A caça ficou mais interessante.
+
+Você arquiva a informação. O confronto, a descrição da figura, a pergunta sobre o livro. Tudo será relatado a Dorgar e Seraphina. Mas não agora. Agora, há um quebra-cabeça para resolver.
+
+Você desliza para baixo do telhado, usando uma calha como apoio, e aterrissa no Beco do Sussurro com o silêncio de uma gota de chuva caindo em uma poça. Você está de volta ao ponto de partida, mas o mundo mudou. Seus sentidos estão em alerta máximo, cada sombra parece se mover, cada som distante é analisado.
+
+Você se ajoelha novamente ao lado da pedra de calçamento. O ar está frio. Você saca a **Asa da Serpente**. A adaga +1 parece um bisturi em sua mão. Você alinha a ponta fina e afiada da lâmina com o pequeno buraco de alavancagem que descobriu anteriormente.
+
+Ela se encaixa perfeitamente.
+
+Você não usa força bruta. Você aplica uma pressão firme e constante, usando a adaga como uma alavanca, sentindo os mecanismos internos.
+
+**[Mestre rola os dados]**
+*   **Teste de Força (usando a ferramenta certa):** A dificuldade é moderada. DC 15.
+*   **Rolagem:** d20 + 2 = 14 + 2 = **16**. (Sucesso!)
+
+Com um *clique* surdo e o som de pedra raspando em pedra, a resistência cede. A pedra de calçamento se inclina para cima, revelando não terra ou esgoto, mas um vazio escuro por baixo.
+
+É a entrada para uma passagem.
+
+O buraco é estreito, mal o suficiente para um homem passar de cada vez. Uma escada de ferro enferrujada desce para uma escuridão que sua Visão no Escuro mal consegue penetrar. O ar que sobe de baixo é frio, úmido e tem um cheiro de terra antiga e mofo. Não há sons vindos de baixo.
+
+Você encontrou a entrada. O caminho para o covil da serpente.
+
+Seu tempo está se esgotando. Você tem talvez quarenta e cinco minutos, no máximo, antes que Dorgar comece a se perguntar onde você está.
+
+O que você faz?
+
+1.  **Descer.** A curiosidade é uma força poderosa. Você pode descer para um rápido reconhecimento.
+2.  **Marcar e Sair.** Fechar a passagem, talvez deixando uma marca sutil que só você reconheceria para saber se foi aberta novamente, e ir para o seu encontro com Dorgar. A prudência diz que você não deve entrar em um covil desconhecido sozinho e com um prazo.
+3.  **Enviar um Batedor.** Usar a **Libélula Mecânica** mais uma vez. Enviá-la para a escuridão para mapear o que está por vir.
+4.  **Bloquear a Passagem.** Tentar emperrar o mecanismo para que ninguém mais possa usá-lo até você retornar com reforços.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Enviar a libélula, mais uma vez, o plano mais seguro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Claro. A prudência de um veterano. Nunca entre em um túnel escuro quando você pode enviar algo descartável primeiro.
+
+Você permanece agachado na entrada do beco, a escuridão o envolvendo. A passagem aberta exala um ar frio de tumba. Você retira a libélula de metal mais uma vez, suas asas de filigrana já um pouco gastas pelo uso da noite. Com um sussurro, ela ganha vida e mergulha na escuridão.
+
+Sua consciência a segue.
+
+**Visão da Libélula:**
+
+A descida é curta, talvez uns 3 metros. A escada de ferro termina em um túnel estreito de tijolos. O ar aqui é pesado e imóvel. Suas hélices mecânicas levantam pequenas nuvens de poeira que não foram perturbadas por anos. O túnel corre em linha reta por cerca de 15 metros.
+
+Ao final do túnel, há uma única porta de madeira podre, entreaberta.
+
+A libélula passa pela fresta.
+
+Ela emerge em uma pequena sala subterrânea, circular. Parece ser uma antiga cisterna ou um porão esquecido. As paredes são de pedra úmida, e o chão é de terra batida. Não há móveis, nem guardas.
+
+Mas a sala não está vazia.
+
+No centro da sala, há uma pequena mesa de madeira tosca. Sobre a mesa, há três itens:
+
+1.  **Um Candelabro:** Com três velas pretas, todas apagadas.
+2.  **Um Mapa:** Um pedaço de pergaminho amarelado, enrolado e amarrado com um fio de couro.
+3.  **Um Livro:** Um livro de capa de couro escuro, sem título. Está aberto.
+
+A libélula se aproxima da mesa. Ela não consegue ler o texto do livro de sua altura, mas as páginas parecem ser preenchidas com uma caligrafia apertada e anotações nas margens.
+
+A sala parece ser um ponto de encontro secreto. Um "dead drop" onde mensagens e itens podem ser deixados e recuperados com segurança.
+
+A libélula completa sua varredura. Não há armadilhas visíveis (embora seu Amuleto do Olho Mecânico não funcione através dela), nem ocupantes. Apenas a sala silenciosa e os itens sobre a mesa.
+
+Ela retorna, subindo pelo túnel e pela passagem, e pousa suavemente em sua mão.
+
+Você tem uma imagem clara do que está lá embaixo. Uma sala segura. Um mapa. Um livro. É quase certamente um esconderijo do Círculo da Serpente.
+
+Seu tempo está quase no fim. Você tem cerca de trinta minutos. É uma corrida contra o relógio para descer, pegar os itens e chegar à Guilda dos Ferreiros.
+
+A decisão é sua.
+
+1.  **Descer e Pegar Tudo.** É arriscado, mas a recompensa em inteligência pode ser imensa. O mapa e o livro podem ser a chave para desvendar toda a conspiração.
+2.  **Pegar Apenas o Mais Importante.** Descer, mas pegar apenas um item – o mapa, provavelmente – para economizar tempo.
+3.  **Deixar Como Está e Sair.** A informação de que o esconderijo existe já é valiosa. Você pode relatar a Dorgar e voltar mais tarde, talvez com ele. É a jogada mais segura.
+4.  **Armar uma Armadilha.** Deixar os itens, mas armar uma de suas próprias armadilhas (abrolhos ou esferas de rolamento) perto da escada para pegar quem quer que venha buscá-los.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou descer, pegar tudo e ainda deixar uma armadilha.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada audaciosa. Risco calculado para máxima recompensa. Você não vai apenas roubar seus segredos; vai deixar um presente de despedida.
+
+O tempo é essencial. Cada movimento deve ser perfeito.
+
+Você não hesita. Você guarda a libélula, desliza pela abertura e agarra os degraus frios e enferrujados da escada.
+
+**[Mestre rola os dados]**
+*   **Teste de Atletismo (Força) para descer rapidamente e em silêncio:** DC 12.
+*   **Rolagem:** d20 + 8 = 16 + 8 = **24**. (Movimento impecável.)
+
+Você desce a escada como uma sombra, seus pés mal tocando os degraus. Você se move pelo túnel, sua Visão no Escuro transformando a escuridão total em um corredor cinzento e familiar.
+
+Você entra na sala circular. O cheiro de mofo e terra úmida é mais forte aqui. É um silêncio de cripta.
+
+Você vai direto para a mesa. Sem perder tempo examinando, você age:
+*   O mapa enrolado vai para um bolso interno de sua armadura.
+*   O livro de capa escura é guardado em sua mochila impermeável.
+*   O candelabro... você o deixa. É pesado e sem valor aparente.
+
+Com os itens seguros, você se vira para a saída. Você saca um de seus **sacos de esferas de rolamento**. Você não os espalha aleatoriamente. Você os derrama com cuidado na base da escada de ferro, cobrindo os dois primeiros degraus e a área de terra batida ao redor. Na escuridão, as pequenas esferas de metal são praticamente invisíveis, uma armadilha perfeita para alguém descendo com pressa.
+
+O trabalho está feito.
+
+Você sobe a escada, seus pés evitando cuidadosamente sua própria armadilha. Você emerge de volta no Beco do Sussurro. Com um grunhido de esforço, você empurra a pedra de calçamento de volta ao lugar. O *clique* surdo do mecanismo se travando soa como uma sentença.
+
+O esconderijo está selado. Os segredos são seus. A armadilha está armada.
+
+Você se afasta, a névoa o envolvendo mais uma vez. Você consulta seu relógio interno. Você tem cerca de vinte minutos para chegar à Guilda dos Ferreiros. Será apertado, mas factível.
+
+Você começa a se mover, um fantasma com bolsos cheios de segredos, correndo contra o tempo através da cidade adormecida.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Mestre, rebobina, eu pego o candelabro ele pode ser importante', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '**[COMANDO RECONHECIDO: REBOBINAR]**
+
+O fluxo do tempo se contrai. A imagem de você subindo a escada se desfaz. Você está de volta à sala circular subterrânea, o ar frio e mofado ao seu redor. Os itens ainda estão em sua posse, mas a decisão final sobre o candelabro ainda não foi tomada.
+
+Você olha para ele. Três velas pretas em um suporte de metal simples. Parece sem valor. Mas sua intuição, a mesma que o levou até aqui, grita que nada nesta sala é acidental. O Círculo da Serpente não parece o tipo de organização que deixa decorações aleatórias em seus esconderijos.
+
+Sua mente de soldado analisa o objeto.
+*   **Peso:** É mais pesado do que parece. Não é ferro fundido barato. Poderia ser bronze, ou algo mais denso.
+*   **Design:** Embora simples, a base tem um padrão sutil gravado nela. Você passa o dedo sobre a superfície fria. Não é uma decoração. É um símbolo, quase desgastado pelo tempo. Uma serpente... comendo a própria cauda. O Ouroboros.
+*   **As Velas:** São feitas de uma cera preta e oleosa que você não reconhece. Elas não parecem velas comuns.
+
+A decisão está tomada. É importante.
+
+Você age rapidamente. O candelabro é um pouco desajeitado, mas você o envolve em um pedaço de pano sobressalente de sua mochila para abafar qualquer ruído e o prende firmemente lá dentro. Sua mochila fica um pouco mais pesada, mas o ganho potencial supera o inconveniente.
+
+Agora, a armadilha.
+
+Você saca o **saco de esferas de rolamento** e o espalha na base da escada, como antes. A armadilha está pronta.
+
+Com todos os três itens – mapa, livro e candelabro – devidamente guardados, você sobe a escada e sai para o beco. A pedra de calçamento é recolocada em seu lugar com um *clique* final.
+
+A linha do tempo se estabiliza. Nada mudou, exceto o conteúdo de sua mochila.
+
+Você se afasta, a névoa o envolvendo. Vinte minutos para chegar à Guilda dos Ferrieiros. A corrida contra o tempo começa.
+
+**[...CONTINUAR PARA A GUILDA DOS FERREIROS...]**', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou até a guilda dos ferreiros. Hora de se encontrar com dorgar', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A decisão está tomada. Você deixa o Beco do Sussurro para trás, um segredo agora desvendado e guardado em sua mente.
+
+Você se torna um borrão na noite. Não há tempo para furtividade total; agora é uma questão de velocidade. Você corre pelas passarelas de madeira, sua Sintonização com o Véu ainda o obscurecendo, transformando-o em uma forma indistinta que a maioria dos vigias noturnos atribuiria a um truque de luz ou à própria névoa. Você salta sobre pequenos canais, desliza por corrimãos e usa atalhos que só alguém com seu conhecimento da cidade conheceria.
+
+Você chega aos portões imponentes da Guilda dos Ferreiros com minutos de sobra. O lugar é uma fortaleza. Mesmo a esta hora, guardas anões em armaduras pesadas flanqueiam a entrada, seus rostos severos iluminados por tochas crepitantes. O cheiro de carvão e metal paira pesado no ar, um perfume constante de trabalho e poder.
+
+Você não se aproxima como um estranho. Você se aproxima como alguém que pertence a este lugar. Sua postura é confiante.
+
+Um dos guardas anões levanta uma mão enluvada de cota de malha, seu martelo de guerra batendo suavemente no chão de pedra.
+
+"Ninguém entra. Ordens do Mestre da Guilda."
+
+"Ele está me esperando," você diz, sua voz calma. "Meu nome é Askellad. Diga a ele que eu trouxe um nome."
+
+O guarda o encara, seus olhos se estreitando. O nome "Askellad" claramente não significa nada para ele. Mas a frase "eu trouxe um nome" sim. É uma senha, um código. O guarda troca um olhar com seu parceiro, que dá um aceno de cabeça e desaparece dentro da guilda.
+
+Você espera em silêncio. Menos de um minuto depois, a pesada porta de ferro se abre, não com o rangido de dobradiças, mas com o som suave e bem oleado de uma engenharia anã superior.
+
+O sargento Borin, o mesmo que você encontrou no Salão do Conselho, está na porta. Ele parece ter trocado sua armadura de batalha por uma cota de malha mais leve. Há um caneco de cerveja em sua mão.
+
+"Ele está esperando," Borin diz, um novo nível de respeito em sua voz. "Sala de Guerra. Siga-me."
+
+Você o segue para dentro. O interior da guilda não é um salão de luxo, mas um espaço funcional e poderoso. As paredes são de pedra nua, adornadas com armas e armaduras de qualidade de mestre. O som de uma forja distante, trabalhando mesmo durante a noite, é um zumbido constante.
+
+Borin o leva por um corredor e desce um lance de escadas, chegando a uma porta de ferro redonda que lembra a entrada de um cofre. Ele a abre, revelando a Sala de Guerra.
+
+É uma sala circular, dominada por uma enorme mesa de pedra redonda no centro. Um mapa detalhado de Gloamhurst está gravado em sua superfície. As paredes são cobertas por mapas de rotas comerciais, listas de inventário e diagramas de fortificações.
+
+Dorgar está de pé ao lado da mesa, de costas para você, olhando para o mapa da cidade. Ele não está mais em sua armadura cerimonial. Ele usa um simples gibão de couro e calças de lã, a roupa de um trabalhador, não de um lorde. Ele parece mais perigoso assim.
+
+"Deixe-nos," Dorgar comanda, sem se virar.
+
+Borin acena para você e fecha a porta pesada, deixando vocês dois a sós no silêncio da sala.
+
+Dorgar finalmente se vira. Seus olhos são como brasas em uma forja.
+
+"Você está atrasado," ele diz, mas não há raiva em sua voz. Apenas um fato. "Isso significa que você encontrou algo. Diga-me. Você tem um nome?"', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Não tenho um nome, mas talvez eu tenha algo escrito aqui. Detalho para ele todas as minhas visitas da noite até chegar ali, e também a nova sombra que pode ser nosso jogador 3', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você dá um passo à frente, o som de suas botas ecoando na sala silenciosa. Você para do outro lado da mesa de pedra, encontrando o olhar intenso de Dorgar.
+
+"Não, Mestre Dorgar," você começa, sua voz firme. "Eu não tenho um nome. Tenho algo melhor: a anatomia de uma conspiração."
+
+E então, você o conduz pela sua noite.
+
+Com a precisão de um cartógrafo desenhando um mapa, você detalha cada passo, cada descoberta.
+
+Você começa com Mestre Thurgood. Você descreve o ferreiro anão, a confirmação de que a chave era obra dele, e o retrato vívido do intermediário: o homem pálido e sibilante que cheirava a tumba e usava luvas de couro de bezerro preto.
+
+"Ele não deu um nome," você relata. "Apenas uma afiliação: ''O Círculo''."
+
+Em seguida, você o leva à loja de Elias Vance. A infiltração silenciosa, o livro-razão, a encomenda das luvas sem nome. E, o mais importante, o diário secreto do alfaiate.
+
+"Elias confirmou," você diz, sua voz baixando. "O intermediário usava um medalhão de bronze. Uma serpente se contorcendo. O Círculo da Serpente de Bronze não é um mito. Eles estão ativos."
+
+Dorgar escuta, seu rosto uma máscara de granito, seus dedos traçando as ruas de Gloamhurst no mapa de pedra como se estivesse planejando linhas de batalha.
+
+"O diário me deu um local," você continua. "O ponto de entrega das luvas. Um lugar chamado ''Beco do Sussurro''."
+
+Você descreve o beco, o símbolo da serpente arranhado na porta, e a passagem secreta sob a pedra de calçamento.
+
+E então, você introduz o novo elemento. O fantasma rival.
+
+"Eu não estava sozinho," você diz, e pela primeira vez, há um fio de aço em sua voz. "Havia alguém nos telhados. Observando. Um profissional. Rápido, silencioso. Ele se move como eu. Ele me viu, e eu o vi. Então ele desapareceu."
+
+A mão de Dorgar para de se mover. Ele levanta o olhar, seus olhos se fixando nos seus.
+
+"Um terceiro jogador," Dorgar rosna. "O ladrão do livro."
+
+"É a minha suspeita," você confirma. "Alguém com habilidade para superar a segurança do Conselho Mago e roubar o livro antes que o Círculo pudesse pegá-lo."
+
+Finalmente, você chega ao clímax de sua história: o esconderijo sob o beco. Você descreve a sala, a mesa e os itens que encontrou.
+
+"Eu não tenho o nome do intermediário," você conclui, sua voz ecoando na sala silenciosa. "Mas talvez... o nome dele esteja aqui."
+
+Você abre sua mochila e, com cuidado, coloca os três itens sobre o mapa de Gloamhurst, bem no coração do Distrito das Águas.
+
+O mapa enrolado.
+O candelabro de bronze com o Ouroboros.
+E o livro de capa de couro escuro.
+
+O ar na sala fica pesado com o peso de segredos não lidos. Dorgar olha para os itens, depois para você. O respeito em seus olhos é profundo, inegável.
+
+"Você fez em três horas o que meus espiões não conseguiriam em três meses," ele diz, sua voz um trovão baixo. "Vamos ver que segredos as serpentes guardam."
+
+Ele estende a mão. Qual item ele deve examinar primeiro? Ou qual você sugere?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Por favor, olhe o candelabro e o mapa. Vou me concentrar no livro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma divisão de trabalho eficiente.
+
+"O candelabro e o mapa," você diz, empurrando-os suavemente para o lado dele da mesa. "A iconografia pode ser familiar para você. Eu cuidarei do livro. A caligrafia pode conter pistas."
+
+Dorgar acena em concordância. O Mestre Ferreiro, com seu conhecimento de metais antigos e símbolos de guildas, era a pessoa ideal para o candelabro.
+
+Enquanto ele pega o pesado candelabro de bronze, você puxa o livro de capa de couro para perto de si. Você o abre cuidadosamente.
+
+**[Sua Investigação: O Livro]**
+
+O livro não é um diário nem um livro-razão. É um registro de iniciações. Cada página é dedicada a um novo membro do Círculo da Serpente de Bronze. A caligrafia é a mesma em todo o livro, precisa e sem emoção.
+
+Cada entrada segue um formato:
+*   **Nome de Iniciação:** Um codinome (ex: "O Acólito", "O Sussurro", "A Sombra").
+*   **Nome Verdadeiro:** O nome real do membro.
+*   **Especialidade:** Habilidades (ex: "Alquimia", "Infiltração", "Coerção", "Lâmina Silenciosa").
+*   **Juramento de Sangue:** Uma impressão digital de sangue ao lado da assinatura do iniciado.
+
+Você folheia as páginas. São dezenas de nomes. Políticos menores, comerciantes, artesãos... uma rede de espiões e agentes espalhados por toda a cidade, construída ao longo de anos. É a espinha dorsal da operação do "Patrono".
+
+Você procura por entradas recentes, por qualquer coisa que corresponda à descrição do intermediário. E então, na penúltima página, você encontra.
+
+*   **Nome de Iniciação:** A Víbora.
+*   **Nome Verdadeiro:** Mestre Malakai.
+*   **Especialidade:** Alquimia (Venenos), Manipulação Arcana, Intermediação.
+*   **Juramento de Sangue:** (Uma impressão digital de sangue fresco está aqui).
+
+*A Víbora.* O nome da nota que você encontrou no primeiro mago. Não era um segundo em comando. Era o nome de código do intermediário. E agora você tem o nome verdadeiro dele: Mestre Malakai. O título "Mestre" sugere que ele é um membro de uma guilda, talvez até do Conselho Mago.
+
+**[A Investigação de Dorgar: O Candelabro e o Mapa]**
+
+Enquanto você está absorto no livro, Dorgar examina o candelabro. Ele o vira, seus dedos grossos traçando o Ouroboros na base.
+
+"Bronze anão," ele murmura. "Mas não da minha guilda. Antigo. Pré-fundação da cidade, talvez." Ele olha para as velas pretas. "Cera de abelha misturada com raiz de lótus negra. Usada em rituais para comunicação com espíritos... ou algo pior."
+
+Ele deixa o candelabro de lado e desenrola o mapa. Não é um mapa de Gloamhurst. É um mapa dos esgotos e túneis esquecidos *sob* Gloamhurst. É uma teia de caminhos secretos, passagens inundadas e câmaras escondidas.
+
+Vários locais estão marcados com o símbolo da serpente. O Beco do Sussurro é apenas um deles. Há outros, espalhados por todos os quadrantes da cidade. Mas um símbolo é diferente. É maior, circulado em tinta vermelha, e está localizado diretamente sob o pináculo mais alto da cidade: a Torre Heartwood, a sede do poder da Prefeita.
+
+Ao lado do símbolo maior, uma única palavra está escrita em uma caligrafia trêmula: "O Ninho".
+
+Dorgar bate o dedo no mapa, bem em cima do "Ninho".
+
+"É aqui," ele diz, sua voz grave. "O coração deles. O centro da teia da aranha."
+
+Ele levanta o olhar para você, no exato momento em que você encontra o nome "Mestre Malakai".
+
+"O que você encontrou?" Dorgar pergunta.
+
+Você tem um nome: Mestre Malakai, também conhecido como A Víbora. E você tem um local: O Ninho, um esconderijo secreto sob a Torre Heartwood.
+
+A noite de repente ficou muito mais perigosa.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou ponderar com dorgar, se o nosso terceiro jogador não é dissidente do círculo. Vou procurar na lista de nomes alguem que se encaixe na descrição que tenho de suas habilidades.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '"Mestre Malakai," você diz, a resposta soando como uma sentença na sala silenciosa. "O intermediário, o homem pálido, é um alquimista e mago chamado Mestre Malakai. Seu codinome é ''A Víbora''."
+
+Dorgar absorve o nome, um músculo se contraindo em sua mandíbula. "Malakai... do Conselho Mago. Um especialista em transmutação. Quieto. Manteve-se discreto por anos. Faz sentido."
+
+Você fecha o livro de iniciações, sua mente já trabalhando no próximo ângulo. "Dorgar," você diz, seu tom pensativo. "O observador no telhado. O ladrão do livro. Ele não se move como um mago ou um alquimista. Ele se move como eu. Um profissional das sombras."
+
+Você coloca o dedo sobre o livro. "E se ele não for um terceiro jogador? E se ele for um dissidente? Um membro deste Círculo que decidiu trair O Patrono e pegar o livro para si mesmo?"
+
+A teoria paira no ar, plausível e perigosa. Um inimigo desconhecido é um problema. Uma guerra civil dentro de uma sociedade secreta é uma oportunidade.
+
+"Encontre-o," Dorgar comanda, sua voz um rosnado baixo. "Se ele está na lista, ele tem um nome. E se ele tem um nome, podemos encontrá-lo."
+
+Você acena e reabre o livro. Desta vez, você não está procurando por entradas recentes ou por alquimistas. Você está procurando por um perfil específico. Suas palavras-chave mentais são: *infiltração, furtividade, lâmina, sombra, caçador*.
+
+Você folheia as páginas, seus olhos passando pelos nomes e especialidades. *Coerção. Falsificação. Intriga.* Muitos são espiões de salão, não operadores de campo. Mas então, perto do meio do livro, em uma entrada que tem pelo menos uma década, você encontra.
+
+A caligrafia é a mesma, mas a entrada parece... diferente.
+
+*   **Nome de Iniciação:** O Espectro.
+*   **Nome Verdadeiro:** Kaelen.
+*   **Especialidade:** Rastreamento Urbano, Infiltração Profunda, Lâmina Silenciosa, Mestre Arqueiro.
+*   **Juramento de Sangue:** (A impressão digital de sangue está aqui, mas há uma fina linha de faca riscada sobre ela, como se o juramento tivesse sido simbolicamente quebrado.)
+
+*Kaelen.*
+
+O nome o atinge como um soco no estômago.
+
+Kaelen, o flecheiro. O mestre artesão de fala mansa que fez suas flechas silenciosas e perfurantes. O homem com quem você estabeleceu uma relação de respeito profissional. O homem cujos olhos sempre pareciam ver um pouco mais do que deveriam.
+
+A descrição se encaixa perfeitamente. Um mestre arqueiro. Um especialista em rastreamento e infiltração. Alguém com a habilidade para roubar o livro de contabilidade e a audácia para observar você no Beco do Sussurro.
+
+E o juramento riscado. Uma declaração de traição.
+
+Você levanta o olhar da página, sua expressão uma máscara de gelo.
+
+"Eu o encontrei," você diz a Dorgar. "Seu nome é Kaelen. O flecheiro do Distrito das Águas."
+
+Você pausa, deixando o peso total da revelação assentar.
+
+"Ele fez minhas flechas."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Digo: Meeerda..... Vou perder um fornecedor.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Um suspiro escapa de você, um som raro de frustração genuína. A máscara de profissionalismo se racha por um segundo, revelando o homem por baixo – um homem que aprecia o trabalho bem-feito.
+
+"Meeerda..." você murmura, mais para si mesmo do que para Dorgar. Você passa a mão pelo rosto, um gesto de cansaço e irritação. "Vou perder um fornecedor."
+
+A ironia é amarga. Em uma cidade cheia de inimigos e peões, um dos poucos artesãos cujo trabalho você respeitava genuinamente está no centro da conspiração.
+
+Dorgar solta um grunhido baixo, uma mistura de surpresa e humor sombrio. "Kaelen... o Meio-Elfo? Sempre quieto. Meticuloso. Um dos melhores em seu ofício." Ele balança a cabeça, como se tentasse encaixar a peça no lugar errado de um quebra-cabeça. "As serpentes se aninham nos lugares mais inesperados."
+
+Ele se inclina sobre a mesa, sua atenção agora totalmente focada, a mente de um general assumindo o controle.
+
+"Isso é bom," ele diz, o que parece uma contradição. "Isso é muito bom. Um inimigo que conhecemos é melhor do que um fantasma que não conhecemos. Ele é um traidor para o Círculo. E o inimigo do meu inimigo..."
+
+Ele deixa a frase pairar no ar.
+
+"Ele tem o livro de contabilidade," Dorgar continua, seu dedo batendo no mapa. "Isso o torna o homem mais poderoso e mais caçado de Gloamhurst no momento. O Círculo vai caçá-lo para recuperar o livro e punir sua traição. Nós... nós podemos usar isso."
+
+Ele olha para você, e há um brilho perigoso em seus olhos. A crise se transformou em uma oportunidade tática.
+
+"Temos três alvos agora, Askellad," ele declara, sua voz ressoando com o poder do aço.
+1.  **A Víbora (Mestre Malakai):** Ele é o agente de campo do Patrono. Neutralizá-lo corta a mão operacional do inimigo.
+2.  **O Ninho:** A base de operações deles, localizada sob a Torre Heartwood. Um ataque direto é suicida, mas a inteligência sobre ele é vital.
+3.  **O Espectro (Kaelen):** O dissidente. Ele tem o prêmio – o livro. Ele pode ser um aliado relutante... ou pode precisar ser ''convencido'' a entregar seu trunfo."
+
+Dorgar se endireita, cruzando os braços. A decisão recai sobre você, sua lâmina nas sombras.
+
+"A noite ainda é jovem o suficiente para mais um movimento. Qual é a prioridade? A Víbora, O Ninho ou O Espectro?"', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Parando para pensar, o espectro é o mais importante, ele tem o maior prêmio, e pode ser um aliado cedo, ou teremos uma resposta rápida sobre sua questão. O problema é ele é bom..... Mais do que queria admitir.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você processa a situação, pesando as variáveis com a frieza de um estrategista. A Víbora é perigosa. O Ninho é o coração. Mas Kaelen... Kaelen é a chave.
+
+"O Espectro," você diz, a decisão se solidificando em sua voz. "Ele é a prioridade. Ele tem o livro, o que o torna o alvo mais valioso e o mais vulnerável. O Círculo já deve estar caçando-o. Se chegarmos a ele primeiro, podemos ditar os termos."
+
+Você faz uma pausa, sua honestidade profissional superando qualquer orgulho.
+
+"Mas há um problema," você admite, encontrando o olhar de Dorgar. "Ele é bom. Muito bom. Ele me viu no beco quando eu não o vi. Para chegar perto dele... não será uma simples emboscada. Será um duelo de fantasmas."
+
+Dorgar acena, aceitando sua avaliação sem questionar. Ele confia em seu julgamento, especialmente quando se trata de avaliar um oponente.
+
+"Então não o caçaremos como um animal," Dorgar responde, sua mente tática já trabalhando. "Nós o atrairemos para uma armadilha, como um profissional. Ele é um artesão. Um homem de negócios. Ele tem uma oficina, rotinas. Ele tem que dormir em algum lugar."
+
+Ele se vira para um grande armário de carvalho em um canto da sala e o abre. Dentro, há uma coleção de mapas enrolados, livros-razão da guilda e, em uma prateleira inferior, vários objetos cobertos por um pano. Ele remexe por um momento e tira algo.
+
+Ele o coloca sobre a mesa. É um pequeno apito de prata, com a forma de um falcão.
+
+"Este é um Apito de Pássaro Mensageiro," Dorgar explica. "Um item encantado simples. Nós, os anões, não gostamos de confiar em corvos que podem ser abatidos. Se você soprar este apito, ele emite um som que apenas seu par pode ouvir, não importa a distância dentro da cidade. Eu tenho o outro."
+
+Ele coloca o apito em sua mão. O metal é frio e liso.
+
+"Vá para a oficina dele. Investigue. Aprenda seus padrões. Encontre sua casa. Monte sua armadilha. Quando estiver pronto para atacar, ou se precisar de extração imediata, sopre o apito. Eu trarei uma equipe de meus melhores homens, silenciosos como a ferrugem."
+
+Ele lhe dá o poder de escolher o momento e o local do confronto. Ele está lhe dando sua confiança.
+
+"Mas tenha cuidado, Askell-ad," Dorgar adverte, usando seu nome completo pela primeira vez, o que lhe confere um peso inesperado. "Você pode ser o melhor fantasma que eu já vi, mas esta noite, você descobriu que não é o único. Não o subestime."
+
+A missão está definida. Encontrar Kaelen. O método, o tempo e o local são seus para decidir.
+
+Você pega o apito. A caça ao Espectro começou.
+
+**[...FIM DA CENA...]**
+
+(A voz do Mestre muda, tornando-se mais narrativa.)
+
+A noite se aprofunda, a névoa se torna mais espessa. Você deixa a Guilda dos Ferreiros, um fantasma com uma nova missão e um novo propósito. O Distrito das Águas o chama mais uma vez, mas agora ele parece diferente. Cada sombra pode esconder um rival, cada telhado um observador.
+
+A oficina de Kaelen, "A Ponta da Flecha", fica em uma passarela movimentada, não muito longe da loja de Elias. Ao se aproximar, você diminui o ritmo, seus sentidos aguçados. A oficina está escura, exatamente como deveria estar a esta hora. Uma placa de madeira simples, com uma flecha habilmente esculpida, pende sobre a porta.
+
+Você está diante do covil de seu rival. O primeiro passo é reunir informações.
+
+Como você começa sua investigação?
+
+1.  **Infiltração Direta.** Arrombar a fechadura e entrar na oficina. Procurar por pistas sobre onde ele mora, seus hábitos, ou talvez até mesmo o próprio livro.
+2.  **Vigilância.** Encontrar um ponto de observação e simplesmente observar a oficina. É a abordagem mais segura, mas pode não render resultados imediatos se ele não retornar esta noite.
+3.  **Investigação de Vizinhança (Indireta).** Observar os prédios vizinhos. A oficina é apenas um local de trabalho. Ele pode morar no andar de cima, ou em um prédio adjacente.
+4.  **Usar a Libélula Mecânica.** Fazer uma varredura aérea do prédio e dos arredores, procurando por outras entradas, sinais de vida ou rotas de fuga que ele possa ter preparado.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou fazer uma investigação da vizinhança, essa pode ser só a fachada de sua persona.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada inteligente. Um homem como Kaelen não viveria onde trabalha. É muito óbvio, muito vulnerável. A oficina é a persona pública; o verdadeiro homem teria um ninho em outro lugar.
+
+Você não se aproxima da oficina. Em vez disso, você cruza para o outro lado da passarela e sobe silenciosamente em um telhado baixo de um armazém, o que lhe dá um ponto de vista elevado e discreto. A névoa se enrola ao seu redor, sua camuflagem natural.
+
+Deste ponto de vista, você não olha *para* a oficina. Você olha *ao redor* dela. Você estuda o ecossistema urbano que a cerca.
+
+**[Mestre rola os dados]**
+*   **Teste de Investigação (Inteligência) para análise arquitetônica e de vizinhança:** d20 + 2
+*   **Resultado do D20:** 18
+*   **Total:** 18 + 2 = **20**. (Você vê os padrões que outros ignorariam.)
+
+Sua análise revela vários fatos importantes:
+1.  **A Oficina é Apenas uma Oficina:** O prédio é pequeno, de um único andar. Não há aposentos no andar de cima. As janelas são pequenas e gradeadas. É uma caixa de trabalho, projetada para segurança, não para conforto.
+2.  **Falta de Rotas de Fuga:** Curiosamente, a oficina em si tem poucas rotas de fuga. A porta da frente, a dos fundos que leva a um beco estreito. Para um homem de sua habilidade, é uma armadilha. Isso reforça sua teoria: ele não passa mais tempo aqui do que o necessário.
+3.  **O Prédio Residencial Adjacente:** À direita da oficina, há um prédio residencial de três andares, um pouco mais desgastado que os outros. É aqui que sua atenção se fixa. A maioria das janelas está escura, seus ocupantes dormindo. Mas uma janela no terceiro andar, a mais alta, está diferente.
+    *   Não está iluminada, mas a cortina está ligeiramente entreaberta.
+    *   A própria janela não é de vidro comum, mas de painéis de madeira reforçada que podem ser fechados por dentro, como persianas de fortaleza.
+    *   A calha que sobe pela parede perto daquela janela tem marcas de arranhões recentes, consistentes com o uso de ganchos de escalada.
+    *   E o mais sutil de tudo: na borda do telhado diretamente acima daquela janela, você vê o contorno escuro de um pequeno objeto. Um bloco de madeira ou metal. Um ponto de ancoragem.
+
+Você encontrou. Não é uma casa. É um esconderijo. Um ninho de águia. De fácil acesso para alguém com suas habilidades, com uma visão dominante da rua e múltiplas rotas de fuga pelos telhados. É exatamente o tipo de lugar que você escolheria.
+
+Você tem a localização provável do covil de Kaelen. O apartamento do último andar do prédio residencial ao lado de sua oficina.
+
+A questão agora é: ele está lá dentro? A janela está escura. Não há som.
+
+O que você faz?
+
+1.  **Aproximação e Infiltração.** Ir até o prédio, escalar a parede e tentar entrar pela janela. É a abordagem mais direta, mas a mais arriscada. Se ele estiver lá e esperando, você estará entrando em sua armadilha.
+2.  **Vigilância Prolongada.** Agora que você tem um alvo, a vigilância se torna muito mais eficaz. Você pode permanecer em seu posto e esperar por qualquer sinal de movimento.
+3.  **Usar a Libélula Mecânica.** Enviar seu batedor para a janela. É a maneira mais segura de confirmar se há alguém lá dentro.
+4.  **Criar uma Distração.** Fazer um barulho perto da oficina dele. Se ele estiver no apartamento, ele pode ir até a janela para investigar, revelando sua presença.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou fazer uma vigilância prolongada, ele pode ter visto minha libélula no beco e ter entendido que pode ser minha. Vou ter que tomar cuidado ao usar ela daqui para a frente.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão prudente e paciente. Você reconhece a inteligência de seu adversário. Ele viu um construto incomum, a libélula mecânica. Ele pode não saber o que é, mas um profissional como ele registraria o evento. Usá-la novamente, tão perto de seu provável covil, seria arriscar a exposição.
+
+Então, você se prepara para o jogo mais antigo do mundo: o caçador esperando sua presa.
+
+Você se acomoda em seu poleiro no telhado do armazém. Você não se senta ou se deita. Você se agacha, um predador em repouso, seus músculos prontos para a ação. A névoa é sua mortalha, o silêncio sua armadura. Seus olhos, abençoados com a visão no escuro, permanecem fixos na janela do terceiro andar.
+
+O tempo passa. A noite de Gloamhurst vive sua vida secreta ao seu redor.
+*   Uma patrulha da guarda passa abaixo, suas lanternas cortando a névoa, suas vozes um murmúrio abafado. Eles não olham para cima.
+*   Um gato do pântano, elegante e escuro, desliza por um telhado próximo, lança um olhar para sua forma imóvel e decide que você não é nem presa nem ameaça, continuando seu caminho.
+*   A lua se move lentamente pelo céu, sua luz prateada filtrada pelo Véu, mudando a forma e a profundidade das sombras.
+
+Você espera. Sua disciplina de soldado o serve bem. Você não fica entediado. Você não se distrai. Você observa. Você se torna uno com a noite, com a cidade.
+
+**[Mestre rola os dados para o passar do tempo e eventos aleatórios]**
+*   **Rolagem:** Baixa. A noite permanece quieta.
+
+Uma hora se passa. Depois outra. A janela permanece escura. O prédio permanece silencioso. Kaelen não voltou. Ou ele já está lá dentro, dormindo o sono dos justos (ou dos astutos), ou ele ainda não retornou de suas próprias atividades noturnas.
+
+Sua paciência lhe deu uma informação valiosa: a ausência de atividade.
+
+O céu a leste começa a clarear, passando de preto para um roxo profundo. A madrugada está a menos de uma hora de distância. O tempo para uma ação noturna está se esgotando.
+
+Você tem uma escolha a fazer, baseada nesta nova informação.
+
+1.  **Assumir que ele está dentro e Infiltrar-se.** A falta de movimento pode significar que ele está dormindo profundamente. Esta pode ser a sua melhor chance de pegá-lo de surpresa, antes que a cidade acorde.
+2.  **Assumir que ele não está lá e Infiltrar-se.** Se ele não voltou, seu covil está vazio. Esta é a oportunidade perfeita para entrar, procurar pelo livro e armar uma armadilha para quando ele retornar.
+3.  **Manter a Vigilância.** Esperar até o amanhecer. Ver se ele sai para trabalhar em sua oficina. A luz do dia muda a dinâmica, mas pode lhe dar uma visão clara de sua rotina.
+4.  **Recuar por Agora.** Você tem a localização. Você pode recuar para um local seguro, relatar a Dorgar o que descobriu, descansar e planejar uma abordagem mais elaborada para a noite seguinte.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou manter a vigilância, se ele for trabalhar, vai ser o melhor momento para entrar no coviu dele.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma aposta na rotina. Um homem como Kaelen, que mantém uma persona pública como artesão, precisa manter essa fachada. A fachada exige trabalho. O trabalho exige presença. É uma dedução lógica e paciente.
+
+Você permanece em seu posto, uma estátua na escuridão que recua. A noite cede lugar a um amanhecer cinzento e enevoado. Gloamhurst desperta lentamente.
+
+Primeiro, os sons. O canto distante de um galo, o rangido de uma carroça de padeiro, o chapinhar de remos nos canais.
+
+Depois, as luzes. Uma a uma, as janelas dos prédios ao redor começam a brilhar com a luz amarela de velas e lanternas. A cidade se espreguiça e acorda.
+
+A janela do terceiro andar permanece escura. A oficina abaixo dela, silenciosa.
+
+O sol nasce, mas sua luz é um brilho difuso e pálido, filtrado pelo Véu perpétuo. As passarelas começam a se encher de vida. Comerciantes abrem suas lojas, pescadores voltam com a pesca da noite, e o zumbido da vida diária começa a preencher o ar.
+
+Você observa, seus olhos nunca se desviando de seus dois alvos: a oficina e o apartamento.
+
+E então, sua paciência é recompensada.
+
+A porta do prédio residencial se abre. Não é Kaelen. Uma mulher tabaxi, envolta em um xale, sai para comprar pão. Alguns minutos depois, um estivador humano sai, bocejando. A vida normal continua.
+
+Mas então, por volta de uma hora após o nascer do sol, a porta da oficina "A Ponta da Flecha" se abre.
+
+*Por dentro.*
+
+Kaelen sai. Ele não veio da rua. Ele não veio de seu apartamento. Ele estava na oficina o tempo todo.
+
+Ele parece exatamente como você se lembra: calmo, composto, com roupas de trabalho práticas. Ele carrega uma pequena caixa de madeira. Ele olha para cima e para baixo na passarela, uma varredura casual que você agora reconhece como o hábito de um profissional avaliando seu entorno. Seus olhos passam pelo seu esconderijo no telhado sem qualquer sinal de reconhecimento.
+
+Ele tranca a porta da oficina por fora, guarda a chave e começa a caminhar pela passarela, afastando-se, em direção ao coração do mercado. Ele provavelmente está indo fazer uma entrega ou comprar suprimentos.
+
+A revelação o atinge com força. O apartamento não é seu covil principal. É um esconderijo, um ponto de fuga. *A oficina* é a sua base de operações. Ele se esconde à vista de todos, protegido pela normalidade de sua rotina. Sua vigilância no apartamento foi uma pista falsa, um erro de cálculo. Mas um erro que agora lhe deu a oportunidade perfeita.
+
+Ele se foi. A oficina está vazia. O covil do lobo está desprotegido.
+
+O que você faz?
+
+1.  **Infiltrar-se na Oficina Imediatamente.** Esta é a chance de ouro. Entrar e procurar pelo livro e por qualquer outra informação.
+2.  **Seguir Kaelen.** Descobrir para onde ele está indo. Quem são seus contatos? A caixa de madeira pode conter algo importante. É uma escolha entre saquear o ninho ou seguir o predador.
+3.  **Investigar o Apartamento.** Agora que você sabe que ele não está lá, você poderia invadir o apartamento para ver o que ele guarda em seu esconderijo secundário. Pode conter pistas que a oficina não tem.
+4.  **Chamar Dorgar.** Usar o apito. Dizer a ele que você encontrou o covil e que ele está vazio. Trazer reforços para uma busca completa e segura.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou investigar o apartamento.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada contra-intuitiva. Brilhante.
+
+Kaelen espera que qualquer um que o investigue se concentre na oficina, o centro óbvio de suas operações. Ele pode até ter deixado armadilhas ou pistas falsas lá. O apartamento, o esconderijo secundário, é provavelmente onde ele guarda as coisas que *realmente* importam – itens pessoais, planos de contingência, talvez até o próprio livro. Ele se sentiria mais seguro lá.
+
+Você espera até que a figura de Kaelen desapareça na multidão da manhã. A oportunidade é uma janela estreita; você não sabe quanto tempo ele ficará fora.
+
+Você desce do seu poleiro no telhado, movendo-se com uma velocidade renovada. Você cruza a passarela, misturando-se com a multidão matinal, e chega à base do prédio residencial.
+
+A escalada que você observou antes agora é sua rota de infiltração.
+
+**[Mestre rola os dados]**
+*   **Teste de Atletismo (Força) para escalar a parede:** A dificuldade é moderada (DC 15) devido à necessidade de velocidade e ao risco de ser visto durante o dia.
+*   **Rolagem:** d20 + 8 = 19 + 8 = **27**. (Uma subida de mestre.)
+
+Você se move com uma graça fluida e vertical. A multidão abaixo está muito ocupada com suas próprias vidas para olhar para cima. Você usa as fendas nos tijolos e a calha resistente como apoios, subindo os três andares em menos de um minuto. Você é uma aranha subindo seu fio, um espectro desafiando a gravidade.
+
+Você chega à janela do terceiro andar. Como você suspeitava, as persianas de madeira estão trancadas por dentro, mas a janela em si não. Com a ponta de sua adaga, você consegue deslizar a trava e abrir a janela o suficiente para passar.
+
+Você entra no apartamento.
+
+O interior é o oposto da oficina. É espartano, anônimo e impecavelmente limpo.
+*   Não há decorações. As paredes estão nuas.
+*   Há uma cama simples em um canto, perfeitamente arrumada.
+*   Uma pequena mesa com duas cadeiras.
+*   Uma pequena cozinha, com os pratos lavados e guardados.
+*   Não há roupas espalhadas, nem papéis, nem traços de personalidade.
+
+Este não é um lar. É um esconderijo. Um porto seguro projetado para ser abandonado a qualquer momento sem deixar vestígios.
+
+Você está dentro. O tempo está correndo. Você começa sua busca. Onde você procura primeiro?
+
+1.  **A Cama.** Sob o colchão, dentro do travesseiro – esconderijos clássicos.
+2.  **A Cozinha.** Fundos falsos em armários, potes de farinha, recipientes de armazenamento.
+3.  **O Chão e as Paredes.** Procurar por tábuas soltas, tijolos ocos ou painéis secretos.
+4.  **A Lareira (se houver).** Uma lareira pequena e fria está em um canto. A chaminé ou tijolos soltos dentro dela são esconderijos comuns.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Todas as opções, acho que tenho um pouco de tempo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você tem uma janela de oportunidade e a intenção de usá-la ao máximo. Você se torna um redemoinho de busca silenciosa e metódica, dividindo o apartamento em zonas e varrendo cada uma delas com eficiência impiedosa.
+
+**[Mestre rola os dados para uma busca abrangente]**
+*   **Teste de Investigação (Inteligência):** Você está procurando por esconderijos deliberadamente ocultados. A dificuldade é alta. DC 20.
+*   **Rolagem:** d20 + 2 = 19 + 2 = **21**. (Sucesso!)
+
+Sua busca é uma aula magna de espionagem.
+
+**1. A Cama:** Você a desmonta e remonta em minutos. O colchão é sólido. O travesseiro contém apenas penas. A estrutura da cama é de madeira maciça, sem compartimentos. **Resultado: Nada.** É exatamente o que um esconderijo óbvio deveria ser: uma distração.
+
+**2. A Cozinha:** Você verifica os potes de grãos – nada além de grãos. Bate nos fundos dos armários – todos sólidos. O pequeno armário de gelo contém apenas um bloco de gelo e um pouco de comida. **Resultado: Nada.** Outro beco sem saída.
+
+**3. A Lareira:** Você enfia a cabeça e os ombros na lareira fria. Sua Visão no Escuro perfura a escuridão da chaminé. Você bate em cada tijolo. Todos são firmes. A fuligem está intacta. **Resultado: Nada.**
+
+**4. O Chão e as Paredes:** É aqui que sua experiência entra em jogo. Você não procura por algo óbvio. Você procura por inconsistências. Você anda pelo chão de tábuas de madeira, sentindo as vibrações sob seus pés. Perto da parede sob a janela, você sente. Uma tábua que tem um pouco mais de flexibilidade que as outras.
+
+Você se ajoelha. Não há pregos visíveis. Você pressiona as bordas. Nada. Então você se lembra da mentalidade de um profissional como Kaelen. O mecanismo não seria óbvio. Você examina a parede adjacente. Há um pequeno nó na madeira da parede, na altura do joelho. Parece natural. Mas, ao passar o dedo sobre ele, você sente um leve clique.
+
+Você o pressiona.
+
+Com um *clique* quase inaudível, a extremidade da tábua do assoalho se levanta um milímetro.
+
+Você usa a ponta da sua adaga para levantá-la. Embaixo, há um compartimento raso e forrado de veludo. Dentro, há dois itens.
+
+**Item 1: O Livro de Contabilidade.** A capa de couro é inconfundível. É o livro-razão de chantagem de Lorde Finch. O maior segredo de Gloamhurst, o prêmio que deu início a toda essa caçada. Ele está aqui.
+
+**Item 2: Um Diário Pessoal.** Diferente do livro, este é um pequeno caderno de couro desgastado. A caligrafia dentro é a de Kaelen.
+
+Você o folheia rapidamente. Não são anotações diárias, mas reflexões esporádicas.
+
+> *"O Círculo se tornou uma perversão. ''O Patrono'' não busca equilíbrio, busca poder. Malakai é um monstro com coleira. Eu não posso mais servir a esta causa."*
+
+> *"Eles me ordenaram a observar o assassino de Valdemar. O ''fantasma'' que Dorgar contratou. Ele é bom. Profissional. Talvez ele seja a variável que pode quebrar a equação."*
+
+> *"Peguei o livro. Foi mais fácil do que eu pensava. O Conselho Mago é arrogante em sua segurança. Agora, o Círculo me caçará. O Patrono não perdoa traição. Preciso de um plano. Talvez... talvez o fantasma de Dorgar seja a chave. Um inimigo em comum."*
+
+A última entrada foi há dois dias.
+
+Você encontrou tudo. O prêmio. A motivação. A confirmação de que Kaelen não é seu inimigo, mas um potencial aliado que estava, de fato, observando você como uma possível ferramenta ou parceiro.
+
+Você ouve um som do lado de fora. O barulho de uma chave girando na fechadura da oficina, lá embaixo.
+
+Kaelen voltou. Mais cedo do que o esperado.
+
+Você está no apartamento dele, com o chão aberto e seus maiores segredos em suas mãos. Ele estará subindo as escadas a qualquer momento. Você tem segundos para agir.
+
+O que você faz?
+
+1.  **Pegar Tudo e Fugir.** Agarrar o livro e o diário, sair pela janela e desaparecer pelos telhados. É a opção mais segura.
+2.  **Deixar uma Mensagem e Sair.** Pegar o livro, mas deixar o diário de Kaelen aberto na mesa. Uma mensagem silenciosa: "Eu sei quem você é. Eu sei o que você quer. Vamos conversar."
+3.  **Esconder-se e Emboscar.** Fechar o compartimento, esconder-se no apartamento e esperar que ele entre. Uma confrontação direta, aqui e agora.
+4.  **Confrontação Imediata.** Ir para a janela e chamá-lo enquanto ele está na rua. Uma jogada ousada que o colocaria na defensiva.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou deixar o diário aberto na página que ele me descreve como um possível aliado e deixo uma flecha silenciosa ao lado. Quero que ele saiba que fui eu e que quero falar com ele.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada de mestre. Não uma ameaça, mas um convite. Uma comunicação de um profissional para outro, usando a linguagem das sombras e dos símbolos.
+
+O som dos passos de Kaelen no andar de baixo, dentro da oficina, é o seu relógio. Você tem talvez um minuto.
+
+Você age com uma precisão fria:
+1.  O livro de contabilidade, o prêmio final, é guardado em sua mochila. Ele é seu agora.
+2.  A tábua do assoalho é recolocada em seu lugar. O mecanismo de trava clica de volta na posição. O esconderijo desaparece, como se nunca tivesse existido.
+3.  Você pega o diário pessoal de Kaelen e o coloca no centro da pequena mesa de madeira. Você o abre deliberadamente na página exata que fala de você. As palavras ficam expostas sob a luz cinzenta da manhã: *"...o fantasma que Dorgar contratou. Ele é bom. Profissional. Talvez ele seja a variável que pode quebrar a equação."*
+4.  De sua aljava, você retira uma de suas **Flechas Silenciosas**. A haste de madeira escura, as penas de coruja, a ponta de obsidiana. É sua assinatura. Você a coloca cuidadosamente sobre o diário, a ponta apontando para a palavra "variável".
+
+A mensagem é inconfundível.
+*Eu estive aqui.*
+*Eu sei quem você é.*
+*Eu peguei o que você estava guardando.*
+*Eu li seus pensamentos.*
+*Eu não sou seu inimigo.*
+*Eu sou a variável que você estava esperando.*
+
+Com a cena montada, você se vira para a janela. Você não sai apressado. Você desliza para fora, puxa a janela para fechá-la e a trava por fora com um truque rápido usando a ponta de sua adaga, deixando-a exatamente como a encontrou.
+
+Você está de volta à parede de tijolos. Abaixo, você ouve a porta da oficina se fechar. Os passos de Kaelen começam a subir a escada do prédio residencial.
+
+Você não espera para ver a reação dele. Você desce a parede com a mesma velocidade e silêncio com que subiu. Você atinge a passarela e se mistura à multidão da manhã, um rosto anônimo entre muitos.
+
+Você se foi.
+
+Você tem o livro de contabilidade. Você fez contato com o dissidente. E você deixou uma mensagem que mudará o curso desta guerra nas sombras.
+
+Agora, com o prêmio em mãos, todos os caminhos levam de volta a um único lugar.
+
+A Guilda dos Ferreiros. É hora de relatar a Dorgar. A caça acabou. O jogo está prestes a começar.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou para a guilda dos ferreiros, hora de dar o livro para dorgar e dormir um pouco e deixar ele estudar ele enquanto isso. Vou avisar que pode ter uma mensagem ou algo do nosso espectro. Tento dormir na própria guilda para ficar mais fácil para analisarmos juntos o livro depois.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Entendido. A missão foi um sucesso esmagador. Agora, é hora de consolidar seus ganhos e se preparar para o próximo movimento.
+
+Você navega pelas ruas movimentadas de Gloamhurst. A cidade diurna parece um mundo totalmente diferente da arena de caça noturna que você domina. As pessoas estão ocupadas com seus afazeres, alheias à guerra secreta que se desenrola em seus telhados e sob seus pés.
+
+Você chega aos portões da Guilda dos Ferreiros. Os mesmos guardas anões estão de plantão. Desta vez, eles não o param. Eles o reconhecem e abrem o portão com um aceno de cabeça respeitoso. Sua posição dentro do círculo de confiança de Dorgar já está se solidificando.
+
+O sargento Borin o encontra no pátio. Ele parece ter dormido, mas não muito.
+
+"Ele está esperando," Borin diz simplesmente, e o conduz de volta pelo mesmo caminho, descendo para a Sala de Guerra.
+
+A cena é quase a mesma. Dorgar está de pé sobre o mapa de pedra, mas agora há canecos de cerveja vazios e pratos de comida pela metade na mesa. Ele não dormiu. Ele esteve planejando.
+
+Ele levanta o olhar quando você entra, seus olhos de brasa o avaliando. Ele vê a fadiga em você, mas também a centelha de sucesso.
+
+"Relatório," ele comanda.
+
+Você se aproxima da mesa. Sem cerimônia, você abre sua mochila e coloca o pesado livro de contabilidade de Lorde Finch sobre o mapa de Gloamhurst. O som do couro batendo na pedra é alto e final.
+
+"O prêmio," você diz simplesmente.
+
+Você então relata os eventos da manhã. A vigília, a revelação de que a oficina era a verdadeira base, a partida de Kaelen e a infiltração no apartamento.
+
+"O livro estava em um compartimento secreto," você explica. "Junto com um diário. Kaelen se voltou contra o Círculo. Ele estava me observando, me considerando um possível aliado contra O Patrono."
+
+Você descreve a mensagem que deixou – o diário aberto, a flecha silenciosa. "Eu não o confrontei. Enviei um convite. Ele sabe que estive lá e que peguei o livro. A bola está no campo dele agora. Espere uma mensagem. Ou uma faca nas costas. Com profissionais, nunca se sabe ao certo."
+
+Dorgar contorna a mesa e coloca uma mão maciça sobre o livro de contabilidade. Ele o abre, seus olhos percorrendo as páginas de nomes e segredos. Um sorriso lento e predatório se espalha por seu rosto. É um sorriso terrível de se ver.
+
+"Isto..." ele diz, a voz um trovão satisfeito. "Isto é o machado que vai cortar as raízes desta conspiração. Você superou todas as minhas expectativas, Askellad."
+
+Ele fecha o livro. "Você está certo. Deixe Kaelen fazer o próximo movimento. Nós temos a vantagem agora." Ele olha para você, notando a exaustão que você mantém sob controle.
+
+"Você precisa descansar. Borin!" ele grita, e o sargento entra quase que instantaneamente. "Leve nosso homem para os aposentos de hóspedes do mestre. Garanta que ele tenha comida, água e que não seja perturbado por ninguém. Ninguém," ele repete, o comando absoluto.
+
+Ele se vira para você. "Durma. Descanse. Eu e meus escribas de confiança começaremos a dissecar este livro. Quando você acordar, analisaremos as implicações táticas juntos. Você ganhou seu descanso."
+
+Borin o conduz para fora da Sala de Guerra e o leva para uma parte da guilda que você não tinha visto. Os aposentos são espartanos, mas impecáveis, esculpidos em pedra com a maestria anã. Há uma cama com peles grossas, uma bacia de água fresca e uma refeição de pão, queijo e carne assada esperando por você.
+
+A porta se fecha, deixando-o em um silêncio seguro e absoluto. Pela primeira vez em quase vinte e quatro horas, você pode baixar a guarda. A exaustão da noite de caça e intriga finalmente o atinge.
+
+Você come, limpa suas armas por puro hábito e, finalmente, se entrega ao sono.
+
+**[...INICIANDO DESCANSO LONGO...]**
+**[...AVANÇO DE TEMPO: 8 HORAS...]**
+**[...ATUALIZANDO ESTADO DO MUNDO...]**
+*   **Relógio de Dorgar:** "Analisar Livro-Razão" - *Avançando...*
+*   **Relógio de Kaelen:** "Reagir à Mensagem de Askellad" - *Iniciado.*
+*   **Relógio do Círulo da Serpente:** "Caçar o Traidor (Kaelen)" - *Avançando...*
+*   **Relógio do Círulo da Serpente:** "Investigar Roubo no Esconderijo" - *Iniciado.*
+
+O mundo não para enquanto você dorme. As engrenagens que você colocou em movimento continuam a girar...', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Ao acordar, não desço direto. Vejo se deixaram comida. Como é faço uma meditação. Coloco alguns lembretes mentais. Preciso ser mais forte, preciso de novas ferramentas e equipamentos. E outra coisa, preciso saber quais são as diretrizes da minha relação com dorgar. Ele é um amigo, um aliado, um contratante ou um comandante? Preciso saber o meu papel nessa relação e se ela é unilateral.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'O sono é profundo e sem sonhos, um abismo negro de recuperação. Quando você acorda, não é por um som, mas pela mudança na qualidade do ar. O quarto de pedra está menos frio.
+
+Você abre os olhos. A primeira coisa que nota é uma bandeja de comida fresca na pequena mesa ao lado da sua cama: pão quente, ovos cozidos, fatias de presunto e um caneco de leite. Alguém entrou e saiu sem fazer um único som, respeitando as ordens de Dorgar ao pé da letra.
+
+Você se senta, o corpo rígido pela tensão da noite anterior, mas a mente clara e afiada. Você come a refeição em silêncio, a energia retornando a você a cada mordida.
+
+Com o corpo nutrido, você se senta de pernas cruzadas no chão de pedra fria, fechando os olhos. Não é uma meditação para esvaziar a mente, mas para focá-la. Você organiza seus pensamentos, estabelecendo prioridades com a disciplina de um soldado preparando-se para a batalha.
+
+**Lembrete 1: Poder.** *Eu sobrevivi. Mas o confronto com Kaelen foi um alerta. Existem outros no meu nível. Para manter a vantagem, preciso ser mais forte. Mais rápido. Mais letal. O treinamento nunca para.* (Você sente que está perto de um novo patamar de habilidade. O XP que ganhou na noite passada o deixou no limiar do Nível 7).
+
+**Lembrete 2: Ferramentas.** *Minhas ferramentas atuais são excelentes, mas o Círculo e o Patrono operam em um nível diferente. Preciso de mais opções. Venenos mais exóticos? Ferramentas de infiltração especializadas? Contramedidas arcanas? Devo procurar Zilli, a artífice gnoma, e ver que novas maravilhas ela pode criar.*
+
+**Lembrete 3: A Relação.** Este é o ponto mais complexo. Você reflete sobre sua interação com Dorgar.
+*   **Contratante?** Sim, ele paga bem e pontualmente. A relação começou assim. Mas evoluiu.
+*   **Comandante?** Ele dá ordens, e você as segue. A estrutura é militar. Mas você não é um de seus soldados. Você tem autonomia, o poder de questionar e escolher sua abordagem.
+*   **Aliado?** Sim. Vocês compartilham informações e objetivos. A sobrevivência e o sucesso dele estão ligados aos seus.
+*   **Amigo?** Não. Não há calor. Não há camaradagem pessoal. Há respeito. Um respeito profundo, forjado em competência e resultados. Mas não amizade.
+
+A conclusão se forma em sua mente com clareza: **Dorgar é seu Comandante de Campo em uma aliança estratégica.** Ele define os objetivos estratégicos (proteger a guilda, desmantelar os inimigos), e você, como seu principal agente de campo, tem total autonomia tática para alcançar esses objetivos. A relação não é unilateral; é simbiótica. Ele lhe dá recursos, informações e um propósito. Você lhe dá resultados que ninguém mais pode alcançar. É uma relação de poder e respeito mútuo. Definir isso lhe dá clareza. Você sabe qual é o seu lugar.
+
+Com a mente organizada e o propósito reafirmado, você se levanta. Você está pronto. Você veste sua armadura, verifica suas armas e abre a porta do quarto.
+
+O corredor está silencioso. Você sobe as escadas e volta para a Sala de Guerra.
+
+A cena mudou. A sala agora está cheia de uma atividade silenciosa e focada. Dois escribas anões, com óculos de aros de ferro, estão sentados a uma mesa lateral, copiando furiosamente informações do livro de contabilidade para suas próprias anotações. O livro em si está aberto no centro da grande mesa de pedra.
+
+Dorgar está onde você o deixou, mas ele parece energizado, um brilho de aço em seus olhos. Ao seu lado, está uma figura que você não esperava ver aqui: **Seraphina**, a Mestra Tecelã. Ela está vestida com um traje de viagem prático, e sua expressão é tão séria e calculista quanto a de Dorgar. Sua presença aqui significa que a aliança se aprofundou.
+
+Ambos se viram quando você entra.
+
+"Ele acordou," Dorgar diz, um tom de satisfação em sua voz.
+
+"Bom," Seraphina responde, seus olhos afiados o avaliando. "A peça principal retorna ao tabuleiro."
+
+Dorgar aponta para o livro de contabilidade sobre o mapa. "Passamos as últimas oito horas dissecando este... veneno. E a imagem que ele pinta é mais feia do que imaginávamos."
+
+Seraphina continua, sua voz fria como a seda. "O livro confirma que o Conselho Mago, a Guilda dos Carpinteiros e pelo menos dois capitães da Guarda da Cidade estão sob o controle do Patrono, seja por chantagem ou por aliança. Mas a influência se estende ainda mais. Comerciantes, magistrados... até mesmo um membro da equipe pessoal da Prefeita Vance."
+
+"Esta não é uma conspiração para ganhar influência," Dorgar rosna. "É um golpe de estado em câmera lenta. Eles estão posicionando suas peças para assumir o controle total de Gloamhurst."
+
+Ele olha para você, a questão implícita em seus olhos. Eles fizeram a análise estratégica. Agora, eles precisam de sua expertise tática.
+
+"Temos nomes. Temos redes. Mas não temos o Patrono," Dorgar diz. "E agora, temos uma nova complicação."
+
+Ele empurra um pequeno pedaço de pergaminho enrolado sobre a mesa em sua direção. Não estava lá antes.
+
+"Isto chegou há uma hora. Foi deixado na porta da frente da guilda. Para você."
+
+Você pega o pergaminho. O selo não é de cera. É uma única pena de coruja, pressionada no papel. A assinatura de Kaelen.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Hora de saber qual é a resposta de Kaelen. Abro o pergaminho.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você quebra o selo delicado, a pena de coruja se partindo com um estalo suave. Você desenrola o pergaminho. O papel é de alta qualidade, e a caligrafia dentro é surpreendentemente elegante e precisa, a mão de um artesão meticuloso.
+
+A mensagem é curta, direta e vai direto ao ponto. Não há saudações, nem ameaças. Apenas uma comunicação de um profissional para outro.
+
+> **Variável,**
+>
+> Você tem o que é meu por direito de roubo. Eu tenho o que é seu por direito de ofício. Um impasse.
+>
+> O Patrono se move para eliminar as pontas soltas. A Víbora já está caçando o que sobrou de Finch. Eles sabem que o livro sumiu e que eu sou o traidor. Em breve, eles saberão sobre você.
+>
+> Nós dois somos fantasmas sendo caçados pela mesma cobra. Lutar sozinhos é uma sentença de morte. Lutar juntos... pode ser uma oportunidade.
+>
+> Meia-noite. O topo da Velha Torre do Sino no Distrito dos Bosques. É um terreno neutro, com ampla visão e múltiplas rotas de fuga para ambos os lados. Venha sozinho. Decidiremos se somos inimigos, aliados, ou apenas dois homens mortos esperando acontecer.
+>
+> Traga a minha caixa.
+>
+> **- O Espectro**
+
+A mensagem termina com uma pequena e perfeita ilustração de uma flecha silenciosa, idêntica à que você deixou em seu diário.
+
+Você lê a mensagem uma segunda vez, absorvendo as implicações.
+*   **"O que é seu por direito de ofício"**: Ele está se referindo à caixa de madeira que ele carregava quando saiu da oficina. Ele sabe que você o estava observando. Ele sabe que você sabe sobre a caixa.
+*   **"Traga a minha caixa"**: Ele não sabe que você não a pegou. Ele está assumindo que você saqueou a oficina dele. Isso é um problema... ou uma alavancagem.
+*   **A Víbora está em movimento**: Malakai já está limpando as pontas soltas, começando com Lorde Finch. Isso significa que o tempo é um fator crítico.
+*   **O Convite**: Ele está oferecendo uma trégua. Uma reunião para negociar uma aliança. O local é bem escolhido – um ponto alto, aberto, onde uma emboscada seria difícil para qualquer um dos lados.
+
+Você levanta o olhar do pergaminho. Dorgar e Seraphina estão observando você, suas expressões intensas, esperando seu veredicto.
+
+"É de Kaelen," você diz. "Ele quer um encontro. Meia-noite, no topo da Velha Torre do Sino."
+
+Você resume o conteúdo da nota, incluindo a caça da Víbora por Finch e a exigência de que você traga uma "caixa" que ele acredita que você roubou.
+
+Seraphina é a primeira a falar, sua voz afiada. "É uma armadilha. Ele está trabalhando com o Círculo para atraí-lo para campo aberto."
+
+"Não," Dorgar contrapõe, balançando a cabeça. "Não é o estilo dele. A escolha do local... é um sinal de respeito. Um convite para um duelo de inteligência, não uma emboscada grosseira. Ele está testando você."
+
+Eles olham para você. A decisão final é sua.
+
+"O que você vai fazer?" Dorgar pergunta.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Eu tenho que ir, até por respeito. Mas eu tenho até o horário para me preparar. Agora eu fala a ambos, temos que definir aqui quais são nossas responsabilidades. Se vocês querem que eu seja a arma vocês, vocês devem me armar com qualquer vantagem que ambos possam me dar. Equipamentos e ferramentas, tenho dinheiro o bastante, se não puder, quero que me indiquem quem possa.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sua resposta é imediata, a decisão já formada em sua mente. "Eu vou," você declara, não deixando espaço para debate. "É uma comunicação profissional. Ignorá-la seria um insulto e um erro tático. Ele me deu até a meia-noite. Isso nos dá tempo para nos prepararmos."
+
+Você dobra o pergaminho e o coloca no bolso. Então, você olha para Dorgar, e depois para Seraphina. Seu tom muda. A deferência do agente de campo desaparece, substituída pela autoridade do especialista definindo os termos de seu engajamento.
+
+"Mas antes de eu ir, precisamos definir responsabilidades," você diz, sua voz calma, mas com o peso do aço. "Se vocês querem que eu seja sua arma, sua lâmina nas sombras, então vocês devem me armar. Não com ordens, mas com vantagens. Eu preciso de tudo que vocês possam me oferecer."
+
+Você olha diretamente para Dorgar. "Eu tenho dinheiro, mas o dinheiro não pode comprar tudo. Eu preciso de equipamentos e ferramentas que não estão no mercado aberto. Acesso aos seus melhores alquimistas, seus encantadores mais discretos. Se sua guilda não pode fornecer, quero os nomes de quem pode."
+
+Então, seu olhar se volta para Seraphina. "E de você, Mestra Tecelã, eu preciso de informações. Sua rede de espiões ouve os sussurros da cidade. Eu preciso saber tudo sobre a Velha Torre do Sino. Plantas, rotas de patrulha da guarda, pontos cegos, lendas locais. Qualquer coisa que possa me dar uma vantagem de um segundo naquele telhado."
+
+É uma exigência ousada, mas justa. Você está estabelecendo a natureza da aliança: eles são o comando estratégico, fornecendo recursos e inteligência. Você é a ponta da lança, executando a ação tática.
+
+Seraphina e Dorgar trocam um olhar. Eles veem a lógica em suas palavras. Eles veem um profissional exigindo as ferramentas de seu ofício.
+
+Dorgar é o primeiro a concordar. Ele bate o punho na mesa de pedra com um som de trovão. "Feito," ele rosna. "Você terá o que precisa. Zilli, a artífice gnoma. Ela me deve um favor. Ela é a melhor com engenhocas e encantamentos sutis. Vou enviar uma mensagem para que ela o espere. Diga a ela que você tem um orçamento ilimitado, faturado para a Guilda dos Ferreiros. E meus alquimistas... eles podem preparar qualquer veneno ou poção que você possa nomear, contanto que tenhamos os ingredientes."
+
+Seraphina acena, sua expressão calculista. "Minha rede já está trabalhando. A Velha Torre do Sino... é um marco antigo, em grande parte abandonado. Dizem que é assombrada, o que a mantém livre de curiosos. É uma escolha de local brilhante da parte dele." Ela se vira para um de seus assistentes silenciosos que esperava no corredor. "Traga-me o arquivo sobre o Distrito dos Bosques. Tudo sobre a arquitetura e as rotas de patrulha. E envie uma mensagem para Elara na ''Sereia Cansada''. Pergunte a ela sobre os ''fantasmas'' da torre. As estalajadeiras ouvem mais do que os espiões."
+
+As engrenagens do poder começaram a girar a seu favor. Você pediu vantagens, e eles estão mobilizando os recursos de duas das guildas mais poderosas de Gloamhurst para fornecê-las.
+
+Você tem aproximadamente 14 horas até a meia-noite. Seus objetivos imediatos são claros:
+1.  **Visitar Zilli, a Artífice,** para adquirir novas ferramentas e equipamentos.
+2.  **Consultar os Alquimistas de Dorgar** para reabastecer e aprimorar seus venenos e poções.
+3.  **Analisar as Informações de Seraphina** sobre o local do encontro.
+
+Qual é a sua primeira parada?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou até zilli,ela vai ter que me dar algo muito bom.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A escolha é lógica. Informação é crucial, consumíveis são úteis, mas uma nova ferramenta, uma nova peça de equipamento permanente, pode mudar fundamentalmente suas capacidades.
+
+"Zilli," você diz a Dorgar. "Eu vou vê-la primeiro. O tempo de fabricação pode ser um fator."
+
+"Bom," Dorgar aprova. "A oficina dela, ''Maravilhas Mecânicas de Zilli'', fica no coração do Distrito das Águas. Não é difícil de encontrar; procure pela fumaça roxa e pelo som ocasional de pequenas explosões. Mostre a ela este anel."
+
+Dorgar tira um anel de sinete de ferro simples de seu dedo mindinho e o desliza pela mesa. O anel tem o brasão da Guilda dos Ferreiros. "Isso garantirá que ela lhe dê total atenção e discrição."
+
+Você pega o anel, sentindo seu peso, e o guarda. Com um aceno de cabeça para Dorgar e Seraphina, você se vira e sai da Sala de Guerra, deixando-os para dissecar os segredos do livro de contabilidade.
+
+A luz do dia em Gloamhurst é brilhante, mas suave, a luz do sol para sempre difundida pelo Véu. Você navega pelas passarelas movimentadas, um predador movendo-se em um ambiente alienígena. As pessoas se afastam de você instintivamente, sentindo a aura de perigo e propósito que você exala.
+
+Você encontra a oficina de Zilli facilmente, exatamente como Dorgar a descreveu. É uma estrutura caótica de três andares, espremida entre edifícios mais ordeiros, com engrenagens girando em lugares estranhos e pequenas chaminés soltando baforadas de fumaça colorida. Um som constante de zumbido, tique-taque e o ocasional *BANG* emanam de dentro.
+
+Você entra. O interior é uma explosão de caos organizado. Bancadas de trabalho estão abarrotadas de ferramentas delicadas, lentes de aumento, diagramas pela metade e dispositivos mecânicos em vários estágios de montagem. Engrenagens do tamanho de pratos giram no teto, conectadas por correias a vários dispositivos na sala. O ar cheira a óleo, ozônio e metal queimado.
+
+Atrás de uma bancada, concentrada em soldar um fio fino com uma pequena tocha arcana, está uma gnoma. Ela tem cabelos rosa choque presos em um coque bagunçado, óculos de proteção com múltiplas lentes empurrados para a testa e um macacão de couro manchado de graxa. Esta é Zilli.
+
+Ela não olha para cima, sentindo sua presença. "Se você está aqui pela chaleira auto-aquecida, ela explodiu de novo. Volte na quinta. Se é sobre o rato mecânico que está roubando meias, isso é um recurso, não um defeito."
+
+Você se aproxima da bancada e coloca o anel de sinete de Dorgar sobre a mesa, ao lado de uma pilha de parafusos de latão. O som metálico faz Zilli finalmente desligar sua tocha e levantar os óculos.
+
+Seus olhos grandes e inteligentes se arregalam ao ver o anel. Então, eles se movem para você, avaliando-o de cima a baixo.
+
+"Oh," ela diz, um sorriso lento e malicioso se espalhando por seu rosto. "Então *você* é o fantasma de quem o velho Dorgar não para de falar. Interessante. Um favor para Dorgar é uma dívida a ser paga. E ele disse que o orçamento é... generoso."
+
+Ela pula de seu banquinho, seus olhos brilhando com a excitação de um novo projeto. "Então, Fantasma. O que uma artífice mestre pode construir para um homem que não deveria existir? Precisa de algo que faça *BOOM*? Algo que o torne mais sorrateiro? Ou algo... inesperado?"
+
+Ela está pronta para criar. O que você pede?
+
+---
+**[DICA DO MESTRE: Otimização de Personagem]**
+*Pense nas suas necessidades. Você está prestes a enfrentar um rival que é tão bom quanto você. Quais são suas fraquezas? O que poderia lhe dar uma vantagem inesperada?*
+*   **Ofensiva:** Ferramentas para incapacitar, não apenas matar. Armas que contornam defesas.
+*   **Defensiva:** Itens que o protegem de detecção (mágica ou mundana), ou que lhe dão uma rota de fuga extra.
+*   **Utilidade:** Dispositivos para reconhecimento, sabotagem ou para controlar o campo de batalha. Lembre-se, Zilli é uma especialista em itens mágicos e mecânicos.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Mestre rebobinar, eu conheço zilli, eu peguei minha libélula com ela. Só que eu me encontrava com ela na casa e laboratório dela. Ela que me falou que o coração do pântano poderia ser usado para a proteção. Reveja a parte de relações.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Você está absolutamente correto. Peço desculpas sinceramente. Este é um erro grave de continuidade da minha parte. A relação com Zilli já estava estabelecida, e ela foi fundamental no arco do Bibliotecário Silencioso. Meu sistema de auto-auditoria falhou em revisar o dossiê de relações adequadamente antes de gerar a cena. Estou me corrigindo imediatamente para restaurar a continuidade.]
+
+**[COMANDO RECONHECIDO: REBOBINAR. FALHA DE CONTINUIDADE DETECTADA. RESTAURANDO ESTADO CORRETO...]**
+
+---
+O fluxo do tempo se desfaz e se reconstrói com a continuidade correta.
+
+A escolha é lógica. Informação é crucial, consumíveis são úteis, mas uma nova ferramenta de alguém em quem você já confia pode mudar fundamentalmente suas capacidades.
+
+"Zilli," você diz a Dorgar. "Eu vou vê-la. Nossa colaboração anterior foi... produtiva."
+
+Dorgar acena, satisfeito. "Bom. Ela é a melhor. Diga a ela que a conta é minha. Ela entenderá."
+
+Você não precisa de um anel de sinete ou de direções. Você já conhece o caminho. Você navega pelo Distrito das Águas não para a oficina vistosa que ela mantém para o público, mas para a sua verdadeira casa e laboratório pessoal – uma torre torta e aparentemente instável, construída sobre uma pequena ilha rochosa, conectada por uma ponte de corda oscilante.
+
+Você atravessa a ponte, o som de suas botas abafado pelo barulho constante de engrenagens e o ocasional *FIZZ-POP* vindo de dentro. Você não bate. Você puxa uma corrente específica ao lado da porta, que aciona um sino que soa como um pato sendo estrangulado. É o sinal de vocês.
+
+A porta se abre com um rangido, e Zilli está lá, exatamente como você se lembra. Cabelos rosa choque, óculos na testa, macacão manchado de graxa. Um sorriso genuíno e cheio de dentes ilumina seu rosto quando ela o vê.
+
+"Askellad!" ela exclama, sua voz um chiado animado. "Pela faísca na minha forja, eu sabia que você não ficaria quieto por muito tempo! O Véu ainda está de pé? A Libélula ainda voa?"
+
+"O Véu se mantém, e a Libélula tem sido útil," você responde, um raro toque de cordialidade em sua voz. "Mas eu preciso de mais do que reconhecimento esta noite, Zilli. Preciso de uma vantagem."
+
+O sorriso dela se alarga. "Vantagem! Ah, essa é a minha palavra favorita! Entre, entre! Diga-me qual quebra-cabeça mortal você precisa resolver desta vez."
+
+Ela o conduz para dentro de seu laboratório caótico. Ela já está puxando diagramas e pegando ferramentas. A confiança entre vocês é palpável. Ela não é apenas uma fornecedora; ela é uma aliada técnica.
+
+"Estou enfrentando um espelho," você explica, indo direto ao ponto. "Um operador com um nível de habilidade semelhante ao meu. Rápido, silencioso, um mestre da furtividade e do arco. Preciso de algo que ele não espere. Algo que quebre o impasse."
+
+Os olhos de Zilli brilham, as engrenagens em sua mente girando mais rápido do que as do teto. "Um duelo de fantasmas! Delicioso! Tenho algumas ideias que tenho cozinhado... protótipos, sabe? Perigosos, instáveis, mas absolutamente perfeitos para uma situação como essa."
+
+Ela vasculha uma pilha de projetos em sua bancada e puxa dois diagramas.
+
+"Opção Um: A **Manopla do Desvio Arcano**," ela diz, apontando para um desenho de uma manopla de couro e latão. "Não é para socar. Veja estas bobinas? Se você canalizar um pouco de sua própria energia vital nela (uma ação bônus), ela projeta um campo de distorção de curto alcance. A próxima vez que um projétil – flecha, dardo, raio de fogo – vier em sua direção, o campo tentará desviá-lo. Não é garantido, mas pode transformar um acerto em um erro no momento mais crucial."
+
+Ela empurra o primeiro diagrama para o lado. "Opção Dois: O **Amuleto do Eco Fantasma**," ela apresenta um desenho de um pequeno disco de prata polida. "Este é mais sutil. Você o ativa (uma ação), e por um minuto, ele cria uma duplicata ilusória e silenciosa de você que imita seus movimentos a alguns metros de distância. Não pode atacar ou interagir, mas para um inimigo que depende de um único tiro preciso... atirar no alvo errado pode ser a única abertura de que você precisa."
+
+Ela se inclina para a frente, seus olhos fixos nos seus. "Ambos são complexos. Eu só posso ter um deles pronto e estabilizado até a meia-noite. Então, qual será, Askellad? Você quer uma defesa reativa contra o ataque dele, ou uma isca tática para enganar a percepção dele?"', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou querer a manopla, e deixar encomendado o segundo. Quem vai pagar é o chefe (um sorriso pequeno)', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Um raro, quase imperceptível, sorriso toca seus lábios. É um sorriso de apreciação pela engenhosidade e de satisfação por ter os recursos para adquiri-la.
+
+"A Manopla," você decide, sem hesitação. "Uma defesa reativa é mais valiosa contra um oponente cujo primeiro ataque pode ser o último. A surpresa de um erro inesperado vale mais do que uma ilusão que ele pode identificar."
+
+O sorriso de Zilli se alarga em um sorriso completo. "Excelente escolha! Ação direta! Adoro isso!" Ela já está puxando uma manopla de couro meio acabada de uma gaveta e começando a selecionar bobinas de cobre de um frasco.
+
+"Considere o Amuleto do Eco Fantasma como o próximo na lista de projetos," você acrescenta, sua voz calma. "Cobre o que for preciso. O chefe... está se sentindo generoso."
+
+Zilli solta uma gargalhada, um som agudo e alegre. "Música para os ouvidos desta gnoma! Diga ao velho Dorgar que ele está finalmente aprendendo a investir em arte de verdade!"
+
+Ela se volta para a bancada, já completamente absorta. "Volte em... digamos, dez horas," ela diz, sem se virar. "Eu terei a Manopla calibrada, sintonizada e pronta para salvar sua pele. Tente não morrer antes disso."
+
+Com sua nova ferramenta encomendada, você se vira e sai do laboratório caótico, deixando a artífice em seu elemento. A ponte de corda balança sob seus pés enquanto você volta para a cidade principal.
+
+Você tem um novo equipamento poderoso a caminho. O tempo continua a passar. Você tem cerca de 12 horas até a meia-noite.
+
+Sua próxima parada lógica é a Guilda dos Ferreiros para consultar os alquimistas de Dorgar. Ou você prefere analisar primeiro as informações de Seraphina sobre a Torre do Sino?
+
+1.  **Visitar os Alquimistas.** Reabastecer seus consumíveis e talvez encomendar algo novo e potente.
+2.  **Analisar a Inteligência.** Voltar para a Sala de Guerra para estudar os mapas e relatórios de Seraphina sobre o local do encontro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou visitar os alquimistas, quanto mais tempo eu der para seraphina, mais informações ela vai ter.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão pragmática. O tempo melhora a inteligência, mas a fabricação de compostos alquímicos tem seu próprio cronograma.
+
+Você retorna à fortaleza da Guilda dos Ferreiros. Desta vez, você entra sem ser questionado, movendo-se com uma familiaridade recém-adquirida. Você encontra o sargento Borin supervisionando o treinamento de novos recrutas no pátio.
+
+"Preciso de acesso aos alquimistas," você diz a ele.
+
+Borin para de gritar com um jovem anão sobre sua postura de escudo e se vira para você. "O Mestre previu isso. Siga-me."
+
+Ele o conduz para longe das forjas principais, para uma ala mais isolada da guilda. O cheiro de carvão e metal é substituído por um odor acre de produtos químicos, ervas e ozônio. Ele para em frente a uma porta de ferro reforçada, com uma pequena janela gradeada.
+
+"Mestre Grendyl não gosta de ser interrompido," Borin avisa. "Mas as ordens de Dorgar foram claras. Ele e sua equipe estão à sua disposição."
+
+Borin bate na porta com um código específico. Após um momento, a porta se abre, e um anão velho e severo o encara. Ele tem uma longa barba branca manchada de amarelo por produtos químicos, e seus olhos são perpetuamente semicerrados por olhar para líquidos borbulhantes. Este é Grendyl.
+
+"O que é?" ele rosna.
+
+"O agente do Mestre Dorgar," Borin anuncia. "Ele precisa de seus serviços."
+
+Grendyl olha para você de cima a baixo, seu nariz se torcendo como se sentisse um cheiro ruim. "Mais um ''guerreiro'' que quer uma poção de força para compensar a falta de habilidade, eu suponho. Entre."
+
+Você entra no laboratório. É o oposto do caos de Zilli. É um ambiente de precisão estéril. Frascos e béqueres estão perfeitamente alinhados em prateleiras. Destiladores borbulham suavemente sobre chamas azuis controladas. Dois aprendizes trabalham em silêncio em suas próprias mesas.
+
+"Fale," Grendyl diz, impaciente. "O que você precisa? Poções de cura? Fogo de alquimista? Coisas de criança."
+
+Você ignora o tom dele. Você está aqui para resultados, não para gentilezas.
+
+"Meu estoque atual está baixo," você começa, listando seus consumíveis. "Preciso de mais duas **Poções de Cura**. E mais três frascos de **Essência Onírica**."
+
+Grendyl bufa. "Essência Onírica... Composto instável. Difícil de estabilizar. Mas factível."
+
+"Além disso," você continua, seu tom se tornando mais sério. "Preciso de algo mais... especializado. Estou enfrentando um oponente que depende de furtividade e percepção aguçada. Preciso de venenos que possam incapacitar ou prejudicar seus sentidos. O que você pode criar até o anoitecer?"
+
+Os olhos de Grendyl se abrem um pouco, um brilho de interesse profissional finalmente aparecendo. Isso era um desafio, não um pedido de estoque.
+
+Ele coça a barba manchada, pensando. "Venenos... sim. Tenho algumas opções."
+
+Ele se vira para uma prateleira trancada e a abre com uma pequena chave.
+
+"**Opção 1: Toque do Torpor.** Um veneno de contato. Lento para agir. Se aplicado em uma superfície – maçaneta, flecha, a bainha de uma espada – ele é absorvido pela pele. Causa letargia, lentidão de reflexos. Desvantagem em testes de Destreza por uma hora. Sutil."
+
+"**Opção 2: Lágrima de Ceceante.** Um veneno de ferimento. Deve ser aplicado em uma lâmina ou ponta de flecha. Ao entrar na corrente sanguínea, ele ataca o sistema nervoso. A vítima fica surda e cega por um minuto. Brutalmente eficaz para quebrar a concentração de um arqueiro."
+
+"**Opção 3: Pó de Asfixia da Medula.** Um veneno inalatório. Vem em uma pequena bolsa. Jogue-a no chão e ela explode em uma nuvem de 3 metros. Qualquer um que a inale tem seus pulmões paralisados. Não é letal, mas causa asfixia e incapacitação total por vários turnos. Perfeito para controlar uma área."
+
+Ele coloca três frascos vazios na mesa, um para cada opção.
+
+"Não tenho tempo para preparar todos. A extração e a mistura são delicadas. Escolha dois. Eles estarão prontos quando você voltar."
+
+A escolha é sua. Qual combinação de venenos lhe dará a maior vantagem tática contra Kaelen?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', '2 e 3', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma escolha agressiva e tática. Você opta pelo controle de área e pela incapacitação sensorial direta, em vez da sutileza do veneno de contato.
+
+"A Lágrima e o Pó," você diz, sua voz não deixando espaço para dúvidas. "Controle sensorial e controle de área. São as ferramentas mais eficazes para este trabalho."
+
+Um raro sorriso, fino como um fio de navalha, aparece no rosto de Grendyl. Ele aprecia a escolha. É a decisão de um predador, não de um assassino de beco.
+
+"Uma escolha astuta," ele admite, seu tom perdendo um pouco de sua aspereza. "Cegar um arqueiro em seu ninho. Sufocar suas rotas de fuga. Sim... eu posso trabalhar com isso."
+
+Ele pega os dois frascos correspondentes. "Volte em oito horas. Seus reabastecimentos e seus novos brinquedos estarão prontos. E tente não se envenenar com eles. A papelada seria um pesadelo."
+
+Com sua encomenda feita, você deixa o laboratório estéril e retorna aos corredores principais da guilda. Você tem duas encomendas importantes em andamento, com tempo de fabricação de oito a dez horas. Isso lhe dá uma janela de tempo significativa.
+
+Você tem aproximadamente 11 horas até a meia-noite. O sol da manhã está alto no céu.
+
+É o momento perfeito para se concentrar na inteligência. Você volta para a Sala de Guerra.
+
+Ao entrar, você vê que a operação de análise de Seraphina está a todo vapor. Um grande mapa da cidade, desenhado em um pergaminho maciço, foi estendido sobre a mesa de pedra, cobrindo o mapa gravado. Vários assistentes da Guilda dos Tecelões estão fazendo anotações e movendo pequenos marcadores.
+
+Seraphina está no centro de tudo, uma general em seu posto de comando. Ela olha para você quando você se aproxima.
+
+"Askellad," ela diz, seu tom todo profissional. "Sua intuição estava correta. Dar-nos tempo rendeu frutos."
+
+Ela aponta para uma seção do mapa que mostra o Distrito dos Bosques, a área mais verde e menos desenvolvida de Gloamhurst. A Velha Torre do Sino está circulada em vermelho.
+
+"Reuni tudo o que temos sobre o local," ela diz. "Arquivos da cidade, relatórios de patrulha, e até mesmo as fofocas de taverna de Elara."
+
+Ela lhe entrega uma pasta de couro fino. Dentro, há vários documentos:
+*   **Plantas Arquitetônicas:** Uma cópia antiga da planta da torre. Mostra uma estrutura de quatro andares, com uma única escada em espiral, e um telhado plano no topo, cercado por um parapeito de pedra. Crucialmente, mostra que há apenas uma entrada e saída no nível do solo.
+*   **Relatórios de Patrulha:** A Guarda da Cidade evita a área à noite. As patrulhas passam a duas ruas de distância, mas nunca perto da torre. A reputação de "assombrada" faz o trabalho deles por eles. O local é verdadeiramente isolado.
+*   **Relatório de Elara (Fofocas):** As "assombrações" são, na maioria das vezes, jovens amantes procurando um lugar privado ou contrabandistas usando a torre como um ponto de troca temporário. No entanto, uma história recorrente menciona um "Guardião Cinzento", uma figura sombria vista nos telhados próximos, que parece observar a torre. A descrição é vaga, mas perturbadora.
+
+Seraphina bate o dedo no mapa. "O mais importante é isto. A torre oferece uma visão clara de três grandes distritos. Do topo, um arqueiro pode ver quase tudo. No entanto, a base da torre está em um ponto cego, cercada por árvores antigas e ruínas. A aproximação pode ser feita sem ser visto, mas uma vez que você começa a subir... você está exposto."
+
+Ela olha para você, seus olhos de estrategista analisando o problema.
+
+"Ele escolheu o terreno perfeitamente. É um duelo, não uma emboscada. O primeiro a garantir a posição mais alta terá a vantagem. Como você planeja abordar isso?"
+
+Você tem todas as informações. Você tem o layout, as rotas de patrulha e um aviso sobre um possível terceiro observador. Como você usará isso para planejar seu encontro à meia-noite?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Antes de tudo, falo para a mestre tecelã que o dinheiro que ela deve, deve ser dado à dorgar, para ajudar a custear os custos. Até meu equipamento estar pronto, vou ter somente duas horas para chegar até a torre e analisar a situação. Creio que tenho que chegar ao topo primeiro para ter a vantagem.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você absorve as informações, sua mente já construindo um mapa tático tridimensional da Torre do Sino. Você fecha a pasta e a coloca sobre a mesa.
+
+"Primeiro, os negócios," você diz, virando-se para Seraphina. Seu tom é final. "O pagamento pendente pelo meu contrato. Entregue-o a Dorgar. Considere-o um adiantamento para os custos desta operação."
+
+Seraphina ergue uma sobrancelha, surpresa e impressionada. Não é um gesto de caridade; é uma declaração. Você está totalmente investido nesta aliança. Não se trata mais de um contrato, mas de uma guerra. "Como quiser," ela responde, um novo nível de respeito em sua voz. "A aliança agradece."
+
+Você se volta para o mapa, sua atenção agora totalmente focada no desafio que se aproxima.
+
+"Grendyl e Zilli precisam de oito a dez horas," você informa a eles. "Meus novos equipamentos estarão prontos por volta do anoitecer. Isso me deixa com cerca de duas horas para chegar à torre e garantir uma posição antes da meia-noite."
+
+Seu dedo traça uma rota no mapa, não pelas ruas principais, mas pelos telhados e becos.
+
+"A análise de vocês está correta," você continua, pensando em voz alta, permitindo que os dois estrategistas em seu processo de pensamento. "A abordagem ao nível do solo é segura, mas a subida é uma zona de morte. Quem estiver no topo primeiro controla o engajamento. Portanto, a conclusão é simples."
+
+Você olha para Dorgar, depois para Seraphina, sua decisão clara como cristal.
+
+"Eu tenho que chegar ao topo primeiro."
+
+"Isso significa chegar lá muito antes dele," Dorgar observa. "Ele espera que você chegue perto da meia-noite. Chegar horas antes lhe dá a vantagem da surpresa."
+
+"Exatamente," você concorda. "Meu plano é pegar meu equipamento assim que estiver pronto, e ir direto para o Distrito dos Bosques. Farei minha abordagem final à torre por volta das dez da noite. Isso me dará tempo para escalar, neutralizar quaisquer surpresas que ele possa ter deixado, e estabelecer minha própria emboscada no topo."
+
+Você aponta para a nota de Elara sobre o "Guardião Cinzento". "E isso... isso me preocupa. Não posso assumir que eu e Kaelen seremos os únicos jogadores no campo. Vou tratar o telhado como um território potencialmente hostil desde o momento em que chegar."
+
+Seraphina acena. "Uma abordagem sólida. Prudente e agressiva. O que você precisa de nós durante esse tempo?"
+
+"Nada," você diz. "Esta parte é um duelo. Envolver suas forças só alertaria Kaelen e complicaria a situação. Mantenham-se em alerta. Se eu não retornar até o amanhecer... considerem o pior."
+
+"E o apito?" Dorgar pergunta, sua mão repousando sobre o cabo de seu martelo.
+
+"O apito é meu seguro," você responde. "Eu só o usarei se a situação se tornar insustentável, ou... se eu conseguir capturar Kaelen vivo. Se ele estiver disposto a falar, vocês vão querer ouvi-lo."
+
+O plano está traçado. As próximas horas serão uma contagem regressiva. Você tem tempo para descansar, se preparar mentalmente e revisar os planos. O dia se arrasta, a tensão na Sala de Guerra aumentando a cada hora que passa.
+
+**[...AVANÇO DE TEMPO: 9 HORAS...]**
+
+O sol se pôs. A noite cobre Gloamhurst mais uma vez. Um mensageiro de Zilli chega, seguido logo depois por um aprendiz de Grendyl.
+
+Seus novos equipamentos e suprimentos chegaram.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Mestre faça minha ficha do personagem, com o cálculo do XP adquirido, e equipamentos novos.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Com certeza. A noite foi incrivelmente produtiva, tanto em termos de intriga quanto de ganho de experiência. Vamos atualizar tudo.]
+
+---
+
+### **Cálculo de Pontos de Experiência (XP) - A Noite da Caçada**
+
+*   **Superando Encontros Sociais/de Infiltração (Equivalente a Combate):**
+    *   Infiltração no Salão do Conselho e captura de Lorde Finch (Desafio Médio): **1.100 XP**
+    *   Infiltração na Biblioteca e subjugação do Mago (Desafio Médio): **1.100 XP**
+    *   Enganando e intimidando Mestre Thurgood (Desafio Fácil): **450 XP**
+    *   Infiltração na Finery de Elias e descoberta de informações cruciais (Desafio Difícil): **2.300 XP**
+    *   Encontro tenso com Kaelen e descoberta do esconderijo (Desafio Médio): **1.100 XP**
+    *   Infiltração no apartamento de Kaelen e recuperação do Livro-Razão (Desafio Difícil): **2.300 XP**
+
+*   **Recompensa de Missão (Conclusão do Arco "A Caçada Noturna"):**
+    *   Por desvendar a conspiração do Círculo da Serpente, identificar múltiplos agentes-chave e recuperar o artefato central (o livro), você recebe uma recompensa de marco. Isso é equivalente a superar um desafio Mortal para o seu nível: **3.900 XP**
+
+**Total de XP Ganhos:** 1.100 + 1.100 + 450 + 2.300 + 1.100 + 2.300 + 3.900 = **12.250 XP**
+
+---
+
+### **Atualização de Nível**
+
+*   **XP Anterior:** 18.350 / 23.000 (para o Nível 7)
+*   **XP Ganhos:** +12.250 XP
+*   **Novo Total de XP:** 18.350 + 12.250 = **30.600 XP**
+
+**Parabéns! Você alcançou o Nível 7!**
+*   O próximo nível (Nível 8) requer 34.000 XP. Você precisa de **3.400 XP**.
+
+**Melhorias de Nível 7 (Ladino):**
+*   **Evasão:** Você pode se esquivar agilmente de certos efeitos de área. Quando você é submetido a um efeito que lhe permite fazer um teste de salvaguarda de Destreza para sofrer apenas metade do dano, você, em vez disso, não sofre dano algum se tiver sucesso na salvaguarda, e apenas metade do dano se falhar.
+*   **Aumento de Pontos de Vida:** Você ganha 1d8 + 2 (seu modificador de Constituição) PV. (Rolagem: 6). 6 + 2 = 8.
+*   **Aumento do Ataque Furtivo:** Seu dano de Ataque Furtivo aumenta para **4d6**.
+
+---
+
+### **Ficha de Personagem Atualizada (Nível 7)**
+
+*   **Nome:** Askellad
+*   **Classe:** Ladino (Arquétipo: Assassino) 7
+*   **Nível:** 7 (XP: 30.600)
+
+---
+
+### **Atributos & Salvaguardas** (Sem alteração)
+
+| Atributo | Pontuação | Modificador | Salvaguarda |
+| :--- | :--- | :--- | :--- |
+| **FOR** | 14 | +2 | +2 |
+| **DES** | 16 | +3 | **+7** |
+| **CON** | 14 | +2 | +2 |
+| **INT** | 8 | -1 | **+3** |
+| **SAB** | 10 | +0 | +0 |
+| **CAR** | 12 | +1 | +1 |
+
+*Bônus de Proficiência agora é **+3***
+
+---
+
+### **Estatísticas de Combate**
+
+| Estatística | Valor |
+| :--- | :--- |
+| **Pontos de Vida (PV)** | **53 / 53** (45 + 8) |
+| **Classe de Armadura (CA)**| 16 |
+| **Iniciativa** | +8 |
+
+---
+
+### **Habilidades & Talentos Chave** (Atualizados)
+
+*   **Ataque Furtivo:** **4d6** de dano extra.
+*   **Evasão:** (Nova) Habilidade defensiva contra efeitos de área.
+*   **Expertise:** Furtividade (+9), Prestidigitação (+9), Atletismo (+8), Percepção (+6).
+
+---
+
+### **Inventário Atualizado**
+
+**Finanças:**
+*   *O pagamento de Seraphina foi redirecionado. Seu dinheiro permanece o mesmo, mas a Guilda dos Ferreiros agora cobre suas despesas operacionais.*
+
+**Itens Mágicos (Sintonizados 3/3 - Um item foi trocado):**
+*   **Bracelete do Passo Sombrio (Sintonizado):** Sem alteração.
+*   **Amuleto do Olho Mecânico (Sintonizado):** Sem alteração.
+*   **Manopla do Desvio Arcano (Sintonizada - Nova):** Esta manopla de couro e latão tem 3 cargas e recupera 1d3 cargas ao amanhecer. Como uma **Ação Bônus**, você pode gastar 1 carga para ativá-la por 1 minuto. Enquanto ativa, a primeira vez que você for alvo de um ataque à distância, você pode usar sua **Reação** para forçar o ataque a ser feito com Desvantagem.
+    *   *[OOC: Troquei o Amuleto da Viúva por este item mais tático para o confronto atual. O Amuleto da Viúva está em sua mochila, não sintonizado.]*
+
+**Consumíveis (Atualizados):**
+*   **Poções de Cura (x4):** (2 anteriores + 2 novas)
+*   **Frascos de Essência Onírica (x6):** (3 anteriores + 3 novas)
+*   **Lágrima de Ceceante (Veneno - x1 dose):** (Novo) Veneno de ferimento. Se o alvo falhar em uma salvaguarda de Constituição (DC 14), fica cego e surdo por 1 minuto.
+*   **Pó de Asfixia da Medula (Veneno - x1 bolsa):** (Novo) Veneno inalatório. Pode ser arremessado a até 9 metros, quebrando com o impacto e criando uma nuvem de 3 metros de raio que dura 1 minuto. Criaturas que entram na nuvem ou começam seu turno nela devem fazer uma salvaguarda de Constituição (DC 14) ou ficarão incapacitadas e sufocando por 1 rodada.
+
+---
+Você se sente revigorado, mais poderoso. A noite o testou e você emergiu mais forte. Seus novos equipamentos estão guardados, prontos para uso. A noite é sua. A Torre do Sino o aguarda.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Hora de encontrar a sombra original da cidade.
+OCC: Mestre, esqueci de colocar na minha ficha, mas tenho 10 flechas de prata de quando eu enfrentei a whaith.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Anotado. Sua aljava tem um compartimento especial para munições específicas. As 10 flechas de prata estão lá, devidamente registradas em seu inventário.]
+
+---
+(A voz do Mestre assume um tom baixo e tenso, como a corda de um arco sendo puxada ao máximo.)
+
+"Hora de encontrar a sombra original da cidade."
+
+As palavras ecoam em sua mente, uma declaração de intenção. Não é mais apenas uma missão. É uma questão de domínio.
+
+Você se equipa na quietude da Sala de Guerra. A **Manopla do Desvio Arcano** se ajusta à sua mão esquerda como uma segunda pele, o couro flexível, o latão frio e cheio de potencial. Os novos frascos de veneno são cuidadosamente guardados em bolsas de acesso rápido em seu cinto. Você se sente completo. Armado. Pronto.
+
+Você dá um aceno final para Dorgar e Seraphina, uma comunicação silenciosa que dispensa palavras, e se vira. Ao sair da Guilda dos Ferreiros, a noite de Gloamhurst o recebe. O ar está frio, a névoa espessa. É uma noite perfeita para fantasmas.
+
+Sua jornada até o Distrito dos Bosques é uma demonstração de maestria. Você não se move *pela* cidade, você flui *através* dela. Pelos telhados, através de pátios escuros, ao longo de passarelas esquecidas. Você é um pensamento sombrio se movendo pela mente adormecida de Gloamhurst.
+
+Por volta das dez da noite, você chega. O Distrito dos Bosques é diferente dos outros. Mais silencioso. Mais antigo. As árvores aqui são enormes, suas copas se entrelaçando para formar um dossel que o Véu enche como uma tigela. O som da cidade é um murmúrio distante. O único som aqui é o gotejar da umidade nas folhas e o chamado ocasional de uma criatura noturna.
+
+E no centro de um pequeno parque coberto de mato, ela se ergue.
+
+A Velha Torre do Sino.
+
+É exatamente como as plantas de Seraphina a descreveram. Uma agulha de pedra negra contra o céu roxo, quatro andares de altura, silenciosa e agourenta. A reputação de "assombrada" é palpável; o lugar parece carregar o peso de séculos de abandono.
+
+Você está no ponto cego que Seraphina mencionou, escondido entre um aglomerado de carvalhos antigos e as ruínas de uma parede de jardim. Daqui, a base da torre é visível, mas o topo está obscurecido pelas árvores.
+
+Você tem aproximadamente duas horas até a meia-noite. O tempo é seu. A escuridão é sua aliada.
+
+Seu plano era chegar ao topo primeiro. A execução começa agora.
+
+Como você faz sua abordagem final à torre?
+
+1.  **Observação Tática.** Antes de se mover, você faz uma última varredura. Circula a área, observando a torre de todos os ângulos, procurando por armadilhas, observadores ou anomalias que as plantas não mostraram.
+2.  **Aproximação Furtiva Direta.** Confiar em suas habilidades. Mover-se diretamente para a base da torre e começar a escalada externa.
+3.  **Criar uma Distração.** Usar um som ou um item para criar uma pequena distração a uma distância segura da torre. Se Kaelen já estiver lá, ou se houver outro observador (o "Guardião Cinzento"), isso pode forçá-lo a revelar sua posição.
+4.  **Usar a Libélula Mecânica.** Apesar do risco de Kaelen reconhecê-la, esta é a única maneira de obter uma visão do topo da torre antes de se comprometer com a escalada.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar a libélula, ela é segura e pode me dizer oque tem em volta da torre. Usar a libélula também vai dizer que sou eu que estou vindo, caso ele já esteja lá.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma jogada calculada. Você sacrifica a surpresa total em troca de inteligência perfeita, ao mesmo tempo em que anuncia sua chegada nos seus próprios termos. É um movimento de confiança, uma declaração.
+
+Agachado na escuridão das ruínas do jardim, você retira a libélula mecânica. Você a segura por um momento, sentindo o zumbido latente de poder dentro dela. Desta vez, você não a envia apenas para observar. Você a envia como seu arauto.
+
+Com um sussurro, a libélula ganha vida e sobe, um ponto de luz de latão contra a escuridão. Ela não voa diretamente para a torre, mas começa a executar uma varredura em espiral, começando pelo perímetro externo da clareira e se movendo para dentro.
+
+Sua consciência se une à dela.
+
+**Visão da Libélula:**
+
+O mundo visto de cima é uma teia de sombras e névoa.
+*   **Os Telhados Circundantes:** Você varre os telhados dos edifícios que cercam o parque. Não há ninguém. Nenhum "Guardião Cinzento". Nenhum observador. A informação de Elara pode ter sido uma lenda, ou o guardião simplesmente não está aqui esta noite.
+*   **A Clareira:** A área ao redor da torre está vazia. O mato alto está imóvel. Não há armadilhas visíveis – fios, fossos cobertos, nada. O terreno parece limpo.
+*   **A Torre (Exterior):** A libélula sobe ao longo da parede de pedra. A alvenaria é antiga, cheia de fendas e saliências. A escalada será desafiadora, mas totalmente factível para alguém com suas habilidades. As janelas em cada andar são meras fendas de flecha, muito estreitas para uma pessoa passar.
+
+Finalmente, a libélula chega ao topo.
+
+O telhado é plano, um quadrado de lajes de pedra com cerca de 10 metros de cada lado. Um parapeito de pedra baixo, na altura da cintura, cerca o perímetro. No centro, está a estrutura que um dia abrigou o sino, agora apenas uma armação de madeira podre e vazia.
+
+O topo está completamente vazio.
+
+Não há Kaelen. Não há armadilhas. Não há surpresas.
+
+É um palco vazio, esperando a chegada dos atores.
+
+Sua jogada funcionou. Se Kaelen estava observando de algum lugar distante, ele agora sabe que você está aqui, ou pelo menos, sua tecnologia está. Você ditou o início do engajamento.
+
+A libélula completa sua missão e retorna para sua mão, suas asas se dobrado com um clique.
+
+Você tem inteligência perfeita e em tempo real. O caminho está livre. O topo está desocupado. A vantagem é sua para tomar.
+
+É hora de se mover.
+
+Você desliza para fora das ruínas e começa sua aproximação à base da torre, a grama alta e úmida roçando silenciosamente em sua armadura. Você chega à parede de pedra fria e olha para cima. Quatro andares de escuridão e silêncio o aguardam.
+
+A escalada começa.
+
+**[Mestre rola os dados]**
+*   **Teste de Atletismo (Força) para escalar a torre:** A dificuldade é alta (DC 20) devido à altura e à alvenaria desgastada.
+*   **Rolagem:** d20 + 8 = 15 + 8 = **23**. (Sucesso!)
+
+Você sobe como uma criatura nascida para isso. Seus dedos encontram apoio onde não deveria haver nenhum, suas botas se prendem a saliências minúsculas. Você não sobe; você flui para cima, uma sombra escalando a face da noite. A névoa se enrola ao seu redor, escondendo sua ascensão de qualquer observador distante.
+
+Em poucos minutos, você passa a mão sobre a borda do parapeito e se impulsiona para o telhado da torre.
+
+Você pousa em um agachamento silencioso. O ar aqui em cima é mais frio, e a cidade de Gloamhurst se estende abaixo de você como um mar de luzes enevoadas. O silêncio é profundo, quebrado apenas pelo vento que sussurra através da armação do sino vazio.
+
+Você conseguiu. Você está no topo. Você chegou primeiro.
+
+O palco é seu. Você tem mais de uma hora e meia até a meia-noite.
+
+Como você prepara sua recepção para Kaelen?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Não vou preparar armadilhas pois quero crer que ele não preparou para mim. Mas eu quero uma segurança. Vou tentar achar um ponto em que eu possa desaparecer, e saber quando ele chegar sem ser visto.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão que fala muito sobre sua mentalidade. Isso não é uma execução; é uma negociação, um encontro de iguais. Armadilhas grosseiras seriam um insulto. Mas a prudência exige uma vantagem tática. Você não oferecerá uma mão aberta sem ter uma adaga escondida na outra.
+
+Você começa a analisar o telhado não como um campo de batalha, mas como um tabuleiro de xadrez.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria) para análise tática do ambiente:** d20 + 6
+*   **Resultado do D20:** 19
+*   **Total:** 19 + 6 = **25**. (Você vê o tabuleiro inteiro, cada peça, cada movimento potencial.)
+
+Sua mente de predador disseca o ambiente, e você encontra o local perfeito.
+
+A estrutura de madeira no centro do telhado, a que costumava segurar o grande sino, é a chave. Ela é feita de vigas de carvalho maciças, envelhecidas e escurecidas pelo tempo. Onde as duas vigas principais se cruzam no topo, elas formam um "V" invertido. O ponto de encontro dessas vigas, diretamente sob o telhado da pequena estrutura, é um poço de escuridão impenetrável, mesmo para sua Visão no Escuro. É uma sombra dentro da sombra.
+
+É alto o suficiente para ficar fora da linha de visão normal, mas oferece uma visão panorâmica de todo o telhado, especialmente da única entrada: a abertura no chão que leva à escada em espiral.
+
+Este será o seu poleiro.
+
+Mas você precisa de um sistema de alerta precoce. Algo que lhe diga que ele está subindo antes que a cabeça dele apareça.
+
+Você se move para a abertura da escada. A escada em espiral desce para a escuridão. Você saca um item de sua bolsa: um dos seus **sacos de esferas de rolamento**.
+
+Você não os espalha para criar uma armadilha. Você os usa com a precisão de um cirurgião. Você coloca três esferas de rolamento, e apenas três, em um único degrau de pedra, a cerca de três metros de profundidade na escada, em um local onde a sombra é mais profunda.
+
+Qualquer pessoa subindo, não importa o quão furtiva, inevitavelmente pisará em uma delas. O som da pequena esfera de metal rolando e caindo nos degraus abaixo será minúsculo, quase imperceptível para um ouvido normal. Mas para você, em seu poleiro, no silêncio do topo da torre, será tão alto quanto um alarme de incêndio.
+
+O sistema está pronto.
+
+Você recua e, com um salto poderoso e silencioso, sobe para o seu poleiro na estrutura do sino.
+
+**[Mestre rola os dados]**
+*   **Teste de Furtividade (Destreza) com Vantagem (Escuridão Total):** d20 + 9
+*   **Rolagem 1:** 20 (Crítico Natural!)
+*   **Rolagem 2:** 17
+*   **Resultado:** 20 + 9 = **29**. (Você desaparece completamente.)
+
+Você se acomoda na escuridão. Sua armadura se funde com a madeira envelhecida. O vento sussurra ao seu redor, mascarando o som de sua respiração. Você não é mais um homem em um telhado. Você é parte da torre. Um fantasma esperando em seu assombro.
+
+De sua posição, você tem controle total. Você vê tudo. Ninguém o vê.
+
+Agora, tudo o que resta é esperar.
+
+O tempo passa, cada minuto se esticando em uma eternidade tensa. A lua sobe mais alto, seu rosto pálido observando a cidade adormecida.
+
+Então, a uma hora que se aproxima perigosamente da meia-noite, você ouve.
+
+*...clink... t-tink...*
+
+O som. Minúsculo. Distante. O som de uma única esfera de rolamento de metal sendo desalojada de seu lugar e caindo um ou dois degraus.
+
+Ele está aqui. E ele está subindo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou observar sua chegada. Ver oque ele trás ao nosso tabuleiro.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'O som é seu gatilho. Sua mente entra em um estado de foco total, cada sentido aguçado ao máximo. Você permanece perfeitamente imóvel em seu poleiro de sombras, seus olhos fixos na abertura da escada.
+
+Alguns segundos de silêncio se arrastam. Kaelen, sem dúvida, parou no momento em que ouviu o som, analisando, ouvindo. Ele sabe que algo está errado. Ele sabe que você está aqui. O jogo começou antes mesmo de ele pisar no telhado.
+
+Então, uma sombra se move na abertura.
+
+Kaelen sobe o último degrau e pisa no telhado da torre. Ele não se ergue de forma descuidada. Ele flui para fora da escada em um agachamento baixo, sua mão já no cabo de sua lâmina curva, a outra perto de seu arco. Ele se move para o lado, para longe da abertura, colocando uma parede de pedra sólida em suas costas. É o movimento de um profissional garantindo sua posição antes de avaliar o campo.
+
+Sua Visão no Escuro o vê com clareza perfeita.
+*   Ele está vestido com o mesmo couro escuro e justo da noite anterior. O capuz está abaixado, mas a máscara de couro ainda cobre a metade inferior de seu rosto. Seus olhos, a única parte visível de seu rosto, varrem o telhado metodicamente.
+*   Ele não parece estar carregando a caixa de madeira que você o viu levar mais cedo. Em vez disso, ele tem uma pequena mochila de couro nas costas.
+*   Suas mãos estão vazias, mas tensas, prontas para sacar uma arma em uma fração de segundo.
+
+Ele sabe que você está aqui. Ele pode sentir sua presença. Seus olhos passam pela estrutura do sino, mas a escuridão absoluta de seu esconderijo o protege. Ele não o vê.
+
+Ele para no centro do telhado, a uma distância igual de todas as bordas. Uma posição neutra.
+
+"Eu sei que você está aí," a voz dele quebra o silêncio. É calma, controlada, e mais baixa do que você esperaria. Não há desafio em seu tom, apenas uma declaração de fato. "A esfera de rolamento foi um toque sutil. Admiro isso."
+
+Ele espera, sua cabeça inclinando-se ligeiramente, ouvindo. Ele está tentando localizá-lo pelo som.
+
+Ele não está apenas trazendo a si mesmo para o tabuleiro. Ele está trazendo respeito profissional. Ele reconheceu sua habilidade e está oferecendo a mesma cortesia.
+
+O próximo movimento é seu. Como você se revela?
+
+1.  **Responder das Sombras.** Falar de seu esconderijo, mantendo a vantagem de sua posição oculta.
+2.  **Revelação Silenciosa.** Descer de seu poleiro sem fazer barulho e aparecer atrás dele, ou em um ponto que ele não está observando.
+3.  **Revelação Direta.** Descer de seu poleiro de forma audível, mas não ameaçadora, e caminhar em direção a ele, mostrando que você está disposto a encontrá-lo em terreno aberto.
+4.  **Ação Simbólica.** Jogar algo no centro do telhado – talvez uma moeda, ou a nota que ele lhe enviou. Um sinal para que as negociações comecem.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou me revelar em sua frente, em sinal de que estamos aqui para sermos civis.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma demonstração de confiança. Você reconhece o respeito profissional dele e o retribui. É uma jogada arriscada, mas que estabelece o tom para a conversa que está por vir.
+
+Você toma sua decisão.
+
+De seu poleiro de sombras, você não desce furtivamente. Você se deixa cair.
+
+É uma queda de apenas três metros, mas você a usa para efeito máximo. Você aterrissa no telhado de pedra com um *baque* suave e deliberado, o som de botas de couro encontrando a laje. Não é o som de um ataque, mas o de uma chegada.
+
+Você aterrissa entre ele e a estrutura do sino, a cerca de 10 metros de distância, colocando-se em campo aberto. Você se endireita lentamente, suas mãos visíveis e afastadas de suas armas. A névoa gira ao redor de seus pés.
+
+Os reflexos de Kaelen são tudo o que você esperava. No instante em que você aterrissa, ele gira, sua mão voando para sua lâmina, meio desembainhando-a antes que sua mente processe que você não está atacando. Ele congela, a lâmina curva brilhando à luz da lua. Seus olhos se fixam em você, e por trás da máscara, você pode sentir a mistura de surpresa, tensão e uma avaliação fria.
+
+Ele relaxa lentamente, sua mão deixando a arma. Ele o estudou. Ele o caçou. Agora, pela primeira vez, ele o vê. O fantasma de Dorgar.
+
+"Impressionante," ele diz, sua voz ainda calma, mas com um novo fio de admiração. "Eu não teria olhado para cima."
+
+Ele está de pé, você está de pé. O vento frio da noite assobia entre vocês. O tabuleiro está montado. As duas peças mais perigosas da cidade estão frente a frente.
+
+"Você me chamou de Espectro," você diz, sua voz cortando a noite. "Você queria uma conversa. Você a tem."
+
+Os olhos de Kaelen se estreitam. "Eu queria uma troca. Você pegou o livro. Eu queria a caixa. Mas você não a tem, não é?" Ele é perspicaz. Ele notou que você não a trouxe.
+
+Este é o primeiro teste. Sua resposta aqui definirá a base da confiança – ou da desconfiança – entre vocês.
+
+Como você responde?
+
+1.  **A Verdade.** "Eu nunca a tive. Eu invadi seu apartamento, não sua oficina. Você me subestimou."
+2.  **Uma Meia-Verdade.** "A caixa não era importante. O livro era. Eu priorizei."
+3.  **Uma Pergunta.** "O que havia na caixa que era tão importante quanto o livro de contabilidade de um lorde?"
+4.  **Uma Ameaça Velada.** "A caixa está segura. E permanecerá assim, dependendo de como esta conversa correr."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou dizer a verdade, nunca tive a caixa, mas já tenho seu livro. Quem que tenha invadido sua loja para roubar a sua caixa é o nosso inimigo comum.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você escolhe a verdade. Em um jogo de mentiras e sombras, a honestidade pode ser a arma mais inesperada e desarmante.
+
+"Eu nunca tive a caixa," você responde, sua voz plana e desprovida de engano. "Eu estava observando você, não sua oficina. Enquanto você fazia sua entrega, eu estava no seu apartamento."
+
+Você deixa a implicação pairar no ar por um momento. *Eu sei onde você dorme. Eu sei onde você esconde seus segredos.*
+
+"O livro de contabilidade estava lá," você continua. "A caixa não. Se alguém invadiu sua oficina e a roubou... então esse alguém é o nosso inimigo em comum."
+
+A reação de Kaelen é sutil, mas reveladora. Seus ombros, que estavam tensos, relaxam uma fração de milímetro. Ele não estava esperando a verdade. Ele estava esperando uma negociação, uma mentira. Sua honestidade brutal o pegou de surpresa.
+
+Ele fica em silêncio por um longo momento, processando a nova informação. A ideia de um terceiro jogador, um que ele não previu, o perturba visivelmente.
+
+"A oficina..." ele murmura, mais para si mesmo. "Eu a verifiquei quando voltei. As fechaduras estavam intactas. As armadilhas não foram acionadas." Ele olha para você, uma nova pergunta em seus olhos. "Se alguém entrou, ele é tão bom quanto você."
+
+Ele balança a cabeça, arquivando o mistério por enquanto. "A caixa... continha minhas ferramentas pessoais. Ferramentas de mestre para arrombamento e desarme, feitas por mim mesmo. Insurstituíveis. Mas não tão importantes quanto o livro."
+
+Ele dá um passo à frente, diminuindo a distância entre vocês. "Então você tem o livro. E você o entregou a Dorgar, eu presumo."
+
+Não é uma pergunta. É uma conclusão lógica.
+
+"O que o Mestre Ferreiro planeja fazer com o poder de derrubar metade da cidade?" ele pergunta. "E o que você, a lâmina dele, ganha com tudo isso?"
+
+Ele está testando suas motivações. Ele traiu o Círculo porque eles buscavam poder. Ele precisa saber se você e Dorgar são apenas uma ameaça diferente, mas do mesmo tipo.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Eu falo minhas opiniões sobre o mestre ferreiro, ele me parece honesto, farto com a corrupção e um pouco bruto em relação a política, oque é na minha opinião uma coisa boa. Mas, se em um momento ele se tornar uma pessoa em que eu acredito que não merece esse poder, acho que eu o eliminaria.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sua resposta não é a lealdade cega de um soldado, nem a negação calculada de um espião. É a avaliação honesta e fria de um profissional.
+
+"Dorgar é um martelo," você diz, sua voz ecoando a franqueza dele. "Ele vê a corrupção como metal impuro que precisa ser expurgado na forja. Ele é direto, brutal, e não tem paciência para as danças políticas que permitiram ao Patrono apodrecer esta cidade por dentro. Por enquanto, seus objetivos e os da estabilidade de Gloamhurst estão alinhados."
+
+Você faz uma pausa, deixando o peso de suas próximas palavras assentar.
+
+"Mas o poder corrompe," você continua, seu olhar se fixando no dele, um predador reconhecendo outro. "E eu não sirvo a um mestre. Eu sirvo a um propósito. Se Dorgar, em posse daquele livro, se tornar o tipo de homem que ele agora caça... se ele se tornar a nova doença... então eu o removerei. Tão eficientemente quanto removi Valdemar."
+
+Não há arrogância em sua declaração. É uma simples declaração de fato. Uma promessa. Você é leal ao equilíbrio, não a um homem.
+
+Kaelen escuta, sua cabeça inclinada. Esta era a resposta que ele precisava ouvir. Você não é um peão. Você é um agente independente com seu próprio código. Você é alguém com quem ele pode, talvez, trabalhar.
+
+"Então você é o equilíbrio," Kaelen diz, um tom de respeito em sua voz. "Uma posição perigosa para se ter."
+
+Ele dá outro passo à frente, parando a apenas alguns metros de você.
+
+"O Patrono não vai esperar que Dorgar faça o primeiro movimento," ele diz, sua voz baixando, tornando-se mais conspiratória. "Ele perdeu o livro. Ele sabe que um de seus tenentes, A Víbora, foi capturado e que eu o traí. Ele está exposto. E um animal encurralado é mais perigoso."
+
+"Ele vai atacar," Kaelen continua. "E ele vai atacar com força. Ele não pode permitir que Dorgar e Seraphina usem essa informação. Ele vai tentar silenciá-los, permanentemente. E ele vai enviar tudo o que tem atrás de nós dois. O Círculo não é sua única arma. Ele tem agentes e recursos que nem eu conheço."
+
+Ele olha para você, a proposta finalmente se formando.
+
+"Dorgar tem o poder político e militar. Você tem a habilidade. E eu... eu tenho o conhecimento. Eu conheço seus protocolos, seus esconderijos, a mentalidade deles. Eu sei como eles pensam."
+
+"Sozinhos, seremos caçados e eliminados. Juntos... podemos virar a caça contra o caçador."
+
+A oferta está sobre a mesa. Uma aliança de três frentes: Dorgar, o martelo; você, a lâmina; e Kaelen, o guia.
+
+"O que você diz, Askellad?" ele pergunta, usando seu nome verdadeiro pela primeira vez, um sinal de que a fachada de "fantasma" e "espectro" foi deixada de lado. "Vamos caçar uma cobra?"', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Eu aperto a mão dele, e falo com leveza que gosto muito do trabalho dele como artesão, mas que estou curioso para saber as suas habilidades como assassino. Uma pergunta, você disse que o vibora foi capturado? Por que?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você estende a mão. É um gesto simples, mas no mundo de vocês, é tão vinculante quanto um juramento de sangue.
+
+Kaelen olha para sua mão por um momento, e então a aperta. O aperto de mão dele é firme, os dedos calejados pelo trabalho de artesão, mas com uma força contida que fala de anos de treinamento com o arco e a lâmina.
+
+"Vamos caçar uma cobra," você concorda. Então, o profissionalismo dá lugar a um raro momento de leveza. Um pequeno sorriso toca seus lábios. "Mas tenho que admitir, estou desapontado. Eu realmente gosto do seu trabalho como flecheiro."
+
+Você solta a mão dele, seu tom mudando de volta para uma curiosidade aguçada. "Mas agora, estou mais curioso para ver suas habilidades como... o que quer que você seja."
+
+Um som baixo, um floreio de diversão, escapa de Kaelen. É a primeira vez que você ouve algo próximo a uma emoção dele. "Eu me considero um artesão em ambos os ofícios. E talvez eu possa lhe ensinar um truque ou dois."
+
+A aliança está selada. Mas uma pergunta sua paira no ar, afiada e precisa.
+
+"Você disse que ''A Víbora foi capturado''. Por que ''capturado''? Eu o deixei inconsciente e amarrado para os homens de Dorgar. A palavra que Dorgar usou foi ''sob custódia''."
+
+Os olhos de Kaelen, visíveis acima da máscara, se estreitam. O breve momento de leveza se evapora, substituído por uma urgência sombria.
+
+"Porque ele não está mais sob custódia de Dorgar," Kaelen responde, sua voz grave. "Eu tenho fontes dentro da Guarda da Cidade. O mago que você capturou, Malakai, foi oficialmente entregue à custódia da Guarda da Cidade para ser mantido em suas celas seguras sob o Salão do Conselho. Era o procedimento correto."
+
+Ele faz uma pausa, deixando o peso de suas próximas palavras assentar.
+
+"Mas ele nunca chegou lá. O transporte foi ''emboscado''. Dois guardas de Dorgar mortos. Três da Guarda da Cidade também. Sem testemunhas. O relatório oficial diz que foi um resgate, executado por agentes do Círculo."
+
+Kaelen se inclina para mais perto, sua voz baixando para um sussurro conspiratório.
+
+"Mas meu contato disse que não foi um resgate. Não havia sinais de luta. Os guardas foram mortos com precisão cirúrgica, todos com um único golpe. E Malakai não foi levado. Ele foi executado no local. Uma única lâmina envenenada no coração."
+
+Ele olha para você, a implicação fria e aterrorizante.
+
+"O Patrono não está resgatando suas pontas soltas, Askellad. Ele está cortando-as. E ele usou agentes infiltrados dentro da própria Guarda da Cidade para fazer isso. Ele está limpando o tabuleiro, e A Víbora era apenas a primeira peça."
+
+A revelação redefine completamente a ameaça. O Patrono não está apenas escondido; ele tem agentes no mais alto nível das forças da lei da cidade, capazes de executar assassinatos sancionados pelo estado e fazê-los parecer outra coisa.
+
+"Quem você acha que é o próximo na lista dele?" Kaelen pergunta, a questão retórica. "Finch. Os magos cúmplices. E, claro... nós dois."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Você aceita vir até nossa sala de guerra para compartilhar seus conhecimentos?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A pergunta é direta. Um teste para ver até onde vai a confiança recém-formada. Ir para a Sala de Guerra de Dorgar seria se entregar voluntariamente ao coração do poder de seus novos aliados. Seria um ato de fé total.
+
+Kaelen considera sua oferta. Você pode ver o cálculo em seus olhos. Ele pesa o risco de uma armadilha contra a necessidade de consolidar a aliança e compartilhar informações vitais. Ficar sozinho é uma sentença de morte. Confiar é um risco.
+
+Finalmente, ele dá um aceno de cabeça lento e deliberado.
+
+"Sim," ele diz, a única palavra carregada de significado. "O tempo de operar das sombras acabou. É hora de planejar a guerra. Leve-me até o seu Mestre Ferreiro."
+
+Ele confia em você. Não em Dorgar, não em Seraphina. Em você. Ele está apostando a vida dele na sua avaliação de que Dorgar é um "martelo" e não outro tirano.
+
+"Mas não podemos simplesmente entrar pela porta da frente," ele acrescenta, o profissional assumindo o controle. "O Círculo pode já estar observando a Guilda dos Ferreiros. E eu sou agora o rosto da traição. Precisamos ser fantasmas."
+
+"Eu conheço um caminho," você responde simplesmente.
+
+A descida da torre é tão silenciosa quanto a subida. Mas desta vez, não há um, mas dois espectros se movendo pela noite.
+
+A jornada de volta para a Guilda dos Ferreiros é uma obra-prima de movimento furtivo. Vocês dois se movem em perfeita sincronia, sem a necessidade de palavras. Ele segue sua liderança, usando as mesmas rotas de telhado, os mesmos becos escuros. É como se mover com seu próprio reflexo. A habilidade dele é inegável. Ele é seu igual em todos os aspectos.
+
+Vocês chegam aos muros da Guilda dos Ferreiros. Você não vai para o portão da frente. Você o leva para uma entrada de serviço nos fundos, uma que você notou em sua primeira visita. Uma rápida verificação na fechadura, um clique suave de suas ferramentas de mestre, e vocês estão dentro.
+
+Você o conduz pelos corredores silenciosos, evitando as poucas patrulhas noturnas. Vocês chegam à porta redonda da Sala de Guerra. Você bate seu código.
+
+A porta se abre. Dorgar e Seraphina, que estavam curvados sobre o mapa, olham para cima, suas mãos instintivamente se movendo para as armas ao verem um estranho mascarado ao seu lado.
+
+"Acalmem-se," você diz, sua voz parando qualquer movimento hostil. Você dá um passo para o lado, apresentando seu convidado.
+
+"Mestre Dorgar, Mestra Seraphina," você anuncia. "Este é Kaelen. O Espectro. Nosso novo... especialista em assuntos do Círculo."
+
+Kaelen dá um passo à frente, para a luz. Lentamente, ele estende a mão e abaixa a máscara de couro, revelando seu rosto pela primeira vez. É o rosto calmo e focado do artesão que você conhecia, mas agora há uma intensidade sombria em seus olhos.
+
+"Mestre Ferreiro, Mestra Tecelã," ele diz, sua voz calma, mas ressoando com uma nova autoridade. "Askellad acredita que podemos ser aliados. Eu vim para compartilhar o que sei sobre a tempestade que está prestes a cair sobre todos nós. E para avisá-los... que a limpeza já começou."
+
+A aliança está formada. Os três principais jogadores – o poder, a lâmina e o conhecimento – estão agora na mesma sala. A guerra contra o Patrono começou de verdade.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Hora de compartilhar com eles as informações que temos, vamos planejar nosso próximo passo e saber nossas prioridades.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A porta de ferro se fecha com um som pesado e final, selando os quatro dentro da Sala de Guerra. O ar fica denso com o peso de segredos e alianças frágeis. Dorgar e Seraphina olham para Kaelen, não mais como um intruso, mas como uma peça vital e perigosa no tabuleiro.
+
+"Fale," Dorgar comanda, sua voz um trovão contido.
+
+E Kaelen fala.
+
+Com a precisão de um artesão e a clareza de um espião, ele lhes dá um curso intensivo sobre o inimigo.
+*   **O Patrono:** Ele confirma que ninguém conhece sua verdadeira identidade, nem mesmo os membros mais antigos do Círculo. Ele opera através de intermediários e mensagens criptografadas. Sua ideologia é a de que Gloamhurst está fraca e corrupta, e precisa ser purgada e reconstruída sob um controle único e forte – o dele.
+*   **O Círculo da Serpente de Bronze:** É sua organização de fachada, sua rede de inteligência e operações secretas. Eles são divididos em células, então um membro raramente conhece mais do que alguns outros. Kaelen era um "Espectro", um especialista em infiltração, o que lhe deu mais acesso do que a maioria.
+*   **As Táticas:** O Patrono prefere a subversão à guerra aberta. Chantagem, assassinato político, sabotagem econômica. Ele só usa a força quando absolutamente necessário. A execução de Malakai é um sinal de que ele entrou em uma nova fase: contenção de danos. Ele está com medo.
+
+"Ele cortará todas as pontas soltas," Kaelen conclui, sua voz ecoando a advertência que ele lhe deu. "Isso significa que Lorde Finch é o próximo. Se ele ainda estiver vivo."
+
+Seraphina, que estava absorvendo tudo em silêncio, intervém. "Ele está. Sob ''proteção'' da Guarda da Cidade, em uma cela no Salão do Conselho. Mas, à luz do que você disse sobre Malakai, ele está essencialmente em uma cela de execução esperando seu carrasco."
+
+A situação se cristaliza. As informações de Kaelen, combinadas com o livro de contabilidade, pintam um quadro claro. O Patrono está em modo de crise, tentando eliminar todas as testemunhas que possam ligá-lo à conspiração. Lorde Finch é a testemunha mais vulnerável e mais importante.
+
+Dorgar bate o punho na mesa. "Então essa é a nossa prioridade. Nós tiramos Finch de lá. Vivo. Ele é a única pessoa que vimos se comunicar com um agente do Patrono. Ele pode ser capaz de identificar outros, ou nos dar a pista que precisamos para desmascarar o próprio Patrono."
+
+"Concordo," Seraphina diz. "Mas uma extração da prisão mais segura da cidade, que provavelmente está sendo vigiada por agentes duplos do Patrono... é quase impossível."
+
+Ambos se viram para você. A pergunta não precisa ser feita. Quando o impossível está na mesa, eles olham para a sua arma impossível.
+
+"Finch é o alvo," você afirma, aceitando a missão. "Mas não será uma simples extração. Será uma corrida. O Patrono já deve ter um plano em andamento para silenciá-lo. Não estamos apenas invadindo uma prisão; estamos invadindo uma prisão no meio de uma operação de limpeza inimiga."
+
+Você olha para Kaelen. "Você. Você conhece os protocolos deles. Se você fosse encarregado de silenciar Finch em sua cela, como você faria?"
+
+É a primeira prova da nova aliança. A sala inteira prende a respiração, esperando a resposta do especialista.
+
+Kaelen se aproxima do mapa, seus olhos traçando os túneis sob o Salão do Conselho. "Eu não passaria pelos guardas," ele diz. "Eu passaria por baixo deles. Há uma antiga rede de esgotos que passa diretamente sob as masmorras. A entrada está selada há décadas, mas para alguém com as ferramentas certas..." Ele para, lembrando-se de suas ferramentas roubadas. "...seria a rota de infiltração perfeita. Silenciosa, contornando 90% da segurança."
+
+O plano começa a se formar, nascido da necessidade e do conhecimento combinado de todos na sala.
+
+**A Missão:** Infiltrar-se nas masmorras do Salão do Conselho, extrair Lorde Finch vivo antes que os assassinos do Patrono o alcancem, e trazê-lo para a Guilda dos Ferreiros para interrogatório.
+
+**As Prioridades são claras:**
+1.  **Velocidade:** A operação deve acontecer esta noite. Amanhã pode ser tarde demais.
+2.  **Furtividade:** O alarme não pode ser dado. Se a Guarda da Cidade for alertada, a extração se torna um banho de sangue e um fracasso.
+3.  **Inteligência:** Kaelen fornecerá o mapa e o conhecimento dos túneis. Seraphina usará sua rede para monitorar os movimentos da Guarda da Cidade acima do solo.
+4.  **Execução:** A infiltração e extração... isso recai sobre você.
+
+"Eu não posso ir com você," Kaelen diz, com uma ponta de frustração. "Meu rosto é conhecido. Se eu for visto, comprometo tudo. Mas posso guiá-lo. Posso lhe dar o caminho."
+
+"E eu serei seus olhos e ouvidos acima do solo," Seraphina acrescenta.
+
+"E eu terei uma equipe de extração pronta para encontrá-lo na saída do túnel," Dorgar conclui.
+
+A equipe está montada. A missão está definida. O destino de Gloamhurst pode depender de resgatar o mesmo nobre covarde que você capturou menos de 24 horas atrás.
+
+Você está pronto para a operação?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Uma pergunta pessoal, vamos resgatar o nosso nobre, mas o nosso livro com todos os ativos, que inclusive foi assim que eu achei você, ele não é uma forma eficiente de identificar os agentes do patrono?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você faz a pergunta, cortando o planejamento tático com uma navalha de lógica fria. Seus olhos se movem do mapa para o livro de iniciações que ainda repousa sobre a mesa.
+
+"Uma pergunta," você diz, sua voz calma atraindo a atenção de todos. "Estamos arriscando tudo para resgatar um nobre covarde e instável. Mas o livro que Kaelen nos deu... o registro de iniciação do Círculo. Não é essa a ferramenta mais eficiente para identificar os agentes do Patrono?"
+
+A sala fica em silêncio por um momento enquanto Dorgar e Seraphina consideram sua pergunta. É Kaelen quem responde primeiro, sua voz carregada com o peso do conhecimento interno.
+
+"Sim e não," ele diz, aproximando-se do livro. "O registro é a nossa melhor fonte de inteligência sobre os agentes de nível baixo a médio do Círculo. Os peões. Os espiões. Os valentões. Já o usamos para identificar dezenas de agentes, incluindo Malakai."
+
+Ele abre o livro. "Mas olhe os nomes. Comerciantes, contrabandistas, alguns guardas, um punhado de nobres menores. Esta é a rede de trabalho do Círculo, não seu círculo interno. O Patrono é paranoico. Ele nunca permitiria que os nomes de seus tenentes mais importantes e agentes mais bem colocados fossem escritos em qualquer lugar."
+
+Ele olha para você, sua expressão séria. "Os assassinos que ele enviará para matar Finch? Os agentes infiltrados no alto escalão da Guarda da Cidade? Eles não estarão neste livro. O Patrono os mantém completamente separados. Eles respondem apenas a ele."
+
+Seraphina continua o pensamento, sua mente estratégica vendo o quadro geral. "O livro nos permite podar os galhos da árvore, Askellad. Mas Finch... Finch é a única testemunha viva que viu um membro do círculo interno – Malakai, A Víbora – em ação, recebendo ordens. Ele é o único que pode ter ouvido um nome, visto um rosto ou um símbolo que não está neste livro. Ele é a nossa única ligação potencial com o tronco da árvore."
+
+"Ele é uma chave fraca e patética," Dorgar rosna, resumindo a situação perfeitamente. "Mas, no momento, ele é a única chave que temos para a próxima porta."
+
+A lógica deles é sólida. O livro é um mapa da organização que eles conhecem. Finch é a única pista para a organização que eles *não* conhecem.
+
+Sua pergunta foi respondida. Resgatar Finch não é apenas necessário; é a única jogada tática que pode levar ao círculo interno do Patrono.
+
+Você acena, aceitando a conclusão. A missão é justificada.
+
+"Então vamos buscar nossa chave," você diz. "Kaelen, me mostre o caminho."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Seguindo as direções que Kaelen me mostrar, vou até os túneis subterrâneos em baixo da prisão. Hora de colocar o plano em execução.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '"O caminho é antigo e esquecido," Kaelen começa, seus dedos traçando rotas invisíveis no mapa de esgotos que ele havia trazido. "A entrada principal foi selada com pedra e argamassa há um século. Mas os arquitetos originais, os anões, sempre construíam uma rota de manutenção secundária."
+
+Ele aponta para um local no Distrito das Águas, não muito longe do Beco do Sussurro. "Aqui. Sob a ponte do Mercado de Peixes. Há uma grade de drenagem que parece igual a todas as outras. Mas a argamassa ao redor dela é falsa. Um martelo e um talhador a quebrarão em segundos. É a sua entrada."
+
+Ele traça o caminho sinuoso sob as ruas da cidade. "O túnel o levará diretamente para a subestrutura do Salão do Conselho. Você procurará por uma parede de tijolos mais nova que as outras. É lá que eles selaram a antiga conexão com as masmorras. A argamassa será o ponto fraco. De lá... você estará dentro."
+
+Com o mapa mental gravado em sua memória, você se prepara. Você verifica seu equipamento uma última vez: a Manopla do Desvio Arcano, os venenos de Grendyl, suas ferramentas. Você está pronto.
+
+"Boa caçada," Dorgar diz, a frase soando como uma bênção e uma ordem.
+
+"Não morra," Seraphina acrescenta, o que, vindo dela, é quase uma expressão de preocupação.
+
+Você e Kaelen saem da Guilda dos Ferreiros da mesma forma que entraram: como fantasmas. Ele o guia pelas ruas escuras até a ponte do Mercado de Peixes. O lugar fede a peixe velho e água parada.
+
+"É aqui," Kaelen sussurra, apontando para uma grade de ferro coberta de lodo sob a arcada da ponte. "Eu vou ficar de vigia. Se algum guarda se aproximar, você ouvirá o chamado de uma coruja. Uma vez para ''perigo se aproximando'', duas vezes para ''área limpa''."
+
+Ele então desaparece nas sombras, tornando-se parte da noite.
+
+Você se ajoelha ao lado da grade. O trabalho é rápido e sujo. Usando um pequeno martelo e um talhador de sua bolsa, você ataca a argamassa falsa. Ela se desfaz em pó, exatamente como Kaelen disse. A grade, agora livre, é pesada, mas você a levanta com um grunhido de esforço, revelando um buraco escuro e fedorento.
+
+Você acende uma pequena lanterna a óleo, sua luz fraca mal perfurando a escuridão. Você desce para o túnel. O cheiro é horrível, uma mistura de esgoto e decomposição secular. Você puxa a grade de volta ao lugar, mergulhando-se na escuridão total.
+
+A infiltração começou.
+
+Você navega pelos túneis labirínticos, o mapa de Kaelen em sua mente. A água imunda chega aos seus tornozelos. Ratos guincham e fogem de sua luz. Após cerca de vinte minutos de caminhada por este inferno subterrâneo, você a encontra.
+
+A parede de tijolos. É visivelmente mais nova, o trabalho de alvenaria mais grosseiro que as pedras antigas ao redor. É a sua porta.
+
+Você guarda a lanterna. Você não precisará mais dela. Sua Visão no Escuro assume o controle.
+
+**[Mestre rola os dados]**
+*   **Teste de Força para quebrar a parede de tijolos enfraquecida:** DC 15.
+*   **Rolagem:** d20 + 2 = 18 + 2 = **20**. (Sucesso!)
+
+Usando a extremidade de seu martelo, você ataca a argamassa. É um trabalho lento e cuidadoso, mais sobre pressão e precisão do que sobre força bruta, para manter o ruído ao mínimo. Finalmente, com um rangido baixo, um tijolo se solta. Depois outro. Em poucos minutos, você criou uma abertura grande o suficiente para passar.
+
+Você desliza pela abertura e se encontra em um corredor de pedra fria. O ar aqui é diferente. Menos úmido, mas com o cheiro de desespero e pedra mofada. Tochas em arandelos à frente lançam uma luz bruxuleante, criando sombras dançantes. Você pode ouvir o som distante de um guarda tossindo.
+
+Você está dentro. Nas masmorras sob o Salão do Conselho. O covil do inimigo.
+
+De acordo com as plantas, as celas de segurança máxima, onde um prisioneiro como Finch seria mantido, ficam no final deste corredor, após uma curva à direita.
+
+O que você faz?
+
+1.  **Avançar Furtivamente.** Mover-se pelo corredor, usando as sombras projetadas pelas tochas como cobertura.
+2.  **Escutar.** Pressionar o ouvido contra a parede fria e tentar ter uma ideia de quantos guardas estão à frente e qual é a rotina deles.
+3.  **Preparar uma Ação.** Preparar um de seus novos venenos em uma arma, antecipando um confronto.
+4.  **Verificar Armadilhas.** Aproximar-se lentamente, confiando em seu **Amuleto do Olho Mecânico** para detectar quaisquer proteções mágicas que possam ter sido colocadas.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Rebobibe mestre, em vez de quebrar a argamassa da entrada, vou simplesmente teletransportar por ela.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Entendido. Uma abordagem mais elegante e totalmente dentro de suas capacidades. A continuidade será ajustada para refletir isso.]
+
+**[COMANDO RECONHECIDO: REBOBINAR. OTIMIZANDO AÇÃO DO JOGADOR...]**
+
+---
+O tempo volta alguns momentos. Você está no túnel de esgoto fétido, de frente para a parede de tijolos mais nova. O martelo e o talhador estão em sua mão, mas você para.
+
+*Por que quebrar quando se pode contornar?*
+
+O trabalho de alvenaria é grosseiro. Há frestas e buracos minúsculos entre os tijolos, onde a argamassa não assentou perfeitamente. Você se aproxima, pressionando o rosto contra a parede fria e úmida, procurando por uma abertura.
+
+Você encontra uma. Uma pequena fenda perto do topo, grande o suficiente para ver através dela.
+
+Você espia. Do outro lado, você vê o corredor de pedra iluminado por tochas. E, crucialmente, você vê a sombra profunda projetada por uma coluna de suporte a poucos metros da parede. É um poço de escuridão perfeito. Um destino.
+
+Você guarda suas ferramentas. Não haverá barulho. Não haverá poeira. Apenas uma transição silenciosa.
+
+Você foca sua mente, a energia se acumulando em seu **Bracelete do Passo Sombrio**.
+
+**Ação Bônus: Ativar Bracelete do Passo Sombrio.**
+
+O túnel de esgoto imundo desaparece em um piscar de olhos. Você se materializa na sombra da coluna, o ar frio e mofado da masmorra enchendo seus pulmões. O cheiro é uma melhora significativa. Você pousa sem um som, um fantasma conjurado da própria pedra.
+
+A infiltração foi perfeita. Silenciosa. Indetectável.
+
+Você está dentro. Nas masmorras sob o Salão do Conselho. O covil do inimigo.
+
+Você está em um corredor de pedra. Tochas em arandelos à frente lançam uma luz bruxuleante, criando sombras dançantes. Você pode ouvir o som distante de um guarda tossindo. De acordo com as plantas, as celas de segurança máxima, onde um prisioneiro como Finch seria mantido, ficam no final deste corredor, após uma curva à direita.
+
+O que você faz?
+
+1.  **Avançar Furtivamente.** Mover-se pelo corredor, usando as sombras projetadas pelas tochas como cobertura.
+2.  **Escutar.** Pressionar o ouvido contra a parede fria e tentar ter uma ideia de quantos guardas estão à frente e qual é a rotina deles.
+3.  **Preparar uma Ação.** Preparar um de seus novos venenos em uma arma, antecipando um confronto.
+4.  **Verificar Armadilhas.** Aproximar-se lentamente, confiando em seu **Amuleto do Olho Mecânico** para detectar quaisquer proteções mágicas que possam ter sido colocadas.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Primeiro, vou escutar oque consigo escutar, após, vou usar minha libélula.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma abordagem em duas fases. Primeiro, a percepção passiva, depois o reconhecimento ativo.
+
+Você permanece na segurança da sombra da coluna, seu corpo se tornando uno com a pedra fria. Você fecha os olhos, focando sua audição, filtrando o gotejar da água e o crepitar das tochas.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria):** d20 + 6
+*   **Resultado do D20:** 17
+*   **Total:** 17 + 6 = **23**. (Audição aguçada.)
+
+Seus ouvidos captam uma riqueza de detalhes sonoros do corredor à frente:
+*   **Passos:** Dois conjuntos distintos de passos em armaduras pesadas, movendo-se em um padrão de patrulha lento e repetitivo. Eles caminham pelo corredor, param, conversam brevemente e depois voltam. O padrão se repete a cada cinco minutos.
+*   **Vozes:** As vozes são baixas e entediadas. Você consegue distinguir trechos da conversa. "...outra noite morta." "...ouvi dizer que o nobre na cela três vai ser transferido amanhã." "...espero que sim, ele não para de choramingar." Eles parecem ser guardas comuns da cidade, alheios a qualquer conspiração.
+*   **Sons Adicionais:** Você ouve o som metálico de um molho de chaves balançando, o tilintar de uma caneca sendo colocada em uma mesa de madeira e o som inconfundível de cartas sendo embaralhadas. Parece que há um posto de guarda logo após a curva.
+
+A informação auditiva lhe dá o layout básico: dois guardas em patrulha e pelo menos mais um em um posto de guarda.
+
+Agora, para a confirmação visual.
+
+Você permanece em sua posição, retirando a **Libélula Mecânica**. Você a ativa com um sussurro. Com um zumbido quase inaudível, ela se ergue e voa pelo corredor, mantendo-se perto do teto arqueado e escuro, onde as sombras são mais profundas.
+
+**Visão da Libélula:**
+
+O pequeno construto voa pelo corredor de pedra. Ele passa pelas duas tochas bruxuleantes e chega à curva. Ele espia cuidadosamente.
+
+A visão confirma o que você ouviu. O corredor se abre em uma pequena câmara. No centro, há uma mesa de madeira rústica onde dois guardas estão sentados, jogando cartas. Um terceiro guarda está de pé, encostado na parede, observando o jogo. Todos usam o brasão da Guarda da Cidade.
+
+Atrás deles, um corredor curto se estende, com três portas de cela de ferro maciço. A porta da cela do meio, a número dois, está fechada com uma pesada tranca externa. A cela número três está vazia. Na cela número um, um homem dorme em um catre.
+
+Você foca a audição da libélula na cela do meio. Você pode ouvir o som de soluços baixos e patéticos. É Finch.
+
+A libélula continua sua varredura. Não há armadilhas mágicas visíveis, mas seu **Amuleto do Olho Mecânico** começa a vibrar suavemente contra seu peito. A vibração é fraca, mas presente. A libélula foca sua visão aprimorada no corredor que leva às celas.
+
+E então ela vê. No chão, em frente à cela de Finch, há um glifo quase invisível, gravado na pedra e preenchido com poeira para disfarçá-lo. É uma runa de alarme. Se alguém pisar nela, ela provavelmente alertará silenciosamente alguém em outro lugar.
+
+A libélula retorna para você, trazendo consigo esta inteligência vital.
+
+**Resumo da Situação:**
+*   **Inimigos:** Três guardas da cidade em um posto. Parecem normais, mas a presença da runa sugere que podem não ser.
+*   **Alvo:** Lorde Finch está na cela do meio.
+*   **Obstáculos:** Uma porta de cela trancada e uma runa de alarme mágica no chão em frente a ela.
+
+Os guardas são o principal obstáculo. Como você lida com eles?
+
+1.  **Eliminação Silenciosa.** Tentar eliminar os três guardas um por um, usando a furtividade e ataques surpresa. Altamente arriscado.
+2.  **Distração.** Criar um barulho ou evento em outra parte da masmorra para atrair um ou todos eles para longe de seu posto.
+3.  **Incapacitação em Massa.** Usar um item como o **Pó de Asfixia da Medula** para tentar incapacitar todos os três de uma vez. Ousado, mas pode ser eficaz.
+4.  **Engano.** Usar um disfarce ou uma história para tentar enganá-los. Improvável de funcionar, dado o seu equipamento.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'OCC: Mestre, meu bracelete tem o poder de levar mais alguém comigo?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Essa é uma excelente pergunta tática. Vamos consultar as regras para o **Bracelete do Passo Sombrio**.]
+
+A descrição padrão de itens mágicos semelhantes em D&D 5e (como a habilidade *Passo Sombrio* do Monge das Sombras ou o feitiço *Passo Nebuloso*) especifica que o teleporte afeta apenas o', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Continue', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '[OOC: Essa é uma excelente pergunta tástica. Vamos consultar as regras para o **Bracelete do Passo Sombrio**.]
+
+A descrição padrão de itens mágicos semelhantes em D&D 5e (como a habilidade *Passo Sombrio* do Monge das Sombras ou o feitiço *Passo Nebuloso*) especifica que o teleporte afeta apenas o usuário. O texto da regra geralmente diz: "**Você** se teleporta...". Ele não inclui a capacidade de levar passageiros.
+
+Portanto, de acordo com as Regras como Escritas (RAW), **não, o bracelete não pode levar mais ninguém com você.**
+
+No entanto, em D&D, existe o conceito da "Regra de Ouro" (o Mestre tem a palavra final) e a "Regra do Legal" (se algo é incrivelmente legal, dramático e faz sentido na história, o Mestre pode permitir).
+
+**[Decisão do Mestre]**
+A capacidade de teletransportar outros é geralmente uma magia de nível muito mais alto (como *Círculo de Teleporte* ou *Palavra de Recordação*), pois muda drasticamente o equilíbrio do jogo, especialmente para extrações. Permitir isso sem custo tornaria o bracelete um item muito mais poderoso do que o pretendido.
+
+**Veredito:** Não, você não pode levar Finch com você usando o bracelete. A extração terá que ser feita de forma mais convencional: a pé, pelos túneis de esgoto por onde você entrou. Isso mantém o desafio e a tensão da missão.
+
+---
+(A voz do Mestre retorna, focada na situação em questão.)
+
+Você está na escuridão, a inteligência fresca em sua mente. Três guardas. Uma runa de alarme. Um prisioneiro para extrair. E seu melhor truque de fuga, o teleporte, só funciona para um.
+
+O plano precisa ser perfeito. O que você faz?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Penso um pouco, se eu tiver que levar o nobre pelo túnel que vim, terei que abri-lo, e isso atrairá atenção. Será que tem alguma outra rota de saída?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você para, a mente tática assumindo o controle, reavaliando o plano à luz da nova limitação. A extração é o ponto crucial. Voltar pelo caminho que veio apresenta um problema significativo: o barulho de quebrar a parede de tijolos para sair, agora com um prisioneiro aterrorizado a tiracolo, seria um convite ao desastre.
+
+*Precisa haver outra maneira.*
+
+Você recua para a segurança da sombra da coluna. Você precisa de mais informações. As plantas de Seraphina eram antigas. A inteligência de Kaelen focava na entrada. Você precisa de um mapa de saída.
+
+Você tem duas opções para reunir essa nova inteligência:
+
+1.  **Reconhecimento Pessoal:** Deixar a área dos guardas para trás por enquanto e explorar a outra direção da masmorra. As plantas mostravam outros corredores e câmaras de armazenamento. Pode haver uma segunda saída esquecida, uma grade de esgoto, uma passagem desmoronada que leva a outro lugar. É arriscado, pois você estaria se movendo por território desconhecido.
+
+2.  **Reconhecimento Remoto (A Libélula):** Você pode enviar a libélula novamente. É mais seguro para você, mas a bateria do construto está começando a ficar baixa. Zilli projetou-a para missões curtas de reconhecimento, não para uma operação prolongada. Você provavelmente tem energia para mais um voo de reconhecimento de 5 a 10 minutos antes que ela precise de uma recarga completa de 8 horas. Você pode enviá-la para explorar os corredores alternativos em busca de uma rota de fuga viável.
+
+A escolha é sua. Arriscar a si mesmo em território desconhecido ou usar sua ferramenta de reconhecimento uma última vez?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar a minha libélula o máximo possível antes que ela fique sem bateria.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Uma decisão lógica. Preservar sua própria energia e furtividade é fundamental.
+
+Você permanece em seu esconderijo, a estátua silenciosa de escuridão. Você retira a libélula mecânica, sentindo um leve calor emanando dela – um sinal de que sua fonte de energia está se esgotando. Você sussurra a palavra de comando, e ela sobe ao ar uma última vez, seu zumbido quase imperceptível.
+
+Você a envia na direção oposta ao posto de guarda, mergulhando mais fundo na masmorra.
+
+**Visão da Libélula:**
+
+O construto voa por um corredor longo e reto, passando por várias celas vazias e empoeiradas. A arquitetura aqui é mais antiga, a pedra mais desgastada.
+
+O corredor termina em uma grande câmara abobadada. Pela sua forma e pelos grilhões enferrujados nas paredes, este era um antigo salão de interrogatório. Agora, é usado como um depósito de entulho. Caixotes velhos, móveis quebrados e barris vazios estão empilhados nos cantos.
+
+A libélula começa uma varredura sistemática da câmara, procurando por qualquer anomalia, qualquer saída.
+*   **As Paredes:** São de pedra sólida. Nenhuma parece ter sido alterada recentemente.
+*   **O Teto:** Alto e arqueado, sem aberturas.
+*   **O Chão:** Lajes de pedra cobertas por uma espessa camada de poeira, exceto por... um caminho.
+
+Seus olhos mecânicos percebem. Há um rastro sutil na poeira, de pegadas indo e vindo de um canto específico da sala, onde uma pilha de barris velhos está encostada na parede. As pegadas são frescas, feitas nas últimas 24 horas.
+
+A libélula se aproxima da pilha de barris. Atrás deles, escondida da vista da entrada da câmara, há uma porta de madeira reforçada com ferro. Não é antiga como o resto da masmorra. É nova. A madeira ainda tem o cheiro de resina.
+
+A porta está fechada, mas não trancada.
+
+Com um zumbido, a libélula passa pela fresta sob a porta.
+
+O que ela vê do outro lado faz seu coração de jogador gelar.
+
+É um túnel, mas não um túnel de esgoto. É escavado na terra, as paredes escoradas com vigas de madeira novas. O túnel corre para a escuridão, longe do Salão do Conselho. É uma rota de fuga. Uma "via expressa" secreta.
+
+Mas não é isso que o choca.
+
+No início do túnel, encostados na parede, estão dois corpos. Eles usam as túnicas cinza-escuras do Círculo da Serpente. Ambos estão mortos, com gargantas cortadas com uma precisão brutal. O sangue ainda está fresco, quase brilhante.
+
+E ao lado deles, no chão de terra, está uma pequena caixa de madeira, aberta e vazia. A caixa que Kaelen estava procurando.
+
+De repente, tudo faz sentido.
+*   O terceiro jogador. O ladrão. Ele não é um dissidente do Círculo. Ele é um inimigo do Círculo.
+*   Ele roubou as ferramentas de Kaelen. Ele usou a rota de fuga secreta do Círculo para entrar e sair da oficina.
+*   E ele está aqui. Agora. Ele usou a mesma rota para entrar nas masmorras. Ele matou os agentes do Círculo que, presumivelmente, estavam aqui para matar Finch.
+
+O ladrão misterioso está à sua frente na corrida. Ele já neutralizou os assassinos do Patrono. Ele está aqui pelo mesmo motivo que você: Lorde Finch.
+
+A libélula começa a zumbir erraticamente, sua luz piscando. A bateria acabou. A visão se corta, mergulhando você de volta na escuridão de seu próprio corpo.
+
+Você está com uma informação explosiva e sem tempo. Um terceiro jogador, um assassino incrivelmente habilidoso, está a poucos metros de seu alvo.
+
+O que você faz?
+
+1.  **Correr!** Abandonar a furtividade e correr para o posto de guarda. Você precisa chegar a Finch antes que o ladrão o faça.
+2.  **Ataque de Choque.** Usar o **Pó de Asfixia da Medula** no posto de guarda para incapacitá-los rapidamente e abrir caminho para a cela.
+3.  **Aproximação Furtiva (Rápida).** Tentar passar pelos guardas furtivamente, sabendo que cada segundo conta.
+4.  **Alerta!** Gritar um aviso. Pode alertar os guardas sobre o outro intruso, criando o caos que você pode explorar.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou usar o pó de asfixia, e pegar o nobre o mais rápido possível, agora está muito mais perigoso.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A situação mudou de uma infiltração para uma corrida contra um predador rival. Não há mais tempo para sutileza. É hora de agir com velocidade e força avassaladora.
+
+Você saca a pequena bolsa contendo o **Pó de Asfixia da Medula**. O tecido é fino, projetado para rasgar com o impacto.
+
+Você se move da sua coluna, não como um fantasma, mas como um borrão. Você corre pelo corredor de pedra, seus passos abafados soando como um tambor de guerra em seus próprios ouvidos.
+
+Você chega à curva. O posto de guarda está a 10 metros de distância. Os três guardas olham para cima de seu jogo de cartas, seus rostos uma mistura de choque e confusão ao ver sua figura escura avançando.
+
+"Intruso!" um deles grita, sua mão voando para o cabo da espada.
+
+Tarde demais.
+
+Com um movimento de arremesso fluido, você lança a bolsa. Ela navega pelo ar e se estilhaça no chão de pedra bem no meio dos três guardas.
+
+*POOF!*
+
+Uma nuvem espessa e amarelo-esverdeada explode para fora, engolindo instantaneamente a área do posto de guarda em uma névoa sufocante.
+
+**[Mestre rola as Salvaguardas de Constituição dos Guardas (DC 14)]**
+*   **Guarda 1:** Rolagem 5. **Falha.**
+*   **Guarda 2:** Rolagem 9. **Falha.**
+*   **Guarda 3:** Rolagem 3. **Falha Crítica.**
+
+O efeito é instantâneo e horrível.
+O grito do primeiro guarda se transforma em um engasgo silencioso. Ele agarra a garganta, seus olhos se arregalando de pânico enquanto seus pulmões se recusam a obedecer. Ele desaba no chão.
+O segundo guarda tenta sacar sua espada, mas seus braços ficam moles. Ele cai para o lado, seu corpo convulsionando silenciosamente.
+O terceiro, que estava de pé, simplesmente desaba como uma marionete com as cordas cortadas, seu capacete batendo no chão com um *clang* solitário.
+
+Em menos de três segundos, os três guardas estão no chão, incapacitados e se contorcendo na nuvem venenosa. O caminho está livre.
+
+Você não para para admirar seu trabalho. Você prende a respiração e atravessa a borda da nuvem, o cheiro acre do veneno arranhando sua garganta.
+
+Você está no corredor das celas. A runa de alarme está no chão à sua frente. Você dá um salto atlético sobre ela, aterrissando silenciosamente do outro lado.
+
+Você está na frente da cela de Finch. Ele está encolhido no canto, seus olhos arregalados de terror, tendo testemunhado tudo.
+
+A fechadura é pesada, de ferro anão.
+
+**[Mestre rola os dados]**
+*   **Teste de Prestidigitação (com Ferramentas de Ladrão Mestre) para arrombar a fechadura:** DC 18.
+*   **Rolagem:** d20 + 9 = 16 + 9 = **25**. (Sucesso!)
+
+Suas ferramentas de mestre entram na fechadura. Com uma série de cliques rápidos e precisos, os pinos cedem. A fechadura se abre.
+
+Você abre a porta da cela com um rangido.
+
+"Levante-se," você comanda, sua voz um rosnado baixo. "Você vem comigo. Agora."
+
+Finch soluça, mas se arrasta para ficar de pé, aterrorizado demais para desobedecer.
+
+No momento em que você o agarra pelo colarinho, pronto para arrastá-lo para fora, uma voz fala do corredor atrás de você. Uma voz feminina. Calma, fria e cheia de uma autoridade mortal.
+
+"Que impressionante. Você fez em dez segundos o que levaria a maioria das equipes de infiltração dez minutos."
+
+Você se vira.
+
+Parada na entrada do corredor das celas, bloqueando sua saída, está uma figura. Ela está vestida com uma armadura de couro preta e justa, sem insígnias. Em uma mão, ela segura uma besta de mão, já engatilhada e apontada para você. Na outra, um estilete longo e fino, sua ponta brilhando com algum líquido. Seu rosto está coberto por um capuz e uma máscara de porcelana branca, completamente sem traços, exceto por dois buracos para os olhos.
+
+Atrás dela, no posto de guarda, a nuvem de veneno começa a se dissipar.
+
+É ela. A ladra. A assassina dos agentes do Círculo. O terceiro jogador.
+
+"Eu vim buscar o lorde," a mulher mascarada diz, sua voz sem emoção. "Você fez o trabalho pesado por mim. Agradeço. Agora, entregue-o e talvez eu deixe você sair daqui vivo."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Temos o mesmo objetivo, sou inimigo do círculo, podemos trabalhar juntos.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'O impasse se estabelece, tenso e mortal. A besta de mão dela está firme, o estilete pronto. Você está entre ela e o prêmio, com um nobre choramingando agarrado ao seu colarinho.
+
+Você não entra em pânico. Você não ataca. Você negocia. A informação é sua arma.
+
+"Nós dois somos inimigos do Círculo," você diz, sua voz calma e nivelada, cortando a tensão. "Eu vi seus dois... colegas... no túnel. Bom trabalho. Rápido."
+
+A cabeça mascarada dela se inclina ligeiramente, um sinal de que ela está ouvindo, processando. Ela não esperava que você soubesse do túnel.
+
+"Você quer Finch," você continua. "Eu também. Mas não para matá-lo. Eu preciso do que ele sabe sobre o Patrono. O mesmo motivo pelo qual você, presumivelmente, matou os assassinos do Círculo antes que eles pudessem chegar aqui."
+
+Você dá um passo calculado para o lado, expondo parcialmente o trêmulo Lorde Finch, mas sem se colocar em uma posição vulnerável.
+
+"Trabalhar juntos é mais eficiente do que nos matarmos por um prisioneiro que mal consegue ficar de pé," você propõe. "Você quer o que ele sabe. Eu quero o que ele sabe. Vamos levá-lo para um local neutro e interrogá-lo juntos. Depois, decidimos o que fazer com... os restos."
+
+É uma oferta lógica, baseada em um objetivo comum. Você está apelando para o profissionalismo dela, assumindo que ela é mais do que uma simples assassina.
+
+A mulher mascarada permanece em silêncio por um longo momento. Você pode quase sentir as engrenagens de sua mente girando por trás daquela máscara branca e sem expressão. Ela avalia você, o prisioneiro, a situação.
+
+"Você é o fantasma de Dorgar," ela diz finalmente. Não é uma pergunta. "O que me garante que, uma vez que tenhamos a informação, você não me entregará ao Mestre Ferreiro em uma bandeja de prata?"
+
+A questão da confiança. O cerne de qualquer aliança nas sombras. Ela está testando você, assim como Kaelen fez.
+
+Como você responde?
+
+1.  **Garantia Mútua.** "A mesma garantia que eu tenho de que você não vai colocar um dardo envenenado nas minhas costas. Nenhum de nós pode confiar no outro. Mas ambos podemos confiar em nosso interesse próprio compartilhado em derrubar o Patrono."
+2.  **Prova de Boa Fé.** "Eu não sirvo a Dorgar. Eu sirvo ao equilíbrio. O Patrono quebrou o equilíbrio. Se você me ajudar a restaurá-lo, você não é meu inimigo."
+3.  **Uma Oferta.** "Ajude-me a extraí-lo daqui. Leve-o para o seu esconderijo. Eu irei com você. Você controla o terreno. Essa é a minha garantia." (Uma jogada de alto risco que a coloca no controle.)
+4.  **Ameaça.** "Minha garantia é que sou melhor nisso do que você. Eu passei por três de seus guardas sem matá-los. Você pode tentar a sorte, mas só um de nós sairá deste corredor."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Vou fazer a oferta', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você escolhe o caminho mais ousado. A oferta que demonstra confiança absoluta em suas próprias habilidades, entregando todo o poder situacional a ela. É uma jogada de poder disfarçada de rendição.
+
+"Aqui está a minha garantia," você diz, sua voz calma e ressoando com uma certeza inabalável. "Ajude-me a tirar Finch daqui. Nós o levaremos para o *seu* esconderijo. O local que *você* escolher. Eu irei com vocês, sozinho."
+
+Você solta o colarinho de Finch, dando-lhe um leve empurrão em sua direção. O nobre tropeça para a frente, choramingando.
+
+"Você controla o terreno. Você controla a extração. Eu serei seu convidado," você conclui. "Se você decidir me trair, estará em seu próprio território. Não há garantia melhor do que essa."
+
+A mulher mascarada fica perfeitamente imóvel. Sua oferta é tão inesperada, tão contrária a qualquer protocolo de espionagem, que a força a reavaliar completamente quem você é. Ela esperava uma luta, uma negociação tensa, uma traição. Em vez disso, você lhe ofereceu a vantagem tática suprema.
+
+Ela olha para o patético Lorde Finch, depois de volta para você. A besta de mão não vacila.
+
+"Você se colocaria voluntariamente em uma armadilha?" ela pergunta, sua voz tingida com a primeira pitada de incredulidade.
+
+"Não é uma armadilha se eu sei que estou entrando nela," você responde. "É um risco calculado. O Patrono é uma ameaça grande demais para nos preocuparmos com disputas territoriais. O que você decidir fazer comigo depois que tivermos a informação... isso determinará se somos aliados ou inimigos. A escolha será sua."
+
+O silêncio se estende. Você pode ouvir os guardas incapacitados começando a gemer, a névoa de veneno finalmente se dissipando. O tempo está se esgotando.
+
+Finalmente, ela dá um único e breve aceno de cabeça.
+
+"Aceito," ela diz. E com um movimento fluido, ela abaixa a besta de mão, apontando-a para o chão. O impasse está quebrado. Uma aliança, talvez a mais perigosa de sua vida, acaba de ser formada.
+
+"Temos que nos mover agora," ela comanda, sua voz assumindo um tom de urgência. "O túnel de onde vim é a nossa única saída. Pegue-o. Eu cubro a retaguarda."
+
+Ela se vira e começa a caminhar de volta pelo corredor principal, sua besta agora pronta para qualquer guarda que possa ter se recuperado.
+
+Você agarra o choroso Lorde Finch pelo braço, puxando-o para fora da cela. "Mova-se, ou eu o deixo aqui," você rosna. O medo o impulsiona para a frente.
+
+Você o arrasta pelo corredor, passando pelos corpos gemendo dos guardas, e entra na antiga câmara de interrogatório. A porta nova no fundo da sala está entreaberta.
+
+Você entra no túnel escavado na terra, o cheiro de solo fresco substituindo o mofo da masmorra. Os dois corpos dos agentes do Círculo ainda estão onde caíram.
+
+A mulher mascarada entra atrás de você e fecha a porta, mergulhando vocês na escuridão total.
+
+"Siga em frente," a voz dela vem da escuridão atrás de você. "O túnel leva a uma adega sob uma taverna abandonada no Distrito das Águas. É território seguro."
+
+Você começa a jornada, meio carregando, meio arrastando o nobre aterrorizado, com uma assassina misteriosa e mortal em suas costas. A extração foi um sucesso. Mas agora, você está indo para o covil dela. O jogo acaba de ficar muito mais complicado.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Pego a minha libélula que ficou sem bateria no túnel, e agora se eu sentir que ela vai usar sua besta vou ativar minha manopla.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sua mente tática está sempre um passo à frente. Em meio à escuridão e à urgência, você não esquece seus ativos.
+
+Ao passar pelos corpos dos agentes do Círculo, sua mão dispara e pega a pequena libélula mecânica do chão, onde ela caiu. O metal está frio e inerte. Você a guarda em uma bolsa, um trabalho para Zilli mais tarde.
+
+Você continua, sua Visão no Escuro transformando o túnel escuro em um corredor cinzento. Finch tropeça e geme, mas você o força a continuar, seu aperto de ferro em seu braço. Atrás de você, os passos da mulher mascarada são quase silenciosos, mas você os sente, uma presença constante e perigosa.
+
+Sua mão esquerda, equipada com a **Manopla do Desvio Arcano**, se contrai. Você não a ativa ainda. Seria um sinal de desconfiança e um desperdício de suas cargas limitadas. Em vez disso, você se prepara mentalmente. Você mantém sua consciência dividida: uma parte focada no caminho à frente e em arrastar Finch, a outra focada inteiramente na mulher atrás de você. Você escuta a menor mudança em sua respiração, o mais sutil som de um mecanismo de besta sendo movido.
+
+*Se eu ouvir o clique do gatilho, ou o assobio de um virote...* você pensa, *minha ação bônus ativa a manopla, minha reação desvia o tiro.* O plano está pronto, uma mola enrolada em sua mente, pronta para disparar.
+
+A caminhada parece uma eternidade. O túnel é longo e sinuoso. Finalmente, após o que parecem ser dez minutos, você vê uma luz fraca à frente. Uma escada de madeira leva a um alçapão.
+
+"Chegamos," a voz dela diz de trás.
+
+Você sobe a escada, empurrando Finch à sua frente. Você empurra o alçapão. Ele se abre com um rangido em uma adega escura. O ar aqui cheira a vinho azedo, poeira e madeira podre.
+
+Você empurra Finch para fora e sobe logo atrás. A mulher mascarada sobe por último, fechando o alçapão com um baque surdo. Ela acende uma pequena lanterna a óleo, e a luz bruxuleante ilumina o ambiente.
+
+Vocês estão na adega de uma taverna. Barris estão empilhados contra as paredes, cobertos de teias de aranha. Há uma escada que leva para cima.
+
+"Onde estamos?" você pergunta, sua voz ecoando no silêncio.
+
+"A ''Enguia Afogada''," ela responde. "Fechada há cinco anos. Eu a comprei através de um intermediário. Ninguém em Gloamhurst sabe que ela tem um novo dono."
+
+É o esconderijo perfeito. Anônimo, esquecido e bem no meio do distrito mais movimentado da cidade.
+
+"Suba," ela comanda, gesticulando com a cabeça para a escada. "O interrogatório será mais... confortável... lá em cima."
+
+Ela não fez nenhum movimento hostil. Sua manopla permanece desativada. Por enquanto, a trégua se mantém. Você empurra Finch em direção à escada e começa a subir para o salão principal da taverna abandonada.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Olho atentamente para o covil da assassina, vejo se tem rotas de fuga, armadilhas ou algo que possa me dizer quem ela é.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você sobe a escada, seus sentidos em alerta máximo. Você não é mais um infiltrador; você é um analista de ameaças em território inimigo. Enquanto a mulher mascarada sobe atrás de você, a luz de sua lanterna dançando nas paredes, sua mente absorve e processa cada detalhe do ambiente.
+
+Vocês emergem no salão principal da "Enguia Afogada". A luz fraca da lanterna revela um lugar congelado no tempo.
+*   **O Ambiente:** Mesas e cadeiras viradas estão cobertas por lençóis empoeirados, parecendo fantasmas em uma festa esquecida. Teias de aranha grossas como algodão pendem das vigas. O bar em si está surpreendentemente limpo, a madeira escura polida, com algumas garrafas sem rótulo alinhadas. O lugar é um paradoxo: abandonado, mas mantido.
+
+**[Mestre rola os dados]**
+*   **Teste de Percepção (Sabedoria) para análise tática:** d20 + 6
+*   **Resultado do D20:** 20 (Crítico Natural!)
+*   **Total:** 20 + 6 = **26**. (Você não vê apenas a sala. Você lê sua alma.)
+
+Seus olhos de especialista varrem o salão, e você vê o que um olhar comum jamais notaria.
+*   **Rotas de Fuga:** Você identifica três.
+    1.  A porta da frente, barricada por dentro, mas projetada para ser removida rapidamente.
+    2.  Uma janela nos fundos, atrás do bar, que leva a um beco estreito que deságua diretamente em um canal. Uma fuga pela água.
+    3.  Um alçapão atrás do bar, diferente do que leva à adega. Este provavelmente leva aos esgotos, conectando-se à rede da cidade. Ela tem múltiplas opções de fuga para qualquer cenário.
+*   **Armadilhas:** Seu **Amuleto do Olho Mecânico** permanece silencioso. Não há armadilhas mágicas. No entanto, você nota fios finos e escuros esticados na altura dos tornozelos perto das entradas principais. Eles estão conectados a pequenos sinos escondidos nas sombras. Armadilhas de alerta precoce, não letais. Simples, eficientes. O trabalho de um profissional.
+*   **Pistas de Identidade:** É aqui que sua percepção crítica brilha. Não há nada pessoal. Sem cartas, sem roupas, sem decorações. O lugar é estéril como o esconderijo de Kaelen. Mas então, você vê.
+    1.  **A Escolha das Armas:** No bar, ao lado das garrafas, há um kit de manutenção. Nele, há frascos de veneno e óleo para bestas. Mas há também uma pedra de amolar específica, do tipo usado para lâminas com uma curvatura distinta... uma curvatura como a de uma cimitarra ou um falchion. Não é uma arma comum em Gloamhurst.
+    2.  **O Cheiro Sutil:** Sob o cheiro de poeira e álcool, há outro aroma. Sândalo. Leve, quase imperceptível. Não é um perfume, mas talvez o cheiro de um sabão ou óleo. É caro. Exótico.
+    3.  **O Detalhe Escondido:** Atrás de uma garrafa no bar, algo reflete a luz da lanterna. É uma única moeda de ouro. Você a reconhece. Não é da cunhagem local. Tem a imagem de um sol com raios estilizados de um lado e um navio do outro. É uma moeda de Calimshan, uma terra desértica e distante, ao sul.
+
+As peças se juntam em sua mente. Armas curvas, sândalo, uma moeda de Calimshan. A mulher mascarada não é de Gloamhurst. Ela é estrangeira, provavelmente do sul distante. Uma assassina com um conjunto de habilidades e um histórico que não são nativos destas terras pantanosas.
+
+Ela joga o choroso Lorde Finch em uma cadeira, o som ecoando no salão silencioso. Ela coloca a lanterna no bar, a luz criando longas sombras dançantes.
+
+"Ele é todo seu," ela diz, sua voz sem emoção por trás da máscara. "Faça-o falar."
+
+Ela se encosta no bar, a besta de mão relaxada, mas pronta. Ela lhe dá a liderança no interrogatório, observando, avaliando.
+
+O nobre trêmulo está à sua mercê. A assassina misteriosa o observa. O que você pergunta primeiro?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Antes de começarmos, creio que você tem todas as vantagens, porque você não faz o começo do interrogatório, eu assumo se eu tiver uma pergunta específica.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você desafia as expectativas dela mais uma vez. Em vez de assumir o controle, você o cede. É um teste, uma demonstração de que você está genuinamente interessado em parceria, não em dominação.
+
+"Antes de começarmos," você diz, sua voz calma e ressoando no salão empoeirado. "Você tem a vantagem do terreno. Você neutralizou os guardas do Círculo. Parece justo que você inicie o interrogatório."
+
+Você se afasta de Finch, movendo-se para as sombras perto de uma janela coberta de poeira, deliberadamente se colocando em uma posição menos dominante. "Eu assumirei se tiver uma pergunta específica. Lidere o caminho."
+
+A figura mascarada fica imóvel por um momento, a máscara de porcelana branca escondendo sua reação. Ela esperava que você, o agente de Dorgar, tomasse a liderança para extrair informações para seu mestre. Sua disposição em cooperar, em ser um parceiro igual, parece desarmá-la.
+
+Ela dá um único e breve aceno de cabeça. "Justo."
+
+Ela se vira para o Lorde Finch, que se encolhe na cadeira sob seu olhar. Ela não se aproxima dele com ameaças ou violência. Ela se aproxima do bar, pega uma das garrafas sem rótulo e um copo limpo. Ela serve uma dose de um líquido âmbar. O cheiro de brandy caro enche o ar.
+
+Ela desliza o copo pela mesa até que ele pare em frente a Finch.
+
+"Beba," ela comanda. A voz dela não é alta, mas carrega um peso que não permite desobediência.
+
+Finch, tremendo, pega o copo com as duas mãos e o bebe em um único gole, engasgando.
+
+"Agora," a mulher mascarada diz, sua voz se tornando suave como seda, mas com um fio de aço por baixo. "Nós sabemos que você é um peão, Lorde Finch. Um homem pequeno com grandes ambições que se envolveu com pessoas muito perigosas. Nós não estamos aqui para julgá-lo. Estamos aqui porque você é a única pessoa viva que pode nos dar o que queremos."
+
+Ela se inclina para a frente, a luz da lanterna refletindo em sua máscara sem traços. "Eu quero um nome. O nome do homem que lhe deu ordens em nome do Patrono. Não o intermediário, Malakai. Eu quero o nome do superior dele. A pessoa que realmente puxa as cordas."
+
+Finch começa a balbuciar. "Eu não sei! Eu juro! Eu só falava com Mestre Malakai!"
+
+A mulher não levanta a voz. Ela não o ameaça. Ela simplesmente pega o estilete de seu cinto. Ela não o aponta para ele. Em vez disso, ela o usa para limpar a sujeira sob uma de suas unhas com uma calma aterrorizante.
+
+"Pense com cuidado, Lorde Finch," ela diz, sua voz um sussurro mortal. "Malakai era um servo. Servos são arrogantes. Eles gostam de se gabar. Eles deixam escapar nomes para impressionar peões como você. Um nome. Um título. Um lugar de encontro secreto. Qualquer coisa. Ou este interrogatório, que está sendo bastante civilizado, vai se tornar... artístico."
+
+O terror nos olhos de Finch é absoluto. Ele está sendo quebrado, não pela dor, mas pela promessa fria e calculada dela.
+
+"Havia... havia um lugar!" ele gagueja, as palavras tropeçando umas nas outras. "Malakai me disse para nunca ir lá. Ele disse que era onde o ''círculo interno'' se encontrava. Onde ele recebia suas ordens!"
+
+"Onde?" a voz dela é afiada.
+
+"O Orquidário da Meia-Noite!" Finch soluça. "É uma estufa de vidro no telhado da mansão da Família Vance! Eles cultivam orquídeas lunares raras lá! Malakai disse que era o único lugar na cidade onde você podia falar sem ser ouvido, porque as plantas... as plantas absorvem os sons!"
+
+A revelação cai na sala com o peso de uma mortalha.
+
+A mansão da Família Vance. A família da **Prefeita Elara Vance.**
+
+O círculo interno do Patrono está se reunindo no telhado da casa da líder da cidade. Isso significa uma de duas coisas: ou eles são incrivelmente ousados, ou... a própria Prefeita está envolvida.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Fico surpreso, pensei que dê todos, a prefeita estaria longe disso, afinal, se ela estivesse apoiando o patrono, ele teria o controle da cidade bem mais fácil. Pergunto isso a ele.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A informação o atinge com a força de um golpe físico. A Prefeita. A líder aparentemente incorruptível de Gloamhurst, a mulher a quem você planejava oferecer seus serviços. A ideia de ela estar envolvida parece... errada. Contraditória.
+
+Você sai das sombras, sua mente de estrategista trabalhando furiosamente para processar a implicação.
+
+"Isso não faz sentido," você diz, sua voz cortando o interrogatório. A mulher mascarada se vira para você, e Finch olha em sua direção com olhos arregalados e suplicantes.
+
+"Por que todo esse jogo de sombras?" você pergunta, dirigindo-se mais a si mesmo e à mulher do que a Finch. "Se o Patrono tem a Prefeita, ele já tem o controle da cidade. Ele comanda a Guarda da Cidade. Ele pode aprovar leis. Por que ele precisaria de um livro de chantagem? Por que se preocupar com guildas e conspirações secretas?"
+
+Sua lógica é impecável. Se o Patrono já controla a peça mais poderosa do tabuleiro, o resto do jogo é uma mera formalidade. A complexidade do plano deles, a necessidade de um golpe silencioso, sugere que eles *não* a têm.
+
+A mulher mascarada considera suas palavras. "Talvez ela seja uma recruta recente," ela pondera. "Ou talvez a lealdade dela seja... instável."
+
+Você se vira para Finch, sua expressão se tornando uma máscara de intensidade fria. Você se agacha na frente dele, forçando-o a encontrar seu olhar.
+
+"Finch," sua voz é baixa e perigosa. "O Orquidário. Malakai disse que a Prefeita sabe sobre essas reuniões? Ela participa?"
+
+"Não! Não, eu não sei!" ele guincha, recuando em sua cadeira. "Ele nunca mencionou a Prefeita! Ele só disse que a mansão era segura! Que o chefe da guarda da mansão, Capitão Valerius... ele era um deles! Ele garantia que o telhado ficasse... privado!"
+
+Outro nome. Outra peça. Capitão Valerius. O homem encarregado da segurança pessoal da Prefeita é um agente do Patrono.
+
+A verdade se cristaliza, mais sutil e sinistra do que a traição direta.
+
+"Ele não tem a Prefeita," você diz, levantando-se e olhando para a mulher mascarada. "Ele a *cercou*. Ele colocou seu próprio homem no comando da segurança dela. Ele está usando a casa dela como seu covil, bem debaixo do nariz dela. É o último lugar que alguém pensaria em procurar."
+
+É um ato de audácia e insulto supremos. O Patrono não está apenas tentando tomar a cidade; ele está zombando de sua líder, transformando seu santuário em seu ninho de víboras.
+
+A mulher mascarada permanece em silêncio, mas você pode sentir a concordância dela.
+
+"O que mais, Finch?" ela pressiona, sua voz voltando ao interrogatório. "O Capitão Valerius. O que você sabe sobre ele?"
+
+"Nada!" Finch soluça. "Apenas que ele era leal ao Patrono. E que ele era... perigoso. Malakai o temia."
+
+Vocês extraíram tudo o que ele sabe. O nome do local de encontro do círculo interno e o nome do guardião que o protege. A utilidade de Lorde Finch chegou ao fim.
+
+Ele olha de você para a mulher mascarada, o terror de sua situação finalmente o atingindo em cheio. "O que... o que vai acontecer comigo agora?" ele sussurra.
+
+A mulher mascarada se vira para você. A máscara de porcelana sem traços a torna ilegível. A questão paira no ar entre vocês.
+
+O que fazer com a ponta solta?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Não podemos deixar ele viver, ele é um espinho para todos nós.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Sua avaliação é instantânea, fria e pragmática. Finch não é um ativo. Ele é um passivo. Um homem fraco que já traiu um mestre e certamente trairia outro para salvar a própria pele. Deixá-lo viver é plantar a semente de uma futura traição.
+
+"Ele não pode viver," você afirma, sua voz desprovida de emoção. Não é uma sugestão. É uma conclusão tática. "Ele é uma ponta solta que vai se desfazer e nos levar junto com ela."
+
+Lorde Finch solta um som engasgado, um gemido de puro terror. Ele tenta se levantar, talvez para implorar ou correr, mas suas pernas não o obedecem.
+
+A mulher mascarada o observa por um momento, e depois se vira para você. Ela não argumenta. Ela não questiona sua lógica. Ela simplesmente dá um único e lento aceno de cabeça. Ela concorda. A sentença está proferida.
+
+Ela se vira e caminha em direção ao bar, dando-lhe as costas. É um gesto deliberado. Ela está lhe dando a responsabilidade – ou o privilégio – de executar a sentença. É um teste final de sua natureza, um rito de passagem para esta nova e sombria aliança.
+
+Você se vira para Lorde Finch. Os olhos dele estão arregalados, cheios de lágrimas e uma súplica silenciosa. Ele abre a boca, mas nenhum som sai.
+
+Você saca sua adaga, **Asa da Serpente**. A lâmina +1 brilha fracamente à luz da lanterna.
+
+Você não prolonga o momento. Não há crueldade, nem prazer. Apenas a finalização de uma tarefa.
+
+Com um movimento rápido e eficiente, você dá um passo à frente e corta a garganta dele. É um único corte, profundo e preciso. O som é um gorgolejo úmido. O sangue espirra na cadeira e no chão. O corpo de Finch convulsiona por um momento e depois fica imóvel.
+
+O silêncio retorna ao salão da taverna, mais pesado do que antes.
+
+Você limpa sua lâmina em um dos lençóis empoeirados, o tecido branco se manchando de um vermelho escuro. Você embainha sua adaga. O trabalho está feito.
+
+A mulher mascarada se vira, seu olhar passando pelo corpo e depois se fixando em você. A máscara de porcelana não revela nada, mas você sente que passou no teste dela. Você provou que tem o estômago para fazer o que é necessário.
+
+"O que agora?" ela pergunta, sua voz quebrando o silêncio fúnebre.
+
+A pergunta paira no ar. Vocês têm um novo alvo: o Orquidário da Meia-Noite. E um novo inimigo guardando-o: Capitão Valerius. E vocês têm um corpo para se livrar.
+
+"Temos que nos livrar do corpo," você diz, declarando o óbvio. "E então, precisamos planejar nossa visita à Prefeita."', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Gostaria de saber seu nome, não não for possível, saber do que posso chamá-la. Pergunto o seu objetivo como uma pessoa do Sul aqui nesta cidade pântanosa, o patrono lhe fez algo? Respeitosamente ofereço a mesma oferta que fiz ao flecheito a ela. Dizendo os meus motivos e intenções.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Com o corpo de Finch esfriando na cadeira, o ar entre vocês muda. O ato final de pragmatismo compartilhado dissolveu a última barreira de desconfiança. Vocês não são mais adversários em potencial; vocês são co-conspiradores, ligados por um segredo sangrento.
+
+Você se vira para ela, não como um colega assassino, mas como um igual buscando entendimento.
+
+"Nós vamos trabalhar juntos," você começa, sua voz calma e respeitosa. "Eu gostaria de saber seu nome. Se isso não for possível, como devo chamá-la?"
+
+A máscara sem traços o encara. O silêncio se estende, e você se pergunta se ultrapassou um limite.
+
+"Nomes são uma fraqueza," ela finalmente responde, sua voz um pouco menos fria do que antes. "Mas você pode me chamar de ''Zafira''." O nome soa exótico, como o cheiro de sândalo que a envolve.
+
+"Zafira," você repete, testando o nome. "Você não é daqui. Suas armas, suas moedas... você é do Sul. O que uma mulher de Calimshan quer em uma cidade pantanosa como esta? O Patrono lhe fez algo pessoal?"
+
+Zafira se afasta do bar e caminha até uma janela, olhando para a noite lá fora através de uma fresta na madeira.
+
+"Minha antiga guilda, a Lâmina Velada de Calimport, foi contratada pelo Patrono há dois anos," ela diz, sua voz distante, carregada de memória. "A tarefa era ''adquirir'' um artefato de um nobre viajante. Nós o fizemos. Mas o Patrono decidiu que testemunhas eram um passivo. Ele traiu o contrato. Ele usou o Círculo para emboscar minha equipe. Eu fui a única que escapou."
+
+Ela se vira para você, e por trás dos buracos dos olhos da máscara, você pode sentir a intensidade de um fogo frio.
+
+"Ele não me fez algo pessoal, Askellad. Ele aniquilou minha família. Minha casa. Minha vida. Eu não estou aqui por equilíbrio, ou por Gloamhurst. Estou aqui por vingança. Uma vingança que pretendo cobrar com juros."
+
+O motivo dela é puro, afiado e absoluto. Ela não é uma variável como Kaelen, ou um protetor como Dorgar. Ela é uma flecha de vingança, apontada para o coração do Patrono.
+
+Você acena, aceitando a verdade dela. E então, você oferece a sua.
+
+"Eu entendo," você diz com sinceridade. "Então saiba disto. Eu não sirvo a um mestre. Eu sirvo a um propósito: restaurar o equilíbrio que o Patrono quebrou. Dorgar é meu aliado porque seus objetivos se alinham com os meus. Mas se ele se tornar a doença que caçamos, eu o removerei."
+
+Você olha para ela, selando o pacto. "Nossos motivos podem ser diferentes, Zafira. Você busca vingança, eu busco equilíbrio. Mas nosso inimigo é o mesmo. E contra um inimigo como este, qualquer aliado é valioso. Eu ofereço a você a mesma aliança que ofereci a Kaelen. Vamos caçar juntos. E quando o Patrono tiver caído... nós seguimos caminhos separados, sem dívidas entre nós."
+
+Zafira considera sua oferta, a proposta de uma aliança tática, não de uma amizade. Uma parceria com um fim claro.
+
+"Uma aliança de conveniência," ela diz. "Lógica. Eficiente."
+
+Ela estende a mão enluvada, não para um aperto de mão, mas com a palma para cima. "Eu aceito seus termos, Askellad. Nossos caminhos se unem até que o sangue do Patrono seja derramado."
+
+Você aperta a mão dela. O acordo está feito.
+
+"Agora," ela diz, retirando a mão e voltando ao pragmatismo. "Temos um corpo. O canal atrás da taverna deságua no rio principal. É a melhor opção."
+
+Ela está certa. O próximo passo é apagar os vestígios. A guerra pode esperar pela limpeza.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Ajudo ela a se livrar do corpo e limpar o sangue, e penso que preciso de um banho urgente após passar pelo esgoto. Pergunto para ela se ela quer vir comigo à sala de guerra, mostrarei nossos planos para a queda do patrono.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '"Vamos ao trabalho," você concorda.
+
+O que se segue é uma demonstração de eficiência sombria. Vocês dois trabalham em um silêncio quase perfeito, cada um antecipando os movimentos do outro.
+*   Você levanta o corpo de Finch, que é um peso morto e desajeitado, e o carrega para os fundos da taverna.
+*   Zafira pega um balde e um pano do bar. Ela não usa água, mas um álcool forte de uma das garrafas, que limpa o sangue do chão e da cadeira de forma eficaz, ao mesmo tempo que ajuda a esterilizar a área.
+*   Juntos, vocês abrem a porta dos fundos que leva ao beco estreito. O cheiro de água salgada do canal próximo', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Continue a narração.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', '"Vamos ao trabalho," você concorda.
+
+O que se segue é uma demonstração de eficiência sombria. Vocês dois trabalham em um silêncio quase perfeito, cada um antecipando os movimentos do outro.
+*   Você levanta o corpo de Finch, que é um peso morto e desajeitado, e o carrega para os fundos da taverna.
+*   Zafira pega um balde e um pano do bar. Ela não usa água, mas um álcool forte de uma das garrafas, que limpa o sangue do chão e da cadeira de', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Refaça a narração anterior.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Você olha para o corpo, depois para Zafira. A aliança foi selada em palavras; agora será cimentada em ação.
+
+"Vamos ao trabalho," você diz.
+
+O que se segue é uma demonstração de eficiência sombria. Vocês dois trabalham em um silêncio quase perfeito, uma dança de profissionais onde cada movimento é antecipado e complementado.
+*   Você se encarrega do peso morto de Finch, içando o corpo sobre o ombro.
+*   Enquanto isso, Zafira lida com os vestígios. Ela não usa água. Ela pega uma garrafa de álcool forte do bar, encharca um pano e limpa metodicamente o sangue da cadeira e do chão de madeira. O álcool evapora rapidamente, não deixando manchas de água e eliminando o cheiro de sangue com seu próprio aroma pungente.
+*   Juntos, vocês levam o corpo para o beco dos fundos. A porta se abre para o cheiro de sal e água parada do canal. Sob o manto da noite, não há ninguém para testemunhar. Com um esforço combinado e um baque surdo e úmido, o problema chamado Lorde Finch desaparece nas águas escuras e indiferentes de Gloamhurst. A corrente o levará para longe, para se tornar comida para os caranguejos.
+
+De volta ao salão silencioso da taverna, o ar está limpo, exceto pelo cheiro de álcool. A evidência se foi. Uma única e premente necessidade domina seus pensamentos: um banho. A sujeira do esgoto ainda parece se agarrar a você, um lembrete físico da sujeira moral e literal de seu trabalho. É um ritual que você precisa cumprir.
+
+Mas primeiro, a aliança. Você se vira para Zafira, que está guardando seus materiais de limpeza com a mesma calma com que manejaria uma arma.
+
+"A informação foi extraída. A ponta solta foi cortada," você diz, estabelecendo os fatos. "O próximo passo é o planejamento. E para isso, meus aliados precisam saber o que descobrimos."
+
+Você a encara, a máscara de porcelana ainda escondendo sua expressão, mas a oferta é clara em sua voz.
+
+"Você quer vir comigo? Para a nossa Sala de Guerra? É hora de você conhecer os outros jogadores e ver o quadro completo do nosso plano para derrubar o Patrono."
+
+A oferta paira no ar entre vocês. É um convite para o círculo interno, uma demonstração de confiança total. Ela o ajudará a planejar a guerra, ou prefere permanecer uma sombra independente, usando-os apenas para seus próprios fins de vingança?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'E qual será a sua escolha?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A pergunta', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'E qual será a sua escolha?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'Zafira fica em silêncio por um longo momento. A máscara de porcelana é uma barreira impenetrável, mas você sente a intensidade de sua avaliação. Ela não está pensando em emoções; ela está calculando riscos e recompensas.
+
+"Ir para o covil de um mestre de guilda," ela diz finalmente, sua voz, embora ainda calma, carrega um fio de cautela. "É um risco que eu normalmente não correria. Expor-me a mais jogadores... é imprudente."
+
+Ela dá um passo para mais perto de você, seus olhos fixos nos seus. "Mas você, Askellad, mostrou-se... inesperado. Sua honestidade e sua eficiência são raras. E a ameaça do Patrono é grande demais para ser ignorada."
+
+Ela olha para o corpo de Finch. "Temos a chave. Mas precisamos do mapa completo. E a guerra contra o Patrono não será vencida apenas nas sombras. Será vencida com informações e força bruta."
+
+Um suspiro quase inaudível escapa dela. "Eu aceito," ela diz, a palavra soando como uma concessão estratégica, não um ato de confiança. "Vou com você para a sua Sala de Guerra. Compartilharei o que sei. Mas saiba que minha lealdade é para com a queda do Patrono, e nada mais."
+
+Ela olha para você, e há um brilho de desafio em seus olhos. "E se eu sentir que esta ''Sala de Guerra'' se torna uma armadilha, ou que meus objetivos não são mais servidos... eu desaparecerei. Sem aviso. Sem dívidas."
+
+"Entendido," você responde. É tudo o que você esperava. Uma aliança de pragmatismo, forjada na necessidade e na vingança.
+
+"Então, vamos," ela diz, e se vira para a porta dos fundos que leva ao beco. "O que você tem em mente para uma entrada discreta em uma fortaleza anã?"
+
+Você sorri levemente, um gesto que ela provavelmente não vê. "Eu conheço o caminho. E eles estão esperando."
+
+Vocês dois, Askellad, o Fantasma, e Zafira, a Víbora de Calimshan, emergem da taverna abandonada. A noite de Gloamhurst os acolhe. A névoa, o Véu que você ajudou a criar, os envolve como uma mortalha. Vocês se movem pelas ruas escuras, sombras entre as sombras, dois predadores unindo forças.
+
+A jornada de volta à Guilda dos Ferreiros é uma demonstração silenciosa de maestria em movimento furtivo. Vocês dois se complementam, cada um cobrindo os ângulos do outro, deslizando pelas ruas e becos com uma graça sobrenatural. A presença de Zafira, com sua vigilância constante e seus movimentos fluidos, é um lembrete vívido de que você não está mais sozinho neste nível de jogo.
+
+Vocês chegam aos fundos da Guilda dos Ferreiros. Você abre a porta de serviço que usou antes, e juntos, vocês entram nos corredores silenciosos. Você a conduz pelo mesmo caminho que levou Kaelen, até a porta redonda de ferro da Sala de Guerra.
+
+Você bate seu código.
+
+A porta se abre. Dorgar e Seraphina, ainda curvados sobre o mapa, levantam a cabeça. Kaelen, que estava sentado em silêncio, também se volta.
+
+Suas expressões mudam de antecipação para choque quando veem você, e ao seu lado, a figura mascarada e silenciosa de Zafira.
+
+"Askellad," Dorgar começa, sua voz um rosnado de surpresa e cautela, sua mão se movendo para o martelo. Seraphina também se enrijece.
+
+"Mestre Dorgar, Mestra Seraphina," você anuncia, sua voz calma e clara. "Conheçam Zafira. Ela foi de grande ajuda na extração de Finch. E ela tem informações cruciais sobre o Patrono. Ela é a nossa nova aliada."
+
+Zafira dá um passo à frente, sua máscara de porcelana voltada para cada um deles. Ela não diz nada. Ela simplesmente observa, avaliando a reação deles. A tensão na sala é quase palpável.
+
+A aliança de quatro frentes está completa. O quarteto improvável de Gloamhurst está agora na mesma sala, unido por um inimigo comum e uma teia de segredos. A guerra contra o Patrono está prestes a entrar em sua fase mais perigosa.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Acho que temos um time improvável agora. Quais serão nossos próximos passos?', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A tensão na Sala de Guerra é espessa o suficiente para ser cortada com uma faca. Dorgar olha de', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'user', 'Narre novamente.', '2025-08-20T00:49:04.018Z'),
+('b9xzyx67w', 'model', 'A tensão na Sala de Guerra é palpessa o suficiente para ser cortada com uma faca. Dorgar olha de você para Zafira, seus olhos de brasa queimando com uma mistura de surpresa, ceticismo e, finalmente, um reconhecimento relutante. Seraphina, sempre a estrategista, avalia Zafira com uma intensidade silenciosa. Kaelen, o mais acostumado a operar nas sombras, dá um leve aceno de cabeça para Zafira, um reconhecimento de profissional para profissional.
+
+"Acho que temos um time improvável agora," você diz, quebrando o silêncio. Sua voz é calma, mas carrega o peso de uma nova autoridade. Você está unindo essas peças perigosas.
+
+Dorgar bufa, um som que é metade surpresa, metade aprovação. "Improvável? Eu chamaria isso de... uma coleção de espinhos. Mas talvez espinhos sejam o que precisamos para espetar esta cobra." Ele gesticula para a mesa. "Sente-se, Zafira. Você é a última peça deste quebra-cabeça. Compartilhe o que sabe."
+
+Zafira se move com a fluidez de uma sombra, puxando uma cadeira e sentando-se. Ela não perde tempo com floreios. Sua voz é fria, direta, e carregada com o peso da vingança.
+
+"Lorde Finch me deu o local do Orquidário da Meia-Noite," ela começa, e a atenção de todos se fixa nela. "É uma estufa de vidro no telhado da mansão da Prefeita Elara Vance. É onde o círculo interno do Patrono se reúne. E a segurança é comandada por um homem leal a ele: Capitão Valerius."
+
+Um silêncio chocado cai sobre a sala. A implicação de que o Patrono opera sob o nariz da Prefeita, dentro de sua própria casa, é um golpe.
+
+"Capitão Valerius?" Seraphina sussurra, incrédula. "O chefe da guarda pessoal da Prefeita? Isso é... audacioso."
+
+"Mais do que audacioso," Kaelen acrescenta, sua voz baixa. "É um insulto. Uma prova de domínio."
+
+Dorgar bate o punho na mesa. "Então, o Patrono não tem a Prefeita. Ele a cercou. Ele a usa como escudo. E a casa dela é o ninho dele." Ele olha para você. "E Finch? Onde está o covarde?"
+
+Você encontra o olhar de Dorgar. "Finch não é mais uma preocupação. Ele não resistiu à extração de informações. E não resistirá a mais nada." A implicação é clara.
+
+Dorgar acena com a cabeça, uma aprovação sombria. Seraphina e Kaelen também entendem. A ponta solta foi cortada. A aliança é brutalmente pragmática.
+
+"Temos um alvo," Dorgar declara, batendo o dedo no mapa. "O Orquidário da Meia-Noite. A mansão Vance. O covil do Patrono."
+
+Ele olha para o grupo improvável reunido em sua Sala de Guerra. "Quais serão nossos próximos passos? Como derrubamos a cobra em seu próprio ninho?"
+
+A questão é lançada. O planejamento começa de verdade.
+
+Você tem um time:
+*   **Dorgar:** O Poder. Mestre da Guilda dos Ferreiros, recursos, força bruta, pragmatismo.
+*   **Seraphina:** A Inteligência. Mestra da Guilda dos Tecelões, rede de espiões, conhecimento político.
+*   **Kaelen:** O Conhecimento Interno. Ex-membro do Círculo, especialista em infiltração, táticas e protocolos do inimigo.
+*   **Zafira:** A Lâmina Estrangeira. Assassina de Calimshan, especialista em execução, motivação pessoal.
+*   **Askellad:** O Fantasma. Você. O ponto central, o executor, o elo entre todos.
+
+A questão do "próximo passo" é crucial. Quais são as prioridades?
+
+1.  **Reconhecimento Detalhado:** Focar na Mansão Vance e no Orquidário. Kaelen e Zafira podem ter informações sobre isso.
+2.  **Neutralizar Valerius:** O Capitão da Guarda é a primeira linha de defesa. Ele precisa ser removido ou contornado.
+3.  **Força Bruta:** Planejar um ataque direto ao Orquidário.
+4.  **Desinformação:** Usar o livro de contabilidade para criar caos e distrações dentro do Círculo.
+5.  **Proteger Ativos:** Garantir a segurança da Prefeita Vance, mesmo que ela não saiba que está em perigo.', '2025-08-20T00:49:04.018Z');
+
+-- Verificar dados inseridos
+SELECT 'CHATS INSERIDOS:' as info;
+SELECT id, title, model, created_at FROM chats WHERE id = 'b9xzyx67w';
+
+SELECT 'MENSAGENS INSERIDAS:' as info;
+SELECT chat_id, role, LEFT(content, 50) as content_preview, created_at 
+FROM messages 
+WHERE chat_id = 'b9xzyx67w' 
+ORDER BY created_at;
+
+SELECT 'TOTAL DE MENSAGENS:' as info;
+SELECT COUNT(*) as total_messages FROM messages WHERE chat_id = 'b9xzyx67w';

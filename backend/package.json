@@ -1,14 +1,14 @@
 {
   "name": "gemini-chat-backend",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Backend para sistema de chat com Gemini AI - Cloud Version",
   "main": "server-cloud.js",
   "scripts": {
     "start": "node server-cloud.js",
     "dev": "nodemon server.js",
     "build": "npm rebuild && echo 'Build completed'",
-    "postinstall": "npm rebuild pg",
-    "prestart": "node -e \"try { require('pg'); console.log('✅ pg module available'); } catch(e) { console.log('❌ pg module not available:', e.message); }\"",
+    "postinstall": "npm rebuild pg || echo 'pg rebuild failed, continuing...'",
+    "prestart": "node -e \"console.log('🔍 Checking pg module...'); try { require('pg'); console.log('✅ pg module available'); } catch(e) { console.log('❌ pg module not available:', e.message); }\"",
     "migrate": "node scripts/migrate-db.js",
     "monitor": "node ../monitor-system.js",
     "backup": "node ../monitor-system.js backup",

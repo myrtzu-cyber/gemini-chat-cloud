@@ -543,7 +543,7 @@ class GeminiChatMobile {
         
         // Informações básicas da aplicação
         const appName = "Mestre Gemini Mobile";
-        const appVersion = "2.0.1";
+        const appVersion = "2.0.2";
         const buildDate = this.getBuildDate();
 
         console.log('[VERSION] Dados:', { appName, appVersion, buildDate });

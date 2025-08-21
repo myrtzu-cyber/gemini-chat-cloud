@@ -12,10 +12,14 @@ class DatabaseFactory {
         
         console.log('🏭 DatabaseFactory: Starting database initialization...');
         console.log(`🔗 DATABASE_URL configured: ${!!DATABASE_URL}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`📍 Platform: ${process.platform}`);
+        console.log(`📍 Node version: ${process.version}`);
         
         if (DATABASE_URL) {
             console.log(`🔗 DATABASE_URL length: ${DATABASE_URL.length} characters`);
             console.log(`🔗 DATABASE_URL starts with: ${DATABASE_URL.substring(0, 20)}...`);
+            console.log(`🔗 DATABASE_URL contains 'render.com': ${DATABASE_URL.includes('render.com')}`);
         }
 
         // Try PostgreSQL first if DATABASE_URL is available
@@ -55,7 +59,18 @@ class DatabaseFactory {
 
             } catch (error) {
                 console.log('❌ PostgreSQL initialization failed:', error.message);
-                console.log('📍 Full error:', error.stack);
+                console.log('📍 Error code:', error.code);
+                console.log('📍 Error name:', error.name);
+                console.log('📍 Full error stack:', error.stack);
+                
+                if (error.message.includes('pg module')) {
+                    console.log('🔧 pg module issue detected - checking installation...');
+                } else if (error.message.includes('connection')) {
+                    console.log('🌐 Connection issue detected - checking DATABASE_URL and network...');
+                } else {
+                    console.log('❓ Unknown PostgreSQL error type');
+                }
+                
                 console.log('💾 Falling back to SimpleDatabase...');
             }
         } else {

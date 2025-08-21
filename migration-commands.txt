@@ -1,0 +1,10 @@
+# Comandos para migração via API
+
+# Configure sua URL do app Render:
+# APP_URL=https://seu-app.onrender.com
+
+# Migrar chat: Mestre
+curl -X POST "$APP_URL/api/chats" ^
+  -H "Content-Type: application/json" ^
+  -d '{"id":"b9xzyx67w","title":"Mestre","model":"gemini-2.5-pro","messages":[]}'
+
