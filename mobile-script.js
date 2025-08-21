@@ -4395,12 +4395,16 @@ ${message}`;
 
     async loadChat(chatId) {
         try {
+            console.log(`[DEBUG] loadChat: Carregando conversa ${chatId}`);
+            
             const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`);
             if (!response.ok) {
                 throw new Error('Falha ao carregar a conversa.');
             }
             const chat = await response.json();
 
+            // CORREÇÃO CRÍTICA: Garantir que o ID da conversa seja definido ANTES de qualquer operação
+            console.log(`[DEBUG] loadChat: Definindo currentChatId para ${chat.id}`);
             this.currentChatId = chat.id;
             this.messages = chat.messages || [];
             this.currentChatTitle = chat.title || 'Mestre';
@@ -4449,6 +4453,16 @@ ${message}`;
                 this.addMessageToUI(msg.sender, msg.content, msg.files, msg.id, status);
             });
             this.scrollToBottom(true); // Força a rolagem completa ao carregar
+            
+            // CORREÇÃO ADICIONAL: Verificar se o ID foi mantido após todas as operações
+            console.log(`[DEBUG] loadChat: Verificação final - currentChatId: ${this.currentChatId}`);
+            if (this.currentChatId !== chat.id) {
+                console.error(`[DEBUG] loadChat: ERRO CRÍTICO - ID da conversa foi alterado durante o carregamento!`);
+                console.error(`[DEBUG] loadChat: Esperado: ${chat.id}, Atual: ${this.currentChatId}`);
+                // Forçar correção
+                this.currentChatId = chat.id;
+                console.log(`[DEBUG] loadChat: ID corrigido para: ${this.currentChatId}`);
+            }
             
         } catch (error) {
             console.error('Erro ao carregar conversa:', error);
