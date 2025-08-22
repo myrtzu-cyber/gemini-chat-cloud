@@ -3592,7 +3592,12 @@ ${message}`;
         if (message && message.trim() !== '') {
             // Add formatting reinforcement to the message
             const messageWithFormatting = this.addFormattingReinforcement(message);
-            currentUserMessageParts.push({ text: String(messageWithFormatting) });
+            
+            // Adicionar instrução de narração automaticamente ao final da mensagem
+            const narrativeInstruction = '\n\nMestre, com base na "AÇÃO MAIS RECENTE DO JOGADOR", narre os resultados, as reações dos NPCs e do ambiente. Descreva a cena e avance a história';
+            const messageWithNarrative = messageWithFormatting + narrativeInstruction;
+            
+            currentUserMessageParts.push({ text: String(messageWithNarrative) });
         }
         
         // Adicionar arquivos anexos da mensagem atual
