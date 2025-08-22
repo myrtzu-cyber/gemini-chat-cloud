@@ -114,21 +114,78 @@
                         <button id="testConnection" class="mobile-btn secondary">Testar</button>
                     </div>
 
-                    <!-- Informações da Versão -->
-                    <div class="setting-group version-info">
-                        <label>📋 Informações da Aplicação:</label>
-                        <div class="version-details">
-                            <div class="version-item">
-                                <span class="version-label">Versão:</span>
-                                <span id="appVersion" class="version-value">2.0.2</span>
+                    <!-- Abas de Configurações -->
+                    <div class="settings-tabs">
+                        <button class="settings-tab-btn active" data-tab="general">⚙️ Geral</button>
+                        <button class="settings-tab-btn" data-tab="logs">📋 Logs</button>
+                    </div>
+
+                    <!-- Aba Geral -->
+                    <div id="generalTab" class="settings-tab-content active">
+                        <!-- Informações da Versão -->
+                        <div class="setting-group version-info">
+                            <label>📋 Informações da Aplicação:</label>
+                            <div class="version-details">
+                                <div class="version-item">
+                                    <span class="version-label">Versão:</span>
+                                    <span id="appVersion" class="version-value">2.0.2</span>
+                                </div>
+                                <div class="version-item">
+                                    <span class="version-label">Nome:</span>
+                                    <span id="appName" class="version-value">Mestre Gemini Mobile</span>
+                                </div>
+                                <div class="version-item">
+                                    <span class="version-label">Build:</span>
+                                    <span id="buildDate" class="version-value">--</span>
+                                </div>
                             </div>
-                            <div class="version-item">
-                                <span class="version-label">Nome:</span>
-                                <span id="appName" class="version-value">Mestre Gemini Mobile</span>
+                        </div>
+                    </div>
+
+                    <!-- Aba Logs -->
+                    <div id="logsTab" class="settings-tab-content">
+                        <div class="setting-group">
+                            <label>📊 Sistema de Logs:</label>
+                            <div class="logs-controls">
+                                <div class="logs-filter">
+                                    <select id="logLevelFilter" class="mobile-select">
+                                        <option value="all">Todos os Logs</option>
+                                        <option value="info">Info</option>
+                                        <option value="warning">Avisos</option>
+                                        <option value="error">Erros</option>
+                                        <option value="debug">Debug</option>
+                                    </select>
+                                </div>
+                                <div class="logs-actions">
+                                    <button id="clearLogs" class="mobile-btn secondary">🗑️ Limpar</button>
+                                    <button id="exportLogs" class="mobile-btn primary">📤 Exportar</button>
+                                </div>
                             </div>
-                            <div class="version-item">
-                                <span class="version-label">Build:</span>
-                                <span id="buildDate" class="version-value">--</span>
+                            <div class="logs-stats">
+                                <div class="log-stat">
+                                    <span class="log-stat-label">Total:</span>
+                                    <span id="totalLogs" class="log-stat-value">0</span>
+                                </div>
+                                <div class="log-stat">
+                                    <span class="log-stat-label">Erros:</span>
+                                    <span id="errorLogs" class="log-stat-value">0</span>
+                                </div>
+                                <div class="log-stat">
+                                    <span class="log-stat-label">Avisos:</span>
+                                    <span id="warningLogs" class="log-stat-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label>📝 Console de Logs:</label>
+                            <div class="logs-container">
+                                <div id="logsDisplay" class="logs-display">
+                                    <div class="log-entry info">
+                                        <span class="log-timestamp">[00:00:00]</span>
+                                        <span class="log-level">INFO</span>
+                                        <span class="log-message">Sistema de logs inicializado</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

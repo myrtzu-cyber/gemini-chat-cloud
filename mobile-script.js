@@ -30,6 +30,18 @@ class GeminiChatMobile {
         this.currentChatContext = {};
         this.activeContextTab = 'master_rules';
         
+        // Sistema de Logs
+        this.logs = [];
+        this.maxLogs = 1000; // Máximo de logs armazenados
+        this.logStats = {
+            total: 0,
+            error: 0,
+            warning: 0,
+            info: 0,
+            debug: 0
+        };
+        this.currentLogFilter = 'all';
+        
         this.init();
     }
 
@@ -321,6 +333,26 @@ class GeminiChatMobile {
         document.getElementById('debugAventuraBtn').addEventListener('click', () => {
             this.debugAventura();
         });
+
+        // Settings tabs
+        document.querySelector('.settings-tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('settings-tab-btn')) {
+                this.switchSettingsTab(e.target.dataset.tab);
+            }
+        });
+
+        // Logs controls
+        document.getElementById('logLevelFilter').addEventListener('change', (e) => {
+            this.filterLogs(e.target.value);
+        });
+
+        document.getElementById('clearLogs').addEventListener('click', () => {
+            this.clearLogs();
+        });
+
+        document.getElementById('exportLogs').addEventListener('click', () => {
+            this.exportLogs();
+        });
     }
 
 
@@ -567,6 +599,9 @@ class GeminiChatMobile {
             buildDateElement.textContent = buildDate;
             console.log('[VERSION] Data de build atualizada');
         }
+
+        // Inicializar sistema de logs
+        this.initializeLoggingSystem();
     }
 
     // Obter data de build
@@ -593,6 +628,8 @@ class GeminiChatMobile {
     // Mostrar configurações
     showSettings() {
         document.getElementById('settingsModal').style.display = 'flex';
+        // Garantir que a aba geral esteja ativa por padrão
+        this.switchSettingsTab('general');
     }
 
     // Esconder configurações
@@ -800,6 +837,265 @@ class GeminiChatMobile {
     clearMessages() {
         const messagesContainer = document.getElementById('mobileMessages');
         messagesContainer.innerHTML = '';
+    }
+
+    // === SISTEMA DE LOGS ===
+    
+    // Inicializar sistema de logs
+    initializeLoggingSystem() {
+        this.log('info', 'Sistema de logs inicializado');
+        
+        // Interceptar console.log, console.error, console.warn
+        this.interceptConsole();
+        
+        // Interceptar erros globais
+        this.interceptGlobalErrors();
+        
+        // Carregar logs salvos
+        this.loadSavedLogs();
+        
+        // Atualizar display inicial
+        this.updateLogsDisplay();
+        this.updateLogStats();
+    }
+    
+    // Interceptar métodos do console
+    interceptConsole() {
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalInfo = console.info;
+        
+        console.log = (...args) => {
+            originalLog.apply(console, args);
+            this.log('debug', args.join(' '));
+        };
+        
+        console.error = (...args) => {
+            originalError.apply(console, args);
+            this.log('error', args.join(' '));
+        };
+        
+        console.warn = (...args) => {
+            originalWarn.apply(console, args);
+            this.log('warning', args.join(' '));
+        };
+        
+        console.info = (...args) => {
+            originalInfo.apply(console, args);
+            this.log('info', args.join(' '));
+        };
+    }
+    
+    // Interceptar erros globais
+    interceptGlobalErrors() {
+        window.addEventListener('error', (event) => {
+            this.log('error', `Erro JavaScript: ${event.message} em ${event.filename}:${event.lineno}`);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            this.log('error', `Promise rejeitada: ${event.reason}`);
+        });
+    }
+    
+    // Adicionar log
+    log(level, message, data = null) {
+        const timestamp = new Date();
+        const logEntry = {
+            id: Date.now() + Math.random(),
+            timestamp: timestamp,
+            level: level,
+            message: message,
+            data: data
+        };
+        
+        // Adicionar ao array de logs
+        this.logs.unshift(logEntry);
+        
+        // Limitar número de logs
+        if (this.logs.length > this.maxLogs) {
+            this.logs = this.logs.slice(0, this.maxLogs);
+        }
+        
+        // Atualizar estatísticas
+        this.logStats.total++;
+        this.logStats[level]++;
+        
+        // Salvar logs
+        this.saveLogs();
+        
+        // Atualizar display se a aba de logs estiver ativa
+        if (document.getElementById('logsTab').classList.contains('active')) {
+            this.updateLogsDisplay();
+            this.updateLogStats();
+        }
+        
+        // Log crítico - mostrar toast
+        if (level === 'error') {
+            this.showToast(`🚨 Erro: ${message.substring(0, 50)}...`, 'error');
+        }
+    }
+    
+    // Alternar entre abas de configurações
+    switchSettingsTab(tabName) {
+        // Remover classe active de todas as abas
+        document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelectorAll('.settings-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Ativar aba selecionada
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+        
+        // Se mudou para aba de logs, atualizar display
+        if (tabName === 'logs') {
+            this.updateLogsDisplay();
+            this.updateLogStats();
+        }
+    }
+    
+    // Atualizar display de logs
+    updateLogsDisplay() {
+        const logsDisplay = document.getElementById('logsDisplay');
+        if (!logsDisplay) return;
+        
+        // Filtrar logs baseado no filtro atual
+        let filteredLogs = this.logs;
+        if (this.currentLogFilter !== 'all') {
+            filteredLogs = this.logs.filter(log => log.level === this.currentLogFilter);
+        }
+        
+        // Limitar a 100 logs mais recentes para performance
+        const displayLogs = filteredLogs.slice(0, 100);
+        
+        logsDisplay.innerHTML = displayLogs.map(log => {
+            const timeStr = log.timestamp.toLocaleTimeString('pt-BR');
+            return `
+                <div class="log-entry ${log.level}">
+                    <span class="log-timestamp">[${timeStr}]</span>
+                    <span class="log-level ${log.level}">${log.level.toUpperCase()}</span>
+                    <span class="log-message">${this.escapeHtml(log.message)}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // Auto-scroll para o topo (logs mais recentes)
+        logsDisplay.scrollTop = 0;
+    }
+    
+    // Atualizar estatísticas de logs
+    updateLogStats() {
+        document.getElementById('totalLogs').textContent = this.logStats.total;
+        document.getElementById('errorLogs').textContent = this.logStats.error;
+        document.getElementById('warningLogs').textContent = this.logStats.warning;
+    }
+    
+    // Filtrar logs
+    filterLogs(level) {
+        this.currentLogFilter = level;
+        this.updateLogsDisplay();
+    }
+    
+    // Limpar logs
+    clearLogs() {
+        if (confirm('Tem certeza que deseja limpar todos os logs?')) {
+            this.logs = [];
+            this.logStats = {
+                total: 0,
+                error: 0,
+                warning: 0,
+                info: 0,
+                debug: 0
+            };
+            
+            localStorage.removeItem('gemini_mobile_logs');
+            this.updateLogsDisplay();
+            this.updateLogStats();
+            
+            this.log('info', 'Logs limpos pelo usuário');
+            this.showToast('🗑️ Logs limpos com sucesso');
+        }
+    }
+    
+    // Exportar logs
+    exportLogs() {
+        try {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                appVersion: '2.0.2',
+                totalLogs: this.logs.length,
+                logs: this.logs
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `gemini-mobile-logs-${new Date().toISOString().split('T')[0]}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.log('info', `Logs exportados: ${this.logs.length} entradas`);
+            this.showToast('📤 Logs exportados com sucesso');
+        } catch (error) {
+            this.log('error', `Erro ao exportar logs: ${error.message}`);
+            this.showToast('❌ Erro ao exportar logs', 'error');
+        }
+    }
+    
+    // Salvar logs no localStorage
+    saveLogs() {
+        try {
+            // Salvar apenas os últimos 500 logs para não sobrecarregar o localStorage
+            const logsToSave = this.logs.slice(0, 500);
+            localStorage.setItem('gemini_mobile_logs', JSON.stringify({
+                logs: logsToSave,
+                stats: this.logStats
+            }));
+        } catch (error) {
+            console.error('Erro ao salvar logs:', error);
+        }
+    }
+    
+    // Carregar logs salvos
+    loadSavedLogs() {
+        try {
+            const savedData = localStorage.getItem('gemini_mobile_logs');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                this.logs = parsed.logs || [];
+                this.logStats = parsed.stats || {
+                    total: 0,
+                    error: 0,
+                    warning: 0,
+                    info: 0,
+                    debug: 0
+                };
+                
+                // Converter timestamps de string para Date
+                this.logs.forEach(log => {
+                    if (typeof log.timestamp === 'string') {
+                        log.timestamp = new Date(log.timestamp);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao carregar logs salvos:', error);
+            this.logs = [];
+        }
+    }
+    
+    // Escapar HTML para segurança
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // Mostrar boas-vindas
