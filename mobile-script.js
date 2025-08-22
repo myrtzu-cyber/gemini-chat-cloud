@@ -3381,9 +3381,9 @@ ${message}`;
         return formattingInstructions;
     }
 
-    // Processar resposta com streaming para garantir recepção completa
+    // Processar resposta com streaming SSE da API Gemini
     async processStreamingResponse(response, model) {
-        console.log(`[DEBUG] Processando resposta streaming para modelo ${model}`);
+        console.log(`[DEBUG] Processando resposta streaming SSE para modelo ${model}`);
         
         if (!response.body) {
             console.log('[DEBUG] Fallback para response.json() - sem streaming disponível');
@@ -3394,10 +3394,11 @@ ${message}`;
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
-            let completeResponse = '';
+            let completeText = '';
             let totalBytesReceived = 0;
+            let candidates = [];
             
-            console.log('[DEBUG] Iniciando leitura streaming...');
+            console.log('[DEBUG] Iniciando leitura streaming SSE...');
             
             // Implementar timeout para cada chunk
             const chunkTimeout = 30000; // 30 segundos por chunk
@@ -3417,86 +3418,104 @@ ${message}`;
                 
                 totalBytesReceived += value.length;
                 
-                // Decodificar chunk recebido com verificação de integridade
+                // Decodificar chunk recebido
                 const chunk = decoder.decode(value, { stream: true });
                 buffer += chunk;
                 
-                console.log(`[DEBUG] Chunk recebido: ${chunk.length} bytes (Total: ${totalBytesReceived})`);
+                console.log(`[DEBUG] Chunk SSE recebido: ${chunk.length} caracteres (Total: ${totalBytesReceived} bytes)`);
                 
-                // Verificar se o chunk contém dados válidos
-                if (chunk.length === 0) {
-                    console.warn('[DEBUG] Chunk vazio recebido, continuando...');
-                    continue;
-                }
-                
-                // Processar dados completos no buffer com validação
+                // Processar eventos SSE completos
                 let lines = buffer.split('\n');
                 buffer = lines.pop() || ''; // Manter linha incompleta no buffer
                 
                 for (const line of lines) {
                     const trimmedLine = line.trim();
-                    if (trimmedLine) {
-                        completeResponse += trimmedLine;
+                    
+                    // Processar linha de dados SSE
+                    if (trimmedLine.startsWith('data: ')) {
+                        const jsonData = trimmedLine.substring(6); // Remove "data: "
+                        
+                        if (jsonData === '[DONE]') {
+                            console.log('[DEBUG] Recebido sinal de fim do streaming');
+                            continue;
+                        }
+                        
+                        try {
+                            const eventData = JSON.parse(jsonData);
+                            console.log('[DEBUG] Evento SSE processado:', eventData);
+                            
+                            // Extrair texto do evento
+                            if (eventData.candidates && eventData.candidates.length > 0) {
+                                const candidate = eventData.candidates[0];
+                                if (candidate.content && candidate.content.parts) {
+                                    for (const part of candidate.content.parts) {
+                                        if (part.text) {
+                                            completeText += part.text;
+                                            console.log(`[DEBUG] Texto adicionado: ${part.text.length} caracteres`);
+                                        }
+                                    }
+                                }
+                                
+                                // Manter referência do último candidato para metadados
+                                candidates = eventData.candidates;
+                            }
+                        } catch (parseError) {
+                            console.warn('[DEBUG] Erro ao processar evento SSE:', parseError);
+                            console.log('[DEBUG] Dados problemáticos:', jsonData.substring(0, 200));
+                        }
                     }
-                }
-                
-                // Verificar se temos uma resposta JSON válida parcial
-                if (completeResponse.includes('"candidates"') && completeResponse.includes('"content"')) {
-                    console.log('[DEBUG] Detectada estrutura JSON válida no streaming');
                 }
             }
             
             // Processar qualquer dado restante no buffer
             if (buffer.trim()) {
-                completeResponse += buffer.trim();
-            }
-            
-            console.log(`[DEBUG] Resposta completa recebida: ${completeResponse.length} caracteres`);
-            console.log(`[DEBUG] Preview da resposta: ${completeResponse.substring(0, 200)}...`);
-            
-            // Validar se a resposta parece ser JSON válido
-            if (!completeResponse.startsWith('{') && !completeResponse.startsWith('[')) {
-                console.warn('[DEBUG] Resposta não parece ser JSON válido, tentando limpeza...');
-                // Tentar encontrar o início do JSON
-                const jsonStart = completeResponse.indexOf('{');
-                if (jsonStart > 0) {
-                    completeResponse = completeResponse.substring(jsonStart);
-                    console.log('[DEBUG] JSON encontrado e extraído');
+                const remainingLine = buffer.trim();
+                if (remainingLine.startsWith('data: ')) {
+                    const jsonData = remainingLine.substring(6);
+                    try {
+                        const eventData = JSON.parse(jsonData);
+                        if (eventData.candidates && eventData.candidates.length > 0) {
+                            const candidate = eventData.candidates[0];
+                            if (candidate.content && candidate.content.parts) {
+                                for (const part of candidate.content.parts) {
+                                    if (part.text) {
+                                        completeText += part.text;
+                                    }
+                                }
+                            }
+                            candidates = eventData.candidates;
+                        }
+                    } catch (parseError) {
+                        console.warn('[DEBUG] Erro no buffer restante:', parseError);
+                    }
                 }
             }
             
-            // Parse da resposta JSON completa com retry
-            try {
-                const responseData = JSON.parse(completeResponse);
-                console.log('[DEBUG] JSON parsing bem-sucedido via streaming');
-                return responseData;
-            } catch (parseError) {
-                console.error('[DEBUG] Erro no parse JSON da resposta streaming:', parseError);
-                console.log('[DEBUG] Resposta raw (primeiros 500 chars):', completeResponse.substring(0, 500));
-                console.log('[DEBUG] Resposta raw (últimos 500 chars):', completeResponse.substring(Math.max(0, completeResponse.length - 500)));
-                
-                // Tentar reparar JSON comum
-                let repairedResponse = completeResponse;
-                
-                // Remover caracteres não-JSON do início/fim
-                repairedResponse = repairedResponse.trim();
-                if (repairedResponse.endsWith(',')) {
-                    repairedResponse = repairedResponse.slice(0, -1);
-                }
-                
-                // Tentar parse novamente
-                try {
-                    const repairedData = JSON.parse(repairedResponse);
-                    console.log('[DEBUG] JSON reparado com sucesso');
-                    return repairedData;
-                } catch (repairError) {
-                    console.error('[DEBUG] Falha no reparo do JSON:', repairError);
-                    throw new Error('Resposta malformada recebida via streaming');
-                }
-            }
+            console.log(`[DEBUG] Texto completo recebido via streaming: ${completeText.length} caracteres`);
+            console.log(`[DEBUG] Preview do texto: ${completeText.substring(0, 200)}...`);
+            
+            // Construir resposta no formato esperado pela aplicação
+            const responseData = {
+                candidates: candidates.length > 0 ? candidates.map(candidate => ({
+                    ...candidate,
+                    content: {
+                        parts: [{ text: completeText }],
+                        role: 'model'
+                    }
+                })) : [{
+                    content: {
+                        parts: [{ text: completeText }],
+                        role: 'model'
+                    },
+                    finishReason: 'STOP'
+                }]
+            };
+            
+            console.log('[DEBUG] Resposta streaming SSE processada com sucesso');
+            return responseData;
             
         } catch (streamError) {
-            console.error('[DEBUG] Erro no streaming, usando fallback:', streamError);
+            console.error('[DEBUG] Erro no streaming SSE, usando fallback:', streamError);
             // Fallback para método tradicional se streaming falhar
             try {
                 console.log('[DEBUG] Tentando fallback para response.json()...');
@@ -3672,7 +3691,7 @@ ${message}`;
             });
         });
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
             console.log(`[DEBUG] Timeout de ${timeoutMs}ms atingido, abortando requisição...`);
@@ -3683,12 +3702,12 @@ ${message}`;
             console.log('[DEBUG] Fazendo requisição streaming para:', url.replace(apiKey, 'API_KEY_HIDDEN'));
             console.log(`[DEBUG] Modelo sendo usado na URL: ${model}`);
             
-            // Usar streaming para recepção completa
+            // Usar streaming real da API Gemini
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'text/event-stream'
                 },
                 body: JSON.stringify(requestBody),
                 signal: controller.signal
