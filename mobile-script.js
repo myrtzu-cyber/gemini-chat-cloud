@@ -3085,9 +3085,136 @@ ${message}`;
         return formattingInstructions;
     }
 
-    // Chamar API Gemini (sem retry automático para evitar rate limiting)
+    // Processar resposta com streaming para garantir recepção completa
+    async processStreamingResponse(response, model) {
+        console.log(`[DEBUG] Processando resposta streaming para modelo ${model}`);
+        
+        if (!response.body) {
+            console.log('[DEBUG] Fallback para response.json() - sem streaming disponível');
+            return await response.json();
+        }
+
+        try {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let completeResponse = '';
+            let totalBytesReceived = 0;
+            
+            console.log('[DEBUG] Iniciando leitura streaming...');
+            
+            // Implementar timeout para cada chunk
+            const chunkTimeout = 30000; // 30 segundos por chunk
+            
+            while (true) {
+                const chunkPromise = reader.read();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout no chunk')), chunkTimeout)
+                );
+                
+                const { done, value } = await Promise.race([chunkPromise, timeoutPromise]);
+                
+                if (done) {
+                    console.log(`[DEBUG] Streaming concluído - Total: ${totalBytesReceived} bytes`);
+                    break;
+                }
+                
+                totalBytesReceived += value.length;
+                
+                // Decodificar chunk recebido com verificação de integridade
+                const chunk = decoder.decode(value, { stream: true });
+                buffer += chunk;
+                
+                console.log(`[DEBUG] Chunk recebido: ${chunk.length} bytes (Total: ${totalBytesReceived})`);
+                
+                // Verificar se o chunk contém dados válidos
+                if (chunk.length === 0) {
+                    console.warn('[DEBUG] Chunk vazio recebido, continuando...');
+                    continue;
+                }
+                
+                // Processar dados completos no buffer com validação
+                let lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Manter linha incompleta no buffer
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine) {
+                        completeResponse += trimmedLine;
+                    }
+                }
+                
+                // Verificar se temos uma resposta JSON válida parcial
+                if (completeResponse.includes('"candidates"') && completeResponse.includes('"content"')) {
+                    console.log('[DEBUG] Detectada estrutura JSON válida no streaming');
+                }
+            }
+            
+            // Processar qualquer dado restante no buffer
+            if (buffer.trim()) {
+                completeResponse += buffer.trim();
+            }
+            
+            console.log(`[DEBUG] Resposta completa recebida: ${completeResponse.length} caracteres`);
+            console.log(`[DEBUG] Preview da resposta: ${completeResponse.substring(0, 200)}...`);
+            
+            // Validar se a resposta parece ser JSON válido
+            if (!completeResponse.startsWith('{') && !completeResponse.startsWith('[')) {
+                console.warn('[DEBUG] Resposta não parece ser JSON válido, tentando limpeza...');
+                // Tentar encontrar o início do JSON
+                const jsonStart = completeResponse.indexOf('{');
+                if (jsonStart > 0) {
+                    completeResponse = completeResponse.substring(jsonStart);
+                    console.log('[DEBUG] JSON encontrado e extraído');
+                }
+            }
+            
+            // Parse da resposta JSON completa com retry
+            try {
+                const responseData = JSON.parse(completeResponse);
+                console.log('[DEBUG] JSON parsing bem-sucedido via streaming');
+                return responseData;
+            } catch (parseError) {
+                console.error('[DEBUG] Erro no parse JSON da resposta streaming:', parseError);
+                console.log('[DEBUG] Resposta raw (primeiros 500 chars):', completeResponse.substring(0, 500));
+                console.log('[DEBUG] Resposta raw (últimos 500 chars):', completeResponse.substring(Math.max(0, completeResponse.length - 500)));
+                
+                // Tentar reparar JSON comum
+                let repairedResponse = completeResponse;
+                
+                // Remover caracteres não-JSON do início/fim
+                repairedResponse = repairedResponse.trim();
+                if (repairedResponse.endsWith(',')) {
+                    repairedResponse = repairedResponse.slice(0, -1);
+                }
+                
+                // Tentar parse novamente
+                try {
+                    const repairedData = JSON.parse(repairedResponse);
+                    console.log('[DEBUG] JSON reparado com sucesso');
+                    return repairedData;
+                } catch (repairError) {
+                    console.error('[DEBUG] Falha no reparo do JSON:', repairError);
+                    throw new Error('Resposta malformada recebida via streaming');
+                }
+            }
+            
+        } catch (streamError) {
+            console.error('[DEBUG] Erro no streaming, usando fallback:', streamError);
+            // Fallback para método tradicional se streaming falhar
+            try {
+                console.log('[DEBUG] Tentando fallback para response.json()...');
+                return await response.json();
+            } catch (fallbackError) {
+                console.error('[DEBUG] Fallback também falhou:', fallbackError);
+                throw new Error('Falha na recepção da resposta (streaming e fallback)');
+            }
+        }
+    }
+
+    // Chamar API Gemini com streaming para recepção completa
     async callGeminiAPI(message, files = [], timeoutMs = 120000) {
-        console.log('[DEBUG] Iniciando chamada da API Gemini...');
+        console.log('[DEBUG] Iniciando chamada da API Gemini com streaming...');
         const apiKey = this.apiKeys[this.activeApiKey];
         const model = this.selectedModel;
 
@@ -3095,6 +3222,7 @@ ${message}`;
         console.log(`[DEBUG] Modelo: ${model}`);
         console.log(`[DEBUG] Timeout configurado: ${timeoutMs}ms (${timeoutMs/1000}s)`);
         console.log(`[DEBUG] this.selectedModel no início da chamada: ${this.selectedModel}`);
+        console.log('[DEBUG] Streaming habilitado para recepção completa');
 
         if (!apiKey) {
             throw new Error('Chave da API não configurada');
@@ -3256,8 +3384,10 @@ ${message}`;
         }, timeoutMs);
 
         try {
-            console.log('[DEBUG] Fazendo requisição para:', url.replace(apiKey, 'API_KEY_HIDDEN'));
+            console.log('[DEBUG] Fazendo requisição streaming para:', url.replace(apiKey, 'API_KEY_HIDDEN'));
             console.log(`[DEBUG] Modelo sendo usado na URL: ${model}`);
+            
+            // Usar streaming para recepção completa
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -3271,7 +3401,9 @@ ${message}`;
             clearTimeout(timeoutId);
 
             console.log(`[DEBUG] Status da resposta: ${response.status}`);
-            const responseData = await response.json();
+            
+            // Processar resposta com streaming para garantir recepção completa
+            const responseData = await this.processStreamingResponse(response, model);
             
             if (!response.ok) {
                 console.error('[DEBUG] Erro da API Gemini:', responseData);
