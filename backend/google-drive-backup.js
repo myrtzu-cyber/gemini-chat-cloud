@@ -9,7 +9,7 @@ class GoogleDriveBackup {
         this.drive = null;
         this.backupFolderId = null;
         this.lastBackupTime = null;
-        this.backupInterval = 60 * 60 * 1000; // 1 hour in milliseconds
+        this.backupInterval = 15 * 60 * 1000; // 15 minutes in milliseconds
         this.isBackupInProgress = false;
         this.backupHistory = [];
         this.maxHourlyBackups = 24;
@@ -28,6 +28,7 @@ class GoogleDriveBackup {
     initializeAuth() {
         try {
             // Service Account authentication (recommended for production)
+                        console.log(`🔑 Verificando credenciais... GOOGLE_SERVICE_ACCOUNT_EMAIL: ${process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ? 'Encontrado' : 'Não encontrado'}`);
             if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
                 console.log('🗄️ Google Drive backup service initialized');
                 
@@ -71,7 +72,8 @@ class GoogleDriveBackup {
                 // Initialize backup folder
                 this.initializeBackupFolder();
             } else {
-                console.log('⚠️ Google Drive backup not configured (missing environment variables)');
+                                console.log('⚠️ Credenciais do Google Drive não encontradas nas variáveis de ambiente.');
+                console.log('   Verifique se as variáveis GOOGLE_SERVICE_ACCOUNT_EMAIL e GOOGLE_PRIVATE_KEY estão no arquivo .env');
                 console.log('   Required: GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY');
             }
         } catch (error) {
