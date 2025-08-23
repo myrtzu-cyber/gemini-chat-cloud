@@ -4304,6 +4304,45 @@ ${message}`;
             // Processar resposta com streaming para garantir recepção completa
             const responseData = await this.processStreamingResponse(response, model);
             
+            // Verificar se modelo Pro retornou array vazio e fazer fallback para não-streaming
+            if (model.includes('pro') && responseData.streamingStats && responseData.streamingStats.textLength === 0 && responseData.streamingStats.totalBytes <= 10) {
+                console.log(`[DEBUG] Modelo Pro retornou array vazio, tentando fallback não-streaming`);
+                
+                // Fazer nova requisição sem streaming
+                const nonStreamingUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                
+                const fallbackResponse = await fetch(nonStreamingUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (fallbackResponse.ok) {
+                    const fallbackData = await fallbackResponse.json();
+                    console.log(`[DEBUG] Fallback não-streaming bem-sucedido para ${model}`);
+                    console.log('[DEBUG] Resposta fallback:', JSON.stringify(fallbackData, null, 2));
+                    
+                    // Usar dados do fallback
+                    const processedData = {
+                        ...fallbackData,
+                        streamingStats: {
+                            totalBytes: JSON.stringify(fallbackData).length,
+                            totalChunks: 1,
+                            textLength: fallbackData.candidates?.[0]?.content?.parts?.[0]?.text?.length || 0,
+                            connectionStable: true,
+                            fallbackUsed: true
+                        }
+                    };
+                    
+                    this.validateStreamingResponse(processedData, model);
+                    return await this.extractResponseText(processedData, model);
+                } else {
+                    console.error(`[DEBUG] Fallback não-streaming também falhou para ${model}`);
+                }
+            }
+            
             // Verificar integridade da resposta recebida
             this.validateStreamingResponse(responseData, model);
             
