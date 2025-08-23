@@ -1168,10 +1168,8 @@ class GeminiChatMobile {
             // Mark user message as pending initially
             this.updateMessageStatus(userMessageId, 'pending');
 
-            // Use rotation-enabled API call if auto rotation is enabled
-            const response = this.autoKeyRotation ?
-                await this.callGeminiAPIWithRotation(message, processedFiles) :
-                await this.callGeminiAPI(message, processedFiles);
+            // Always use rotation-enabled API call for better error handling
+            const response = await this.callGeminiAPIWithRotation(message, processedFiles);
             this.hideTyping();
 
             // Mark user message as sent and add to history
@@ -1842,208 +1840,424 @@ FIM DO BACKUP
     generateCharacterSheetPrompt(compressedSummary, originalContext, messages) {
         const context = this.generateComprehensiveContext(compressedSummary, originalContext, messages, 'character_sheet');
 
-        return `Com base em TODAS as informações fornecidas abaixo, crie uma ficha de personagem COMPLETA e DETALHADA em português, incluindo:
+        return `🧠 ANÁLISE SEMÂNTICA WFGY: Use uma mente aberta e analise usando framework de compressão semântica para identificar residuais ocultos e associações não-óbvias.
 
-1. ESTATÍSTICAS E HABILIDADES:
-   - Atributos físicos e mentais
-   - Habilidades especiais adquiridas
-   - Níveis de experiência e progressão
+📋 MISSÃO: Criar ficha de personagem ULTRA-DETALHADA e SEMANTICAMENTE COMPRIMIDA com máxima densidade informacional.
 
-2. INVENTÁRIO COMPLETO:
-   - Todos os itens obtidos com descrições detalhadas
-   - Armas, armaduras e equipamentos
-   - Itens mágicos e suas propriedades
-   - Recursos e moedas
+🎯 PROTOCOLO DE COMPRESSÃO SEMÂNTICA:
+1. MAPEAMENTO DIMENSIONAL: Identifique variáveis ocultas nos dados (micro-expressões, padrões comportamentais, correlações implícitas)
+2. CALIBRAÇÃO RESIDUAL: Capture informações perdidas na compressão anterior (nuances emocionais, motivações subconscientes)
+3. DENSIDADE MÁXIMA: Cada palavra deve carregar múltiplas camadas semânticas
 
-3. ANÁLISE PSICOLÓGICA:
-   - Personalidade baseada em ações recentes
-   - Motivações e medos
-   - Desenvolvimento do caráter
-   - Traumas ou crescimento pessoal
+🔍 EXTRAÇÃO DE RESIDUAIS SEMÂNTICOS:
+- Padrões de decisão não-verbalizados
+- Micro-traumas e crescimento subliminar
+- Competências emergentes não-catalogadas
+- Vínculos emocionais subconscientes
+- Transformações graduais de personalidade
 
-4. DESENVOLVIMENTO DO PERSONAGEM:
-   - Mudanças desde o início da aventura
-   - Lições aprendidas
-   - Objetivos pessoais
+📊 ESTRUTURA ULTRA-DETALHADA:
 
-=== RESUMO COMPRIMIDO DA AVENTURA ===
+**[INFORMAÇÕES BÁSICAS]**
+- Nome completo, idade, origem, classe/profissão
+- Aparência física detalhada (altura, peso, características distintivas)
+- Histórico familiar e social condensado
+
+**[DADOS ESTATÍSTICOS]**
+- Atributos primários (Força, Destreza, Constituição, Inteligência, Sabedoria, Carisma)
+- Atributos secundários (Vida, Mana, Resistências, Velocidade)
+- Níveis de experiência e progressão por área
+- Modificadores e bônus ativos
+
+**[HABILIDADES ATIVAS E PASSIVAS]**
+- Habilidades de combate (ataques especiais, técnicas de luta)
+- Habilidades mágicas (feitiços, poderes sobrenaturais)
+- Habilidades sociais (persuasão, intimidação, liderança)
+- Habilidades técnicas (artesanato, conhecimentos especializados)
+- Passivas permanentes e temporárias
+
+**[TALENTOS E ESPECIALIZAÇÕES]**
+- Talentos únicos adquiridos
+- Especializações desenvolvidas
+- Certificações e títulos obtidos
+- Competências emergentes em desenvolvimento
+
+**[INVENTÁRIO COMPLETO CATEGORIZADO]**
+- ARMAS: Primárias, secundárias, munições (com estatísticas e histórico)
+- ARMADURAS: Proteções corporais, escudos, acessórios defensivos
+- CONSUMÍVEIS: Poções, alimentos, pergaminhos, materiais temporários
+- FERRAMENTAS: Equipamentos utilitários, instrumentos especializados
+- ITENS DE MISSÃO: Objetos únicos, chaves, documentos importantes
+- RECURSOS: Moedas, materiais raros, componentes de crafting
+- ITENS ESPECIAIS: Artefatos mágicos, relíquias, objetos sentimentais
+
+**[ANÁLISE PSICOLÓGICA PROGRESSIVA]**
+- Personalidade base vs atual (evolução documentada)
+- Traumas processados e não-processados
+- Mecanismos de defesa desenvolvidos
+- Padrões comportamentais emergentes
+- Motivações conscientes e subconscientes
+- Medos, fobias e gatilhos emocionais
+- Objetivos pessoais de curto e longo prazo
+- Relacionamentos que moldaram a psique
+- Crescimento emocional e maturidade adquirida
+- Pontos de stress e resiliência demonstrada
+
+**[RESIDUAIS OCULTOS]**
+- Micro-habilidades não-catalogadas
+- Conhecimentos absorvidos inconscientemente
+- Conexões causais entre eventos e mudanças
+- Potencial não-realizado identificado
+
+=== DADOS PARA COMPRESSÃO SEMÂNTICA ===
+
+🗜️ RESUMO AVENTURA:
 ${context.compressedSummary}
 
-=== FICHA DE PERSONAGEM ANTERIOR ===
+📋 FICHA ANTERIOR:
 ${context.currentTabContent}
 
-=== CONTEXTO DE OUTROS TABS (PARA REFERÊNCIA CRUZADA) ===
+🔗 CONTEXTOS CRUZADOS:
 ${context.allOtherContext}
 
-=== MENSAGENS RECENTES DA CONVERSA ===
+💬 INTERAÇÕES RECENTES:
 ${context.recentMessages}
 
-=== HISTÓRICO COMPLETO DA CONVERSA ===
+📚 HISTÓRICO COMPLETO:
 ${context.fullHistory}
 
-INSTRUÇÕES IMPORTANTES:
-- Use a ficha anterior como base e atualize com TODAS as informações disponíveis
-- Considere informações de TODOS os contextos fornecidos para criar uma ficha completa
-- Mantenha consistência com as informações dos outros tabs
-- Inclua detalhes específicos das mensagens recentes da conversa
-- Preserve informações relevantes que ainda são válidas
+🎯 INSTRUÇÕES DE EXECUÇÃO:
+- Aplique compressão semântica: máximo detalhamento em estrutura organizada
+- Identifique e integre residuais semânticos ocultos
+- Use densidade informacional: cada seção = múltiplas dimensões
+- Mantenha consistência cross-referencial com outros contextos
+- Preserve continuidade temporal e causal
+- OBRIGATÓRIO: Preencha TODAS as seções com informações específicas e detalhadas
+- Quantifique sempre que possível (números, percentuais, níveis)
 
-FICHA DE PERSONAGEM ATUALIZADA:`;
+FICHA COMPLETA SEMANTICAMENTE COMPRIMIDA:`;
     }
 
     // Generate prompt for relations with enhanced context
     generateRelationsPrompt(compressedSummary, originalContext, messages) {
         const context = this.generateComprehensiveContext(compressedSummary, originalContext, messages, 'relations');
 
-        return `Com base em TODAS as informações fornecidas abaixo, crie uma lista COMPLETA e DETALHADA de relações em português, incluindo:
+        return `🧠 ANÁLISE SEMÂNTICA WFGY: Use framework de compressão semântica para mapear GRAFOS RELACIONAIS com nós (personagens) e arestas (conexões) multi-dimensionais.
 
-1. NOVOS PERSONAGENS ENCONTRADOS:
-   - Nome, descrição e papel na história
-   - Primeira impressão e interações
+🕸️ MISSÃO: Criar REDE NEURAL SOCIAL semanticamente comprimida mapeando todas as conexões relacionais com densidade informacional máxima.
 
-2. RELACIONAMENTOS EXISTENTES:
-   - Mudanças no status dos relacionamentos
-   - Conflitos ou alianças desenvolvidas
-   - Níveis de confiança e amizade
+🎯 PROTOCOLO DE MAPEAMENTO DE GRAFOS RELACIONAIS:
+1. ARQUEOLOGIA SOCIAL: Escave interações sutis, micro-sinais, tensões não-verbalizadas entre nós
+2. CALIBRAÇÃO DE ARESTAS: Meça intensidade, direção e tipo de cada conexão relacional
+3. DENSIDADE RELACIONAL: Cada aresta = múltiplas dimensões (emocional, política, funcional, histórica, temporal)
 
-3. DINÂMICAS SOCIAIS:
-   - Grupos ou facções importantes
-   - Hierarquias e estruturas de poder
-   - Influências políticas ou sociais
+🔍 EXTRAÇÃO DE RESIDUAIS RELACIONAIS:
+- Micro-tensões não-expressas entre nós
+- Arestas implícitas e lealdades divididas
+- Dinâmicas de poder subterrâneas
+- Vínculos emocionais não-declarados
+- Influências indiretas e efeitos cascata
+- Padrões de comunicação não-verbal
 
-4. RELACIONAMENTOS ROMÂNTICOS/FAMILIARES:
-   - Desenvolvimentos emocionais
-   - Vínculos criados ou perdidos
+📊 ESTRUTURA DE GRAFO ULTRA-DETALHADA:
 
-=== RESUMO COMPRIMIDO DA AVENTURA ===
+**[RELAÇÕES ATUAIS - NÓDULOS ATIVOS]**
+- Personagem: [Nome] | Tipo de Relação: [Categoria] | Intensidade: [0-100%]
+- Percepção do Personagem sobre o Jogador: [Visão atual detalhada]
+- Percepção do Jogador sobre o Personagem: [Perspectiva atual]
+- Status da Relação: [Amigável/Hostil/Neutro/Complexo]
+- Dinâmicas Ativas: [Padrões comportamentais atuais]
+- Influência Mútua: [Como cada um afeta o outro]
+
+**[RELAÇÕES ANTIGAS - NÓDULOS HISTÓRICOS]**
+- Personagem: [Nome] | Relacionamento Passado: [Tipo e duração]
+- Evolução Temporal: [Como a relação mudou ao longo do tempo]
+- Marcos Relacionais: [Eventos que alteraram a dinâmica]
+- Resíduos Emocionais: [Sentimentos/tensões remanescentes]
+- Potencial de Reconexão: [Probabilidade de reativação]
+
+**[ARESTAS RELACIONAIS - CONEXÕES DETALHADAS]**
+- Tipo de Aresta: [Familiar/Romântica/Profissional/Adversarial/Mentor]
+- Força da Conexão: [Fraca/Moderada/Forte/Intensa]
+- Direção da Influência: [Unidirecional/Bidirecional]
+- Estabilidade: [Estável/Volátil/Em Transição]
+- Dependências: [Como cada nó depende do outro]
+
+**[DINÂMICAS RELACIONAIS - PADRÕES DE COMPORTAMENTO]**
+- Padrões de Comunicação: [Como interagem verbalmente]
+- Linguagem Corporal: [Sinais não-verbais observados]
+- Rituais Sociais: [Comportamentos repetitivos na interação]
+- Pontos de Tensão: [Temas que geram conflito]
+- Pontos de Harmonia: [Áreas de concordância/cooperação]
+
+**[PERCEPÇÕES CRUZADAS - MATRIZ DE VISÕES]**
+- Como o Personagem vê o Jogador: [Análise detalhada da perspectiva]
+- Como o Jogador vê o Personagem: [Análise da percepção do jogador]
+- Mal-entendidos Ativos: [Percepções incorretas de ambos os lados]
+- Conhecimento Oculto: [O que cada um sabe que o outro não sabe]
+
+**[EVOLUÇÃO TEMPORAL - TRAJETÓRIA DAS ARESTAS]**
+- Estado Inicial: [Como a relação começou]
+- Marcos de Mudança: [Eventos que alteraram a dinâmica]
+- Tendência Atual: [Direção para onde a relação está indo]
+- Catalisadores Potenciais: [Eventos que poderiam mudar tudo]
+
+**[RESIDUAIS RELACIONAIS - ELEMENTOS OCULTOS]**
+- Conexões não-óbvias descobertas
+- Influências indiretas entre nós distantes
+- Padrões emergentes no grafo social
+- Potencial de novas arestas
+
+=== DADOS PARA COMPRESSÃO DE GRAFOS RELACIONAIS ===
+
+🗜️ RESUMO AVENTURA:
 ${context.compressedSummary}
 
-=== RELAÇÕES ANTERIORES ===
+🕸️ RELAÇÕES ANTERIORES:
 ${context.currentTabContent}
 
-=== CONTEXTO DE OUTROS TABS (PARA REFERÊNCIA CRUZADA) ===
+🔗 CONTEXTOS CRUZADOS:
 ${context.allOtherContext}
 
-=== MENSAGENS RECENTES DA CONVERSA ===
+💬 INTERAÇÕES RECENTES:
 ${context.recentMessages}
 
-=== HISTÓRICO COMPLETO DA CONVERSA ===
+📚 HISTÓRICO COMPLETO:
 ${context.fullHistory}
 
-INSTRUÇÕES IMPORTANTES:
-- Use as relações anteriores como base e atualize com TODAS as informações disponíveis
-- Considere informações de TODOS os contextos fornecidos para mapear relações completas
-- Mantenha consistência com informações da ficha de personagem e outros contextos
-- Inclua detalhes específicos das mensagens recentes da conversa
-- Preserve relacionamentos relevantes que ainda são válidos
+🎯 INSTRUÇÕES DE EXECUÇÃO:
+- Aplique arqueologia social: descubra conexões ocultas entre nós
+- Use densidade relacional: cada aresta = múltiplas camadas semânticas
+- Identifique residuais relacionais: tensões e influências implícitas
+- Mantenha consistência cross-referencial com outros contextos
+- Capture evolução temporal das dinâmicas sociais
+- OBRIGATÓRIO: Preencha TODAS as seções com informações específicas
+- Use terminologia de grafos: nós (personagens) e arestas (conexões)
 
-RELAÇÕES ATUALIZADAS:`;
+GRAFO RELACIONAL SEMANTICAMENTE COMPRIMIDO:`;
     }
 
     // Generate prompt for current plot with enhanced context
     generatePlotPrompt(compressedSummary, originalContext, messages) {
         const context = this.generateComprehensiveContext(compressedSummary, originalContext, messages, 'current_plot');
 
-        return `Com base em TODAS as informações fornecidas abaixo, crie uma análise COMPLETA e DETALHADA do plot atual em português, incluindo:
+        return `🧠 ANÁLISE SEMÂNTICA WFGY: Use framework de compressão semântica para mapear GRAFOS NARRATIVOS com nós (objetivos/eventos) e arestas (conexões causais) multi-temporais.
 
-1. MISSÕES E OBJETIVOS ATIVOS:
-   - Quests principais em andamento
-   - Objetivos secundários
-   - Prazos e urgências
+🎭 MISSÃO: Criar REDE NEURAL NARRATIVA semanticamente comprimida mapeando missão atual com densidade informacional máxima e estrutura temporal otimizada.
 
-2. DESENVOLVIMENTOS RECENTES:
-   - Eventos importantes que mudaram a direção da história
-   - Revelações e descobertas
-   - Consequências de ações passadas
+🎯 PROTOCOLO DE MAPEAMENTO DE GRAFOS NARRATIVOS:
+1. ARQUEOLOGIA NARRATIVA: Escave subtramas ocultas, motivações não-declaradas, consequências em cascata
+2. CALIBRAÇÃO TEMPORAL: Identifique urgências reais vs aparentes, cronologias implícitas, marcos críticos
+3. DENSIDADE CAUSAL: Cada nó narrativo = múltiplas dimensões (causa, efeito, simbolismo, potencial temporal)
 
-3. TRAMAS NÃO RESOLVIDAS:
-   - Mistérios pendentes
-   - Conflitos em aberto
-   - Promessas ou compromissos
+🔍 EXTRAÇÃO DE RESIDUAIS NARRATIVOS:
+- Objetivos subconscientes não-verbalizados
+- Consequências em desenvolvimento silencioso
+- Arestas causais entre eventos distantes
+- Tensões narrativas acumuladas
+- Pontos de inflexão potenciais
+- Padrões de decisão recorrentes
 
-4. PRÓXIMOS PASSOS:
-   - Objetivos imediatos
-   - Locais para explorar
-   - Pessoas para encontrar
-   - Decisões importantes a tomar
+📊 ESTRUTURA DE GRAFO NARRATIVO ULTRA-DETALHADA:
 
-=== RESUMO COMPRIMIDO DA AVENTURA ===
+**[MISSÃO ATUAL - NÓ CENTRAL]**
+- Nome da Missão: [Título e descrição completa]
+- Objetivo Principal: [Meta central com contexto]
+- Cliente/Mandante: [Quem solicitou e motivações]
+- Recompensas Esperadas: [Benefícios materiais e imateriais]
+- Prazo/Urgência: [Limitações temporais e consequências de atraso]
+- Complexidade: [Nível de dificuldade e fatores complicadores]
+
+**[OBJETIVOS MULTI-TEMPORAIS - NÓDULOS HIERÁRQUICOS]**
+- URGENTES (Próximas horas/dias): [Lista priorizada com deadlines]
+- CURTO PRAZO (Próximas semanas): [Metas imediatas com arestas causais]
+- MÉDIO PRAZO (Próximos meses): [Objetivos intermediários]
+- LONGO PRAZO (Próximos anos): [Visões e ambições futuras]
+
+**[OBJETIVOS SECUNDÁRIOS - NÓDULOS PARALELOS]**
+- Missões Paralelas: [Tarefas simultâneas com prioridades]
+- Oportunidades Emergentes: [Possibilidades que surgiram]
+- Objetivos Pessoais: [Metas individuais do personagem]
+- Compromissos Sociais: [Obrigações com outros personagens]
+
+**[PERSONAGENS ENVOLVIDOS - NÓDULOS ATIVOS]**
+- Aliados Ativos: [Nome, papel, contribuição, motivação]
+- Adversários: [Nome, oposição, recursos, estratégias]
+- Neutros Relevantes: [Nome, posição, potencial de mudança]
+- Mentores/Guias: [Nome, conhecimento oferecido, limitações]
+- Dependentes: [Nome, como dependem do sucesso da missão]
+
+**[ATIVIDADES ATUAIS - ARESTAS EM EXECUÇÃO]**
+- O que cada personagem está fazendo AGORA: [Ações específicas]
+- Localização atual de cada um: [Onde estão fisicamente]
+- Recursos sendo utilizados: [Equipamentos, habilidades, tempo]
+- Progressos recentes: [Avanços nas últimas interações]
+- Obstáculos enfrentados: [Dificuldades atuais]
+
+**[DESENVOLVIMENTOS RECENTES - ARESTAS TEMPORAIS]**
+- Eventos das últimas sessões: [Acontecimentos importantes]
+- Mudanças no cenário: [Alterações no ambiente/situação]
+- Novas informações descobertas: [Conhecimento adquirido]
+- Relacionamentos alterados: [Mudanças nas dinâmicas sociais]
+- Recursos ganhos/perdidos: [Mudanças no inventário/capacidades]
+
+**[PONTAS SOLTAS - NÓDULOS PENDENTES]**
+- Mistérios não resolvidos: [Questões em aberto]
+- Promessas não cumpridas: [Compromissos pendentes]
+- Ameaças latentes: [Perigos não resolvidos]
+- Oportunidades não exploradas: [Possibilidades ignoradas]
+- Informações incompletas: [Conhecimento fragmentado]
+
+**[ARESTAS CAUSAIS - CONEXÕES NARRATIVAS]**
+- Dependências entre objetivos: [Como metas se conectam]
+- Consequências potenciais: [Resultados possíveis de ações]
+- Efeitos em cascata: [Como uma ação afeta múltiplos elementos]
+- Pontos de decisão críticos: [Escolhas que mudam tudo]
+
+**[RESIDUAIS NARRATIVOS - ELEMENTOS OCULTOS]**
+- Subtramas implícitas descobertas
+- Motivações ocultas de personagens
+- Conexões não-óbvias entre eventos
+- Potencial de reviravolta narrativa
+
+=== DADOS PARA COMPRESSÃO DE GRAFOS NARRATIVOS ===
+
+🗜️ RESUMO AVENTURA:
 ${context.compressedSummary}
 
-=== PLOT ANTERIOR ===
+🎭 PLOT ANTERIOR:
 ${context.currentTabContent}
 
-=== CONTEXTO DE OUTROS TABS (PARA REFERÊNCIA CRUZADA) ===
+🔗 CONTEXTOS CRUZADOS:
 ${context.allOtherContext}
 
-=== MENSAGENS RECENTES DA CONVERSA ===
+💬 INTERAÇÕES RECENTES:
 ${context.recentMessages}
 
-=== HISTÓRICO COMPLETO DA CONVERSA ===
+📚 HISTÓRICO COMPLETO:
 ${context.fullHistory}
 
-INSTRUÇÕES IMPORTANTES:
-- Use o plot anterior como base e atualize com TODAS as informações disponíveis
-- Considere informações de TODOS os contextos fornecidos para análise completa do plot
-- Mantenha consistência com informações da ficha de personagem, relações e aventura
-- Inclua detalhes específicos das mensagens recentes da conversa
-- Preserve objetivos e tramas relevantes que ainda estão ativos
+🎯 INSTRUÇÕES DE EXECUÇÃO:
+- Aplique arqueologia narrativa: descubra tramas e motivações ocultas
+- Use densidade causal: cada nó = múltiplas camadas temporais
+- Identifique residuais narrativos: tensões e desenvolvimentos implícitos
+- Mantenha consistência cross-referencial com outros contextos
+- Capture evolução temporal e pontos de inflexão críticos
+- OBRIGATÓRIO: Preencha TODAS as seções com informações específicas
+- Use terminologia de grafos: nós (objetivos/eventos) e arestas (conexões causais)
+- Foque na MISSÃO ATUAL e elementos ativos
 
-PLOT ATUAL ATUALIZADO:`;
+GRAFO NARRATIVO ATUAL SEMANTICAMENTE COMPRIMIDO:`;
     }
 
     // Generate prompt for adventure with enhanced context
     generateAventuraPrompt(compressedSummary, originalContext, messages) {
         const context = this.generateComprehensiveContext(compressedSummary, originalContext, messages, 'aventura');
 
-        return `Com base em TODAS as informações fornecidas abaixo, crie uma narrativa HISTÓRICA e DETALHADA da aventura em português, focando APENAS em eventos passados e incluindo:
+        return `🧠 ANÁLISE SEMÂNTICA WFGY: Use framework de compressão semântica para construir GRAFO TEMPORAL HISTÓRICO com nós (eventos/missões) e arestas (conexões causais) multi-dimensionais.
 
-1. INÍCIO DA AVENTURA:
-   - Como tudo começou
-   - Motivações iniciais do personagem
-   - Primeiros encontros e decisões iniciais
+📚 MISSÃO: Criar REDE NEURAL HISTÓRICA semanticamente comprimida mapeando trajetória completa até o momento atual com densidade informacional máxima.
 
-2. DESENVOLVIMENTO DA HISTÓRIA (EVENTOS PASSADOS):
-   - Eventos principais em ordem cronológica
-   - Decisões importantes e suas consequências históricas
-   - Evolução do personagem ao longo da jornada
-   - Marcos importantes da aventura
+🎯 PROTOCOLO DE MAPEAMENTO DE GRAFOS TEMPORAIS:
+1. ARQUEOLOGIA TEMPORAL: Escave eventos ocultos, micro-momentos decisivos, consequências não-óbvias
+2. CALIBRAÇÃO CAUSAL: Identifique cadeias causais implícitas, efeitos borboleta, marcos evolutivos
+3. DENSIDADE HISTÓRICA: Cada nó temporal = múltiplas dimensões (factual, emocional, simbólica, evolutiva)
 
-3. CONQUISTAS E PERDAS (EVENTOS CONCLUÍDOS):
-   - Objetivos que foram alcançados
-   - Desafios que foram superados
-   - Itens, habilidades ou conhecimentos obtidos
-   - Perdas ou sacrifícios feitos no passado
-   - Lições aprendidas durante a jornada
+🔍 EXTRAÇÃO DE RESIDUAIS HISTÓRICOS:
+- Micro-decisões que alteraram trajetórias
+- Aprendizados subconscientes acumulados
+- Transformações graduais não-percebidas
+- Arestas causais entre eventos distantes
+- Vínculos causais entre eventos distantes
+- Sementes de desenvolvimentos futuros
 
-=== RESUMO COMPRIMIDO DA AVENTURA ===
+📊 ESTRUTURA DE GRAFO TEMPORAL ULTRA-DETALHADA:
+
+**[GÊNESE AVENTURA - NÓ ORIGEM]**
+- Evento Catalisador: [O que iniciou tudo]
+- Motivações Iniciais: [Por que o personagem começou a aventura]
+- Estado Inicial: [Condições de partida - habilidades, recursos, mentalidade]
+- Primeiros Encontros: [Personagens e situações iniciais]
+- Decisões Fundacionais: [Escolhas que definiram o rumo]
+
+**[MISSÕES PASSADAS COMPLETAS - NÓDULOS HISTÓRICOS]**
+- Missão: [Nome e descrição] | Status: COMPLETA
+- Objetivos Alcançados: [Metas cumpridas]
+- Métodos Utilizados: [Como foi resolvida]
+- Personagens Envolvidos: [Quem participou e seus papéis]
+- Recompensas Obtidas: [Ganhos materiais e imateriais]
+- Lições Aprendidas: [Conhecimento/experiência adquirida]
+- Consequências Geradas: [Efeitos posteriores]
+
+**[CONSEQUÊNCIAS E CONQUISTAS - ARESTAS DE IMPACTO]**
+- Conquistas Materiais: [Itens, recursos, propriedades obtidos]
+- Conquistas Sociais: [Relacionamentos, reputação, títulos]
+- Conquistas Pessoais: [Crescimento, habilidades, conhecimento]
+- Consequências Positivas: [Benefícios inesperados]
+- Consequências Negativas: [Problemas criados ou herdados]
+- Mudanças Permanentes: [Alterações irreversíveis no mundo/personagem]
+
+**[PERSONAGENS HISTÓRICOS ENVOLVIDOS - NÓDULOS RELACIONAIS]**
+- Aliados Históricos: [Nome, contribuição, destino atual]
+- Adversários Derrotados: [Nome, conflito, resolução]
+- Mentores Encontrados: [Nome, ensinamentos, legado]
+- Vítimas/Salvos: [Nome, situação, impacto]
+- Perdas Sofridas: [Quem foi perdido e como]
+
+**[MATRIZ EVOLUTIVA - ARESTAS DE TRANSFORMAÇÃO]**
+- Marcos de Crescimento: [Momentos de evolução significativa]
+- Habilidades Desenvolvidas: [Capacidades adquiridas ao longo do tempo]
+- Mudanças de Personalidade: [Como o personagem mudou]
+- Traumas Processados: [Dificuldades superadas]
+- Padrões Comportamentais: [Tendências desenvolvidas]
+
+**[CRONOLOGIA COMPRIMIDA - SEQUÊNCIA TEMPORAL]**
+- Fase 1: [Período inicial - eventos principais]
+- Fase 2: [Desenvolvimento - missões intermediárias]
+- Fase 3: [Maturação - conquistas significativas]
+- Fase N: [Até a última missão completa]
+
+**[ARESTAS CAUSAIS HISTÓRICAS - CONEXÕES TEMPORAIS]**
+- Como Evento A levou ao Evento B: [Cadeias causais]
+- Decisões que mudaram tudo: [Pontos de inflexão]
+- Efeitos borboleta: [Pequenas ações, grandes consequências]
+- Padrões recorrentes: [Temas que se repetem]
+
+**[RESIDUAIS HISTÓRICOS - ELEMENTOS OCULTOS]**
+- Eventos aparentemente menores com consequências maiores
+- Transformações graduais não-percebidas
+- Sementes plantadas para desenvolvimentos futuros
+- Conexões não-óbvias entre eventos distantes
+
+=== DADOS PARA COMPRESSÃO DE GRAFOS TEMPORAIS ===
+
+🗜️ RESUMO AVENTURA:
 ${context.compressedSummary}
 
-=== AVENTURA ANTERIOR ===
+📚 AVENTURA ANTERIOR:
 ${context.currentTabContent}
 
-=== CONTEXTO DE OUTROS TABS (PARA REFERÊNCIA CRUZADA) ===
+🔗 CONTEXTOS CRUZADOS:
 ${context.allOtherContext}
 
-=== MENSAGENS RECENTES DA CONVERSA ===
+💬 INTERAÇÕES RECENTES:
 ${context.recentMessages}
 
-=== HISTÓRICO COMPLETO DA CONVERSA ===
+📚 HISTÓRICO COMPLETO:
 ${context.fullHistory}
 
-INSTRUÇÕES IMPORTANTES:
-- Use a aventura anterior como base e expanda com TODAS as informações disponíveis
-- Considere informações de TODOS os contextos fornecidos para criar narrativa completa
-- Mantenha consistência com informações da ficha de personagem, relações e plot
-- Inclua detalhes específicos das mensagens recentes da conversa
-- NÃO inclua informações sobre relacionamentos atuais (isso vai para "Relações")
-- NÃO inclua situação presente ou objetivos atuais (isso vai para "Plot Atual")
-- Foque apenas na narrativa histórica de eventos que já aconteceram
-- Mantenha a continuidade histórica e adicione novos eventos cronologicamente
+🎯 INSTRUÇÕES DE EXECUÇÃO:
+- Aplique arqueologia temporal: descubra eventos e transformações ocultas
+- Use densidade histórica: cada nó = múltiplas camadas causais
+- Identifique residuais históricos: micro-eventos com macro-consequências
+- Mantenha consistência cross-referencial com outros contextos
+- Preserve continuidade temporal e sementes de desenvolvimentos futuros
+- OBRIGATÓRIO: Preencha TODAS as seções com informações específicas
+- Use terminologia de grafos: nós (eventos/missões) e arestas (conexões causais)
+- FOCO EXCLUSIVO: eventos passados até a ÚLTIMA MISSÃO COMPLETA
+- Evite presente/futuro, mantenha perspectiva histórica
 
-Crie uma narrativa envolvente que preserve toda a história PASSADA da aventura, servindo como um registro histórico completo dos eventos já vividos pelo personagem.
-
-NARRATIVA HISTÓRICA DA AVENTURA:`;
+GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
     }
 
     // === MANUAL PROCESSING FUNCTIONS ===
@@ -2462,7 +2676,17 @@ NARRATIVA HISTÓRICA DA AVENTURA:`;
             'requests per minute',
             'requests per day',
             'api quota',
-            'usage limit'
+            'usage limit',
+            'limit exceeded',
+            'quota_exceeded',
+            'api_key_invalid',
+            'invalid_api_key',
+            'forbidden',
+            '403',
+            '429',
+            'billing',
+            'payment required',
+            'insufficient quota'
         ];
 
         const message = errorMessage.toLowerCase();
@@ -2474,13 +2698,15 @@ NARRATIVA HISTÓRICA DA AVENTURA:`;
         let currentKey = this.activeApiKey;
         let rotationCount = 0;
         let lastError = null;
+        const originalKey = this.activeApiKey;
+
+        console.log(`[Key Rotation] Starting with key: ${currentKey}, auto-rotation: ${this.autoKeyRotation}`);
 
         while (rotationCount < maxRotations) {
             try {
                 console.log(`[Key Rotation] Attempting API call with ${currentKey} (attempt ${rotationCount + 1}/${maxRotations})`);
 
                 // Temporarily set the active key for this attempt
-                const originalKey = this.activeApiKey;
                 this.activeApiKey = currentKey;
 
                 const result = await this.callGeminiAPI(message, files, timeoutMs);
@@ -2491,6 +2717,7 @@ NARRATIVA HISTÓRICA DA AVENTURA:`;
                     this.updateApiKeyInput();
                     this.updateStatisticsDisplay();
                     this.showToast(`✅ Chave ${currentKey} funcionando, continuando com ela`);
+                    console.log(`[Key Rotation] Successfully switched to ${currentKey}`);
                 }
 
                 return result;
@@ -2502,26 +2729,41 @@ NARRATIVA HISTÓRICA DA AVENTURA:`;
                 // Check if this is a rate limit error and auto rotation is enabled
                 if (this.autoKeyRotation && this.isRateLimitError(error.message)) {
                     rotationCount++;
+                    console.log(`[Key Rotation] Rate limit detected, rotation count: ${rotationCount}/${maxRotations}`);
 
                     if (rotationCount < maxRotations) {
-                        const nextKey = this.getNextApiKey(currentKey);
+                        let nextKey = this.getNextApiKey(currentKey);
+                        let attempts = 0;
+                        const maxAttempts = 4; // Prevent infinite loop
 
-                        // Check if next key has an API key configured
+                        // Find next available key
+                        while (attempts < maxAttempts && (!this.apiKeys[nextKey] || !this.apiKeys[nextKey].trim())) {
+                            console.log(`[Key Rotation] ${nextKey} not configured, trying next...`);
+                            this.showToast(`⚠️ ${nextKey} não configurada, pulando...`);
+                            nextKey = this.getNextApiKey(nextKey);
+                            attempts++;
+                        }
+
+                        // If we found a valid key
                         if (this.apiKeys[nextKey] && this.apiKeys[nextKey].trim()) {
-                            this.showToast(`⚠️ Chave ${currentKey} saturada, tentando ${nextKey}...`);
+                            this.showToast(`⚠️ Chave ${currentKey} com erro, tentando ${nextKey}...`);
                             currentKey = nextKey;
 
                             // Small delay before retry
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            await new Promise(resolve => setTimeout(resolve, 1500));
                             continue;
                         } else {
-                            this.showToast(`⚠️ ${nextKey} não configurada, pulando...`);
-                            currentKey = this.getNextApiKey(nextKey);
-                            continue;
+                            console.log(`[Key Rotation] No more valid keys available`);
+                            this.showToast(`❌ Nenhuma chave válida disponível para rotação`);
+                            break;
                         }
                     }
                 } else {
-                    // Not a rate limit error or auto rotation disabled, throw immediately
+                    // Not a rate limit error or auto rotation disabled
+                    console.log(`[Key Rotation] Non-rate-limit error or auto-rotation disabled, throwing error`);
+                    
+                    // Restore original key
+                    this.activeApiKey = originalKey;
                     throw error;
                 }
             }
@@ -3381,51 +3623,92 @@ ${message}`;
         return formattingInstructions;
     }
 
-    // Processar resposta com streaming SSE da API Gemini
+    // Processar resposta com streaming SSE da API Gemini - Versão Robusta
     async processStreamingResponse(response, model) {
-        console.log(`[DEBUG] Processando resposta streaming SSE para modelo ${model}`);
+        console.log(`[STREAMING] Processando resposta streaming SSE para modelo ${model}`);
         
         if (!response.body) {
-            console.log('[DEBUG] Fallback para response.json() - sem streaming disponível');
+            console.log('[STREAMING] Fallback para response.json() - sem streaming disponível');
             return await response.json();
         }
 
         try {
             const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+            const decoder = new TextDecoder('utf-8', { fatal: false });
             let buffer = '';
             let completeText = '';
             let totalBytesReceived = 0;
+            let totalChunksReceived = 0;
             let candidates = [];
+            let lastValidCandidate = null;
+            let connectionStable = true;
             
-            console.log('[DEBUG] Iniciando leitura streaming SSE...');
+            console.log('[STREAMING] Iniciando leitura streaming SSE robusta...');
             
-            // Implementar timeout para cada chunk
-            const chunkTimeout = 30000; // 30 segundos por chunk
+            // Timeout mais generoso para chunks grandes
+            const chunkTimeout = 45000; // 45 segundos por chunk
+            const maxRetries = 3;
+            let consecutiveErrors = 0;
             
             while (true) {
-                const chunkPromise = reader.read();
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout no chunk')), chunkTimeout)
-                );
+                let chunkResult = null;
+                let retryCount = 0;
                 
-                const { done, value } = await Promise.race([chunkPromise, timeoutPromise]);
+                // Sistema de retry para chunks individuais
+                while (retryCount <= maxRetries) {
+                    try {
+                        const chunkPromise = reader.read();
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error(`Timeout no chunk após ${chunkTimeout}ms`)), chunkTimeout)
+                        );
+                        
+                        chunkResult = await Promise.race([chunkPromise, timeoutPromise]);
+                        consecutiveErrors = 0; // Reset contador de erros
+                        break;
+                        
+                    } catch (chunkError) {
+                        retryCount++;
+                        consecutiveErrors++;
+                        console.warn(`[STREAMING] Erro no chunk (tentativa ${retryCount}/${maxRetries + 1}):`, chunkError.message);
+                        
+                        if (retryCount <= maxRetries) {
+                            // Delay progressivo entre retries
+                            const delay = Math.min(1000 * retryCount, 5000);
+                            console.log(`[STREAMING] Aguardando ${delay}ms antes de retry...`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            connectionStable = false;
+                        } else {
+                            throw chunkError;
+                        }
+                    }
+                }
+                
+                const { done, value } = chunkResult;
                 
                 if (done) {
-                    console.log(`[DEBUG] Streaming concluído - Total: ${totalBytesReceived} bytes`);
+                    console.log(`[STREAMING] Streaming concluído - Total: ${totalBytesReceived} bytes em ${totalChunksReceived} chunks`);
                     break;
                 }
                 
                 totalBytesReceived += value.length;
+                totalChunksReceived++;
                 
-                // Decodificar chunk recebido
-                const chunk = decoder.decode(value, { stream: true });
+                // Decodificar chunk com tratamento de erro
+                let chunk;
+                try {
+                    chunk = decoder.decode(value, { stream: true });
+                } catch (decodeError) {
+                    console.warn('[STREAMING] Erro na decodificação, tentando recuperar:', decodeError);
+                    // Tentar decodificação alternativa
+                    chunk = new TextDecoder('utf-8', { fatal: false }).decode(value);
+                }
+                
                 buffer += chunk;
                 
-                console.log(`[DEBUG] Chunk SSE recebido: ${chunk.length} caracteres (Total: ${totalBytesReceived} bytes)`);
+                console.log(`[STREAMING] Chunk ${totalChunksReceived} recebido: ${chunk.length} chars (Total: ${totalBytesReceived} bytes)`);
                 
-                // Processar eventos SSE completos
-                let lines = buffer.split('\n');
+                // Processar eventos SSE completos com validação robusta
+                const lines = buffer.split('\n');
                 buffer = lines.pop() || ''; // Manter linha incompleta no buffer
                 
                 for (const line of lines) {
@@ -3436,65 +3719,124 @@ ${message}`;
                         const jsonData = trimmedLine.substring(6); // Remove "data: "
                         
                         if (jsonData === '[DONE]') {
-                            console.log('[DEBUG] Recebido sinal de fim do streaming');
+                            console.log('[STREAMING] Recebido sinal de fim do streaming');
+                            continue;
+                        }
+                        
+                        // Validar se é JSON válido antes de processar
+                        if (!jsonData || jsonData.length < 2) {
+                            console.log('[STREAMING] Dados JSON vazios ou inválidos, pulando...');
                             continue;
                         }
                         
                         try {
                             const eventData = JSON.parse(jsonData);
-                            console.log('[DEBUG] Evento SSE processado:', eventData);
                             
-                            // Extrair texto do evento
-                            if (eventData.candidates && eventData.candidates.length > 0) {
+                            // Extrair texto do evento com validação robusta
+                            if (eventData.candidates && Array.isArray(eventData.candidates) && eventData.candidates.length > 0) {
                                 const candidate = eventData.candidates[0];
-                                if (candidate.content && candidate.content.parts) {
+                                
+                                if (candidate && candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
                                     for (const part of candidate.content.parts) {
-                                        if (part.text) {
+                                        if (part && typeof part.text === 'string' && part.text.length > 0) {
                                             completeText += part.text;
-                                            console.log(`[DEBUG] Texto adicionado: ${part.text.length} caracteres`);
+                                            console.log(`[STREAMING] Texto adicionado: ${part.text.length} chars (Total: ${completeText.length})`);
                                         }
                                     }
                                 }
                                 
-                                // Manter referência do último candidato para metadados
+                                // Manter referência do último candidato válido
+                                lastValidCandidate = candidate;
                                 candidates = eventData.candidates;
                             }
+                            
                         } catch (parseError) {
-                            console.warn('[DEBUG] Erro ao processar evento SSE:', parseError);
-                            console.log('[DEBUG] Dados problemáticos:', jsonData.substring(0, 200));
-                        }
-                    }
-                }
-            }
-            
-            // Processar qualquer dado restante no buffer
-            if (buffer.trim()) {
-                const remainingLine = buffer.trim();
-                if (remainingLine.startsWith('data: ')) {
-                    const jsonData = remainingLine.substring(6);
-                    try {
-                        const eventData = JSON.parse(jsonData);
-                        if (eventData.candidates && eventData.candidates.length > 0) {
-                            const candidate = eventData.candidates[0];
-                            if (candidate.content && candidate.content.parts) {
-                                for (const part of candidate.content.parts) {
-                                    if (part.text) {
-                                        completeText += part.text;
+                            console.warn('[STREAMING] Erro ao processar evento SSE:', parseError.message);
+                            console.log('[STREAMING] Dados problemáticos (primeiros 300 chars):', jsonData.substring(0, 300));
+                            
+                            // Tentar recuperar JSON malformado
+                            try {
+                                const fixedJson = this.attemptJsonRepair(jsonData);
+                                if (fixedJson) {
+                                    const eventData = JSON.parse(fixedJson);
+                                    console.log('[STREAMING] JSON reparado com sucesso');
+                                    
+                                    if (eventData.candidates && eventData.candidates.length > 0) {
+                                        const candidate = eventData.candidates[0];
+                                        if (candidate.content && candidate.content.parts) {
+                                            for (const part of candidate.content.parts) {
+                                                if (part.text) {
+                                                    completeText += part.text;
+                                                }
+                                            }
+                                        }
+                                        candidates = eventData.candidates;
                                     }
                                 }
+                            } catch (repairError) {
+                                console.warn('[STREAMING] Falha no reparo do JSON, continuando...');
                             }
-                            candidates = eventData.candidates;
                         }
-                    } catch (parseError) {
-                        console.warn('[DEBUG] Erro no buffer restante:', parseError);
+                    }
+                }
+                
+                // Verificar se a conexão está estável
+                if (!connectionStable && consecutiveErrors === 0) {
+                    connectionStable = true;
+                    console.log('[STREAMING] Conexão estabilizada');
+                }
+            }
+            
+            // Processar qualquer dado restante no buffer com validação
+            if (buffer.trim()) {
+                console.log('[STREAMING] Processando dados restantes no buffer...');
+                const remainingLines = buffer.trim().split('\n');
+                
+                for (const remainingLine of remainingLines) {
+                    if (remainingLine.startsWith('data: ')) {
+                        const jsonData = remainingLine.substring(6);
+                        if (jsonData && jsonData !== '[DONE]') {
+                            try {
+                                const eventData = JSON.parse(jsonData);
+                                if (eventData.candidates && eventData.candidates.length > 0) {
+                                    const candidate = eventData.candidates[0];
+                                    if (candidate.content && candidate.content.parts) {
+                                        for (const part of candidate.content.parts) {
+                                            if (part.text) {
+                                                completeText += part.text;
+                                                console.log('[STREAMING] Texto do buffer adicionado:', part.text.length);
+                                            }
+                                        }
+                                    }
+                                    candidates = eventData.candidates;
+                                }
+                            } catch (parseError) {
+                                console.warn('[STREAMING] Erro no buffer restante:', parseError.message);
+                            }
+                        }
                     }
                 }
             }
             
-            console.log(`[DEBUG] Texto completo recebido via streaming: ${completeText.length} caracteres`);
-            console.log(`[DEBUG] Preview do texto: ${completeText.substring(0, 200)}...`);
+            // Validação final do texto recebido
+            if (!completeText || completeText.length === 0) {
+                console.warn('[STREAMING] AVISO: Nenhum texto foi recebido via streaming');
+                
+                // Tentar extrair de candidatos se disponível
+                if (lastValidCandidate && lastValidCandidate.content && lastValidCandidate.content.parts) {
+                    for (const part of lastValidCandidate.content.parts) {
+                        if (part.text) {
+                            completeText += part.text;
+                        }
+                    }
+                }
+            }
             
-            // Construir resposta no formato esperado pela aplicação
+            console.log(`[STREAMING] ✅ Texto completo recebido: ${completeText.length} caracteres em ${totalChunksReceived} chunks`);
+            console.log(`[STREAMING] Preview (primeiros 200 chars): ${completeText.substring(0, 200)}...`);
+            console.log(`[STREAMING] Conexão ${connectionStable ? 'estável' : 'instável'} durante o processo`);
+            
+            // Construir resposta no formato esperado com validação
             const responseData = {
                 candidates: candidates.length > 0 ? candidates.map(candidate => ({
                     ...candidate,
@@ -3508,22 +3850,144 @@ ${message}`;
                         role: 'model'
                     },
                     finishReason: 'STOP'
-                }]
+                }],
+                streamingStats: {
+                    totalBytes: totalBytesReceived,
+                    totalChunks: totalChunksReceived,
+                    textLength: completeText.length,
+                    connectionStable: connectionStable
+                }
             };
             
-            console.log('[DEBUG] Resposta streaming SSE processada com sucesso');
+            console.log('[STREAMING] ✅ Resposta streaming processada com sucesso');
             return responseData;
             
         } catch (streamError) {
-            console.error('[DEBUG] Erro no streaming SSE, usando fallback:', streamError);
-            // Fallback para método tradicional se streaming falhar
+            console.error('[STREAMING] ❌ Erro crítico no streaming:', streamError.message);
+            console.error('[STREAMING] Stack trace:', streamError.stack);
+            
+            // Fallback robusto para método tradicional
             try {
-                console.log('[DEBUG] Tentando fallback para response.json()...');
-                return await response.json();
+                console.log('[STREAMING] 🔄 Tentando fallback para response.json()...');
+                const fallbackData = await response.json();
+                console.log('[STREAMING] ✅ Fallback bem-sucedido');
+                return fallbackData;
             } catch (fallbackError) {
-                console.error('[DEBUG] Fallback também falhou:', fallbackError);
-                throw new Error('Falha na recepção da resposta (streaming e fallback)');
+                console.error('[STREAMING] ❌ Fallback também falhou:', fallbackError.message);
+                throw new Error(`Falha na recepção da resposta: Streaming (${streamError.message}) e Fallback (${fallbackError.message})`);
             }
+        }
+    }
+
+    // Função auxiliar para tentar reparar JSON malformado
+    attemptJsonRepair(jsonString) {
+        try {
+            // Remover caracteres de controle e espaços extras
+            let cleaned = jsonString.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+            
+            // Tentar fechar chaves/colchetes não fechados
+            const openBraces = (cleaned.match(/\{/g) || []).length;
+            const closeBraces = (cleaned.match(/\}/g) || []).length;
+            const openBrackets = (cleaned.match(/\[/g) || []).length;
+            const closeBrackets = (cleaned.match(/\]/g) || []).length;
+            
+            // Adicionar chaves fechadas se necessário
+            for (let i = 0; i < openBraces - closeBraces; i++) {
+                cleaned += '}';
+            }
+            
+            // Adicionar colchetes fechados se necessário
+            for (let i = 0; i < openBrackets - closeBrackets; i++) {
+                cleaned += ']';
+            }
+            
+            // Testar se o JSON reparado é válido
+            JSON.parse(cleaned);
+            return cleaned;
+            
+        } catch (error) {
+            return null;
+        }
+    }
+
+    // Validar integridade da resposta streaming
+    validateStreamingResponse(responseData, model) {
+        console.log('[STREAMING] Validando integridade da resposta...');
+        
+        if (!responseData) {
+            console.warn('[STREAMING] ⚠️ Resposta vazia recebida');
+            return false;
+        }
+
+        if (!responseData.candidates || !Array.isArray(responseData.candidates) || responseData.candidates.length === 0) {
+            console.warn('[STREAMING] ⚠️ Nenhum candidato encontrado na resposta');
+            return false;
+        }
+
+        const candidate = responseData.candidates[0];
+        if (!candidate.content || !candidate.content.parts || !Array.isArray(candidate.content.parts)) {
+            console.warn('[STREAMING] ⚠️ Estrutura de conteúdo inválida');
+            return false;
+        }
+
+        const textParts = candidate.content.parts.filter(part => part.text && part.text.length > 0);
+        if (textParts.length === 0) {
+            console.warn('[STREAMING] ⚠️ Nenhum texto encontrado na resposta');
+            return false;
+        }
+
+        const totalTextLength = textParts.reduce((sum, part) => sum + part.text.length, 0);
+        console.log(`[STREAMING] ✅ Validação bem-sucedida: ${totalTextLength} caracteres em ${textParts.length} partes`);
+
+        // Log estatísticas se disponíveis
+        if (responseData.streamingStats) {
+            const stats = responseData.streamingStats;
+            console.log(`[STREAMING] 📊 Estatísticas: ${stats.totalBytes} bytes, ${stats.totalChunks} chunks, conexão ${stats.connectionStable ? 'estável' : 'instável'}`);
+            
+            // Alertar sobre possíveis problemas
+            if (!stats.connectionStable) {
+                console.warn('[STREAMING] ⚠️ Conexão instável detectada durante o streaming');
+            }
+            
+            if (stats.totalChunks > 100) {
+                console.log(`[STREAMING] 📈 Resposta longa: ${stats.totalChunks} chunks processados`);
+            }
+        }
+
+        return true;
+    }
+
+    // Sistema de recuperação para mensagens incompletas
+    async attemptMessageRecovery(originalResponse, model, retryCount = 0) {
+        const maxRetries = 2;
+        
+        if (retryCount >= maxRetries) {
+            console.error('[STREAMING] ❌ Máximo de tentativas de recuperação atingido');
+            return null;
+        }
+
+        console.log(`[STREAMING] 🔄 Tentativa de recuperação ${retryCount + 1}/${maxRetries}`);
+        
+        try {
+            // Aguardar um pouco antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+            
+            // Tentar reprocessar a resposta original
+            if (originalResponse && originalResponse.body) {
+                console.log('[STREAMING] Tentando reprocessar resposta original...');
+                const recoveredData = await this.processStreamingResponse(originalResponse, model);
+                
+                if (this.validateStreamingResponse(recoveredData, model)) {
+                    console.log('[STREAMING] ✅ Recuperação bem-sucedida');
+                    return recoveredData;
+                }
+            }
+            
+            return null;
+            
+        } catch (recoveryError) {
+            console.error(`[STREAMING] Erro na recuperação (tentativa ${retryCount + 1}):`, recoveryError.message);
+            return await this.attemptMessageRecovery(originalResponse, model, retryCount + 1);
         }
     }
 
@@ -3724,6 +4188,9 @@ ${message}`;
             
             // Processar resposta com streaming para garantir recepção completa
             const responseData = await this.processStreamingResponse(response, model);
+            
+            // Verificar integridade da resposta recebida
+            this.validateStreamingResponse(responseData, model);
             
             if (!response.ok) {
                 console.error('[DEBUG] Erro da API Gemini:', responseData);
@@ -4238,10 +4705,8 @@ ${message}`;
         this.showToast(`🔄 Reenviando mensagem... (tentativa ${message.retryCount}/${maxRetries})`, 'info');
 
         try {
-            // Use rotation-enabled API call if auto rotation is enabled
-            const response = this.autoKeyRotation ?
-                await this.callGeminiAPIWithRotation(message.content, message.files || []) :
-                await this.callGeminiAPI(message.content, message.files || []);
+            // Always use rotation-enabled API call for better error handling
+            const response = await this.callGeminiAPIWithRotation(message.content, message.files || []);
 
             this.hideTyping();
 
