@@ -1885,6 +1885,7 @@ FIM DO BACKUP
 **[INVENTÁRIO COMPLETO CATEGORIZADO]**
 - ARMAS: Primárias, secundárias, munições (com estatísticas e histórico)
 - ARMADURAS: Proteções corporais, escudos, acessórios defensivos
+- EQUIPAMENTOS MAGICOS: Instrumentos mágicos ofensivos, defensivos e utilidades.
 - CONSUMÍVEIS: Poções, alimentos, pergaminhos, materiais temporários
 - FERRAMENTAS: Equipamentos utilitários, instrumentos especializados
 - ITENS DE MISSÃO: Objetos únicos, chaves, documentos importantes
@@ -4105,7 +4106,20 @@ ${message}`;
                 console.error('[STREAMING] ❌ ERRO CRÍTICO: Texto vazio após processamento completo');
                 console.error('[STREAMING] Debug - candidates:', candidates);
                 console.error('[STREAMING] Debug - lastValidCandidate:', lastValidCandidate);
-                throw new Error('Nenhum texto válido foi extraído do streaming');
+                console.error('[STREAMING] Debug - totalBytes:', totalBytesReceived);
+                console.error('[STREAMING] Debug - chunks:', totalChunksReceived);
+                
+                // Retornar resposta vazia estruturada para permitir fallback
+                return {
+                    candidates: [],
+                    streamingStats: {
+                        totalBytes: totalBytesReceived,
+                        totalChunks: totalChunksReceived,
+                        textLength: 0,
+                        connectionStable: connectionStable,
+                        emptyResponse: true
+                    }
+                };
             }
             
             console.log('[STREAMING] 🔧 Construindo resposta estruturada...');
@@ -4424,19 +4438,19 @@ ${message}`;
             safetySettings: [
                 {
                     category: "HARM_CATEGORY_HARASSMENT",
-                    threshold: "BLOCK_NONE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_HATE_SPEECH", 
-                    threshold: "BLOCK_NONE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    threshold: "BLOCK_NONE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 },
                 {
                     category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    threshold: "BLOCK_NONE"
+                    threshold: "BLOCK_ONLY_HIGH"
                 }
             ],
         };
@@ -4498,42 +4512,49 @@ ${message}`;
             const responseData = await this.processStreamingResponse(response, model);
             console.log('[DEBUG] ✅ Streaming processado, validando dados...');
             
-            // Verificar se modelo Pro retornou array vazio e fazer fallback para não-streaming
-            if (model.includes('pro') && responseData.streamingStats && responseData.streamingStats.textLength === 0 && responseData.streamingStats.totalBytes <= 10) {
-                console.log(`[DEBUG] Modelo Pro retornou array vazio, tentando fallback não-streaming`);
+            // Verificar se retornou array vazio e fazer fallback para não-streaming
+            if (responseData.streamingStats && responseData.streamingStats.textLength === 0 && responseData.streamingStats.totalBytes <= 10) {
+                console.log(`[DEBUG] ${model} retornou array vazio (${responseData.streamingStats.totalBytes} bytes), tentando fallback não-streaming`);
                 
                 // Fazer nova requisição sem streaming
                 const nonStreamingUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
-                const fallbackResponse = await fetch(nonStreamingUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                if (fallbackResponse.ok) {
-                    const fallbackData = await fallbackResponse.json();
-                    console.log(`[DEBUG] Fallback não-streaming bem-sucedido para ${model}`);
-                    console.log('[DEBUG] Resposta fallback:', JSON.stringify(fallbackData, null, 2));
+                try {
+                    const fallbackResponse = await fetch(nonStreamingUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
                     
-                    // Usar dados do fallback
-                    const processedData = {
-                        ...fallbackData,
-                        streamingStats: {
-                            totalBytes: JSON.stringify(fallbackData).length,
-                            totalChunks: 1,
-                            textLength: fallbackData.candidates?.[0]?.content?.parts?.[0]?.text?.length || 0,
-                            connectionStable: true,
-                            fallbackUsed: true
-                        }
-                    };
-                    
-                    this.validateStreamingResponse(processedData, model);
-                    return await this.extractResponseText(processedData, model);
-                } else {
-                    console.error(`[DEBUG] Fallback não-streaming também falhou para ${model}`);
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        console.log(`[DEBUG] Fallback não-streaming bem-sucedido para ${model}`);
+                        console.log('[DEBUG] Resposta fallback:', JSON.stringify(fallbackData, null, 2));
+                        
+                        // Usar dados do fallback
+                        const processedData = {
+                            ...fallbackData,
+                            streamingStats: {
+                                totalBytes: JSON.stringify(fallbackData).length,
+                                totalChunks: 1,
+                                textLength: fallbackData.candidates?.[0]?.content?.parts?.[0]?.text?.length || 0,
+                                connectionStable: true,
+                                fallbackUsed: true
+                            }
+                        };
+                        
+                        this.validateStreamingResponse(processedData, model);
+                        return await this.extractResponseText(processedData, model);
+                    } else {
+                        const errorText = await fallbackResponse.text();
+                        console.error(`[DEBUG] Fallback não-streaming falhou para ${model}: ${fallbackResponse.status} - ${errorText}`);
+                        throw new Error(`Fallback request failed: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+                    }
+                } catch (fallbackError) {
+                    console.error(`[DEBUG] Erro no fallback não-streaming para ${model}:`, fallbackError);
+                    throw new Error(`Streaming retornou array vazio e fallback falhou: ${fallbackError.message}`);
                 }
             }
             
