@@ -4100,6 +4100,16 @@ ${message}`;
             console.log(`[STREAMING] Preview (primeiros 200 chars): ${completeText.substring(0, 200)}...`);
             console.log(`[STREAMING] Conexão ${connectionStable ? 'estável' : 'instável'} durante o processo`);
             
+            // Validação crítica antes de construir resposta
+            if (!completeText || completeText.length === 0) {
+                console.error('[STREAMING] ❌ ERRO CRÍTICO: Texto vazio após processamento completo');
+                console.error('[STREAMING] Debug - candidates:', candidates);
+                console.error('[STREAMING] Debug - lastValidCandidate:', lastValidCandidate);
+                throw new Error('Nenhum texto válido foi extraído do streaming');
+            }
+            
+            console.log('[STREAMING] 🔧 Construindo resposta estruturada...');
+            
             // Construir resposta no formato esperado com validação
             const responseData = {
                 candidates: candidates.length > 0 ? candidates.map(candidate => ({
@@ -4122,6 +4132,10 @@ ${message}`;
                     connectionStable: connectionStable
                 }
             };
+            
+            console.log('[STREAMING] 🔍 Validando estrutura da resposta...');
+            console.log(`[STREAMING] Candidates count: ${responseData.candidates.length}`);
+            console.log(`[STREAMING] First candidate text length: ${responseData.candidates[0]?.content?.parts?.[0]?.text?.length || 0}`);
             
             console.log('[STREAMING] ✅ Resposta streaming processada com sucesso');
             return responseData;
@@ -4480,7 +4494,9 @@ ${message}`;
             console.log(`[DEBUG] Status da resposta: ${response.status}`);
             
             // Processar resposta com streaming para garantir recepção completa
+            console.log('[DEBUG] 🔄 Iniciando processamento streaming...');
             const responseData = await this.processStreamingResponse(response, model);
+            console.log('[DEBUG] ✅ Streaming processado, validando dados...');
             
             // Verificar se modelo Pro retornou array vazio e fazer fallback para não-streaming
             if (model.includes('pro') && responseData.streamingStats && responseData.streamingStats.textLength === 0 && responseData.streamingStats.totalBytes <= 10) {
@@ -4522,18 +4538,13 @@ ${message}`;
             }
             
             // Verificar integridade da resposta recebida
+            console.log('[DEBUG] 🔍 Validando integridade da resposta...');
             this.validateStreamingResponse(responseData, model);
+            console.log('[DEBUG] ✅ Resposta validada com sucesso');
             
             if (!response.ok) {
                 console.error('[DEBUG] Erro da API Gemini:', responseData);
-
-                // Identificar tipo de erro para melhor orientação ao usuário
-                const errorMessage = responseData.error?.message || '';
-                const isRateLimitError = response.status === 429 ||
-                                       errorMessage.includes('quota') ||
-                                       errorMessage.includes('rate limit') ||
-                                       errorMessage.includes('Too Many Requests');
-
+                throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 const isCapacityError = response.status === 500 ||
                                       errorMessage.includes('resource_exhausted') ||
                                       errorMessage.includes('capacity');
