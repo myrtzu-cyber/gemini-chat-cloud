@@ -2649,13 +2649,13 @@ GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
         try {
             console.log(`[DEBUG] Processando ${tabKey} com requisição única`);
 
-            // Create backup of all tabs
-            const contextBackup = this.createContextBackupData();
-            console.log(`[DEBUG] Backup criado com ${Object.keys(contextBackup).length} abas`);
+            // Use the original context backup to prevent contamination from recent updates
+            const contextBackup = originalContext || this.createContextBackupData();
+            console.log(`[DEBUG] Usando backup ${originalContext ? 'fornecido' : 'criado'} com ${Object.keys(contextBackup).length} abas`);
 
             // Generate single comprehensive prompt
             const prompt = this.generateSingleRequestPrompt(tabKey, contextBackup, this.messages);
-            console.log(`[DEBUG] Prompt único gerado para ${tabKey} (${prompt.length} caracteres)`);
+            console.log(`[DEBUG] Prompt único gerado para ${tabKey} (${prompt.length} caracteres`);
 
             // Single API call with extended timeout
             const extendedTimeout = 180000; // 3 minutes
@@ -3140,6 +3140,10 @@ RESUMO DETALHADO DA AVENTURA:`;
         const tabName = tabNames[currentTab] || currentTab;
         const messageCount = this.messages.length;
 
+        // Clear any existing backup to start fresh session
+        this.individualUpdateBackup = null;
+        console.log(`[DEBUG] Iniciando nova sessão de atualizações individuais`);
+
         // Show confirmation modal
         const modal = document.getElementById('individualTabModal');
         const title = document.getElementById('individualTabTitle');
@@ -3153,13 +3157,15 @@ RESUMO DETALHADO DA AVENTURA:`;
             Esta operação irá:
             <ul style="margin: 10px 0 0 20px;">
                 <li>Gerar novo conteúdo baseado na conversa atual (${messageCount} mensagens)</li>
-                <li>Usar todos os outros tabs como referência</li>
+                <li>Usar backup original de todos os tabs como referência</li>
                 <li>Salvar automaticamente no servidor</li>
                 <li>Não afetar outros tabs</li>
             </ul>
+            <br>
+            <em>💡 Dica: Atualizações subsequentes usarão o mesmo backup original para evitar contaminação.</em>
         `;
 
-        preview.textContent = `Baseado em ${messageCount} mensagens da conversa e contexto completo de todos os tabs.`;
+        preview.textContent = `Baseado em ${messageCount} mensagens da conversa e contexto original de todos os tabs.`;
 
         // Store current tab for processing
         this.individualUpdateData = {
@@ -3192,11 +3198,16 @@ RESUMO DETALHADO DA AVENTURA:`;
             this.showToast(`🔄 Atualizando ${tabName}...`, 'info');
             this.updateTabStatus(tabKey, '🔄', 'processing');
 
-            // Capture current context snapshot
-            const originalContext = this.captureOriginalContext();
+            // Create or reuse context backup to prevent contamination
+            if (!this.individualUpdateBackup) {
+                this.individualUpdateBackup = this.createContextBackupData();
+                console.log(`[DEBUG] Backup inicial criado para atualizações individuais`);
+            } else {
+                console.log(`[DEBUG] Reutilizando backup inicial para evitar contaminação`);
+            }
 
-            // Process the individual tab
-            const success = await this.processIndividualTab(tabKey, originalContext);
+            // Process the individual tab using the original backup
+            const success = await this.processIndividualTab(tabKey, this.individualUpdateBackup);
 
             if (success) {
                 // Success
@@ -4928,6 +4939,12 @@ ${message}`;
     // Clear pending messages from localStorage
     clearPendingMessages() {
         localStorage.removeItem('gemini_pending_messages');
+    }
+
+    // Clear individual update backup (call when starting new chat or session)
+    clearIndividualUpdateBackup() {
+        this.individualUpdateBackup = null;
+        console.log(`[DEBUG] Backup de atualizações individuais limpo`);
     }
 
     // Categorize errors for better user feedback
