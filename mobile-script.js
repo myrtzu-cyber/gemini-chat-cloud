@@ -2568,28 +2568,41 @@ GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
         console.log('[DEBUG] Failed tabs available for retry:', this.manualProcessingData.failedTabs);
     }
 
-    // Process individual tab with original context isolation (works for both sequential and individual updates)
+    // Process individual tab with single request approach
     async processIndividualTab(tabKey, originalContext, compressedSummary = null) {
         try {
             console.log(`[DEBUG] Processando tab individual: ${tabKey}`);
 
+            // For sequential processing (with compressed summary), use the old approach
+            if (compressedSummary || (this.manualProcessingData && this.manualProcessingData.compressedSummary)) {
+                return await this.processIndividualTabSequential(tabKey, originalContext, compressedSummary);
+            }
+
+            // For individual tab updates, use single request approach
+            return await this.processIndividualTabSingleRequest(tabKey, originalContext);
+
+        } catch (error) {
+            console.error(`[DEBUG] Erro ao processar ${tabKey}:`, error);
+            throw error;
+        }
+    }
+
+    // Sequential processing (old approach for manual processing)
+    async processIndividualTabSequential(tabKey, originalContext, compressedSummary) {
+        try {
             // Determine the compressed summary source
             let summaryToUse;
             if (compressedSummary) {
-                // Use provided summary (for sequential processing)
                 summaryToUse = compressedSummary;
                 console.log(`[DEBUG] Usando resumo fornecido para ${tabKey}`);
             } else if (this.manualProcessingData && this.manualProcessingData.compressedSummary) {
-                // Use summary from manual processing data (for sequential processing)
                 summaryToUse = this.manualProcessingData.compressedSummary;
                 console.log(`[DEBUG] Usando resumo do processamento manual para ${tabKey}`);
             } else {
-                // Generate on-demand summary for individual updates
-                summaryToUse = await this.generateOnDemandSummary();
-                console.log(`[DEBUG] Gerou resumo sob demanda para ${tabKey} (${summaryToUse.length} caracteres)`);
+                throw new Error('Resumo comprimido não encontrado para processamento sequencial');
             }
 
-            // Generate prompt using original context and full conversation
+            // Generate prompt using original context and compressed summary
             let prompt;
             switch (tabKey) {
                 case 'character_sheet':
@@ -2608,37 +2621,47 @@ GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
                     throw new Error(`Tab desconhecido: ${tabKey}`);
             }
 
-            // Check prompt size and use appropriate model
-            const promptTokens = this.estimateTokens(prompt);
-            console.log(`[DEBUG] Prompt estimado: ${promptTokens} tokens para ${tabKey}`);
+            const extendedTimeout = 180000;
+            console.log(`[DEBUG] Gerando conteúdo sequencial para ${tabKey} com timeout estendido (${extendedTimeout/1000}s)...`);
+            const updatedContent = await this.callGeminiAPI(prompt, [], extendedTimeout);
+            console.log(`[DEBUG] ✅ Conteúdo sequencial gerado para ${tabKey} (${updatedContent.length} caracteres)`);
+
+            // Update local context
+            this.currentChatContext[tabKey] = updatedContent;
             
-            let modelToUse = this.currentModel;
-            let extendedTimeout = 180000; // 3 minutes default
-            
-            // If prompt is too large for Pro model, force Flash model
-            if (promptTokens > 60000 && this.currentModel === 'gemini-2.0-flash-exp') {
-                console.log(`[WARNING] Prompt muito grande (${promptTokens} tokens), mantendo Flash model`);
-            } else if (promptTokens > 60000 && this.currentModel === 'gemini-2.5-pro') {
-                console.log(`[WARNING] Prompt muito grande (${promptTokens} tokens), mudando para Flash model`);
-                modelToUse = 'gemini-2.0-flash-exp';
+            // Save to server
+            const saveSuccess = await this.saveIndividualTab(tabKey, updatedContent);
+            if (!saveSuccess) {
+                throw new Error('Falha ao salvar no servidor');
             }
-            
-            console.log(`[DEBUG] Gerando conteúdo para ${tabKey} com modelo ${modelToUse} (timeout: ${extendedTimeout/1000}s)...`);
-            
-            let updatedContent;
-            try {
-                updatedContent = await this.callGeminiAPIWithModel(prompt, [], extendedTimeout, modelToUse);
-                console.log(`[DEBUG] ✅ Conteúdo gerado para ${tabKey} (${updatedContent.length} caracteres)`);
-            } catch (error) {
-                // If rate limit with Pro, fallback to Flash
-                if (error.message.includes('429') && modelToUse === 'gemini-2.5-pro') {
-                    console.log(`[WARNING] Rate limit no modelo Pro, tentando com Flash...`);
-                    updatedContent = await this.callGeminiAPIWithModel(prompt, [], extendedTimeout, 'gemini-2.0-flash-exp');
-                    console.log(`[DEBUG] ✅ Conteúdo gerado com fallback Flash (${updatedContent.length} caracteres)`);
-                } else {
-                    throw error;
-                }
-            }
+
+            console.log(`[DEBUG] ✅ ${tabKey} sequencial salvo com sucesso no servidor`);
+            return true;
+
+        } catch (error) {
+            console.error(`[DEBUG] Erro no processamento sequencial de ${tabKey}:`, error);
+            throw error;
+        }
+    }
+
+    // Single request processing for individual tab updates
+    async processIndividualTabSingleRequest(tabKey, originalContext) {
+        try {
+            console.log(`[DEBUG] Processando ${tabKey} com requisição única`);
+
+            // Create backup of all tabs
+            const contextBackup = this.createContextBackupData();
+            console.log(`[DEBUG] Backup criado com ${Object.keys(contextBackup).length} abas`);
+
+            // Generate single comprehensive prompt
+            const prompt = this.generateSingleRequestPrompt(tabKey, contextBackup, this.messages);
+            console.log(`[DEBUG] Prompt único gerado para ${tabKey} (${prompt.length} caracteres)`);
+
+            // Single API call with extended timeout
+            const extendedTimeout = 180000; // 3 minutes
+            console.log(`[DEBUG] Enviando requisição única para ${tabKey} com timeout estendido (${extendedTimeout/1000}s)...`);
+            const updatedContent = await this.callGeminiAPI(prompt, [], extendedTimeout);
+            console.log(`[DEBUG] ✅ Conteúdo gerado via requisição única para ${tabKey} (${updatedContent.length} caracteres)`);
 
             // Update local context
             this.currentChatContext[tabKey] = updatedContent;
@@ -2646,21 +2669,15 @@ GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
 
             // Save immediately to server
             const saveSuccess = await this.saveIndividualTab(tabKey, updatedContent);
-
             if (!saveSuccess) {
                 throw new Error('Falha ao salvar no servidor');
             }
 
             console.log(`[DEBUG] ✅ ${tabKey} salvo com sucesso no servidor`);
-
-            // Verify content integrity after save
-            const verifyContent = this.currentChatContext[tabKey];
-            console.log(`[DEBUG] Verificação pós-salvamento ${tabKey}: ${verifyContent ? verifyContent.length : 0} caracteres`);
-
             return true;
 
         } catch (error) {
-            console.error(`[DEBUG] Erro ao processar ${tabKey}:`, error);
+            console.error(`[DEBUG] Erro no processamento de requisição única para ${tabKey}:`, error);
             throw error;
         }
     }
@@ -2891,10 +2908,134 @@ ${tabContent.substring(0, 1000)}${tabContent.length > 1000 ? '...' : ''}`);
         };
     }
 
-    // Generate on-demand summary for individual tab updates
+    // Create backup data of all context tabs
+    createContextBackupData() {
+        const backup = {};
+        const tabKeys = ['master_rules', 'character_sheet', 'local_history', 'current_plot', 'relations', 'aventura'];
+        
+        tabKeys.forEach(key => {
+            backup[key] = this.currentChatContext[key] || '';
+        });
+        
+        console.log(`[DEBUG] Backup criado:`, {
+            master_rules: backup.master_rules.length + ' chars',
+            character_sheet: backup.character_sheet.length + ' chars', 
+            local_history: backup.local_history.length + ' chars',
+            current_plot: backup.current_plot.length + ' chars',
+            relations: backup.relations.length + ' chars',
+            aventura: backup.aventura.length + ' chars'
+        });
+        
+        return backup;
+    }
+
+    // Generate single comprehensive prompt for individual tab update
+    generateSingleRequestPrompt(tabKey, contextBackup, messages) {
+        // Format conversation
+        const conversationText = messages.map(msg => {
+            const sender = msg.sender === 'user' ? 'Usuário' : 'Assistente';
+            return `${sender}: ${msg.content}`;
+        }).join('\n\n');
+
+        // Format current context
+        const contextText = Object.entries(contextBackup)
+            .filter(([key, value]) => value && value.trim())
+            .map(([key, value]) => {
+                const tabNames = {
+                    master_rules: 'REGRAS DO MESTRE',
+                    character_sheet: 'FICHA DE PERSONAGEM', 
+                    local_history: 'HISTÓRIA LOCAL',
+                    current_plot: 'PLOT ATUAL',
+                    relations: 'RELAÇÕES',
+                    aventura: 'A AVENTURA'
+                };
+                return `=== ${tabNames[key] || key.toUpperCase()} ===\n${value}`;
+            }).join('\n\n');
+
+        // Get tab-specific instructions
+        const tabInstructions = this.getTabSpecificInstructions(tabKey);
+        const tabNames = {
+            master_rules: 'Regras do Mestre',
+            character_sheet: 'Ficha de Personagem', 
+            local_history: 'História Local',
+            current_plot: 'Plot Atual',
+            relations: 'Relações',
+            aventura: 'A Aventura'
+        };
+        const tabName = tabNames[tabKey] || tabKey;
+
+        const prompt = `Você é um Mestre de RPG experiente. Sua tarefa é atualizar APENAS a seção "${tabName}" baseado na conversa e contexto fornecidos.
+
+=== CONTEXTO ATUAL COMPLETO ===
+${contextText}
+
+=== CONVERSA COMPLETA ===
+${conversationText}
+
+=== INSTRUÇÕES ESPECÍFICAS ===
+${tabInstructions}
+
+=== IMPORTANTE ===
+- Analise TODA a conversa e TODO o contexto fornecido
+- Atualize APENAS a seção "${tabName}"
+- Mantenha a consistência com as outras seções
+- Use português brasileiro
+- Seja detalhado e preciso
+- Responda APENAS com o conteúdo atualizado da seção "${tabName}", sem explicações adicionais
+
+CONTEÚDO ATUALIZADO DA SEÇÃO "${tabName}":`;
+
+        return prompt;
+    }
+
+    // Get tab-specific instructions
+    getTabSpecificInstructions(tabKey) {
+        const instructions = {
+            master_rules: `Atualize as regras específicas do mestre para esta campanha, incluindo:
+- Regras customizadas ou modificadas
+- Mecânicas especiais da campanha
+- Diretrizes de interpretação
+- Regras de casa estabelecidas`,
+            
+            character_sheet: `Atualize a ficha do personagem incluindo:
+- Atributos e habilidades atuais
+- Equipamentos e itens possuídos
+- Status de saúde e condições
+- Experiência e progressão
+- Características pessoais relevantes`,
+            
+            local_history: `Atualize a história local incluindo:
+- Eventos históricos relevantes da região
+- Lendas e mitos locais
+- Figuras históricas importantes
+- Acontecimentos que afetam a área atual`,
+            
+            current_plot: `Atualize o plot atual incluindo:
+- Objetivos principais em andamento
+- Missões e tarefas ativas
+- Conflitos e desafios atuais
+- Próximos passos e desenvolvimentos esperados`,
+            
+            relations: `Atualize as relações incluindo:
+- Relacionamentos com NPCs importantes
+- Status com facções e organizações
+- Alianças e inimizades
+- Reputação em diferentes grupos`,
+            
+            aventura: `Atualize a narrativa da aventura incluindo:
+- Cronologia dos eventos principais
+- Marcos importantes da jornada
+- Descobertas e revelações significativas
+- Desenvolvimento da história principal`
+        };
+        
+        return instructions[tabKey] || `Atualize o conteúdo da seção ${tabKey} baseado na conversa e contexto.`;
+    }
+
+    // Generate on-demand summary for sequential processing (legacy)
     async generateOnDemandSummary() {
         try {
-            console.log('[DEBUG] Gerando resumo sob demanda para atualização individual...');
+            console.log('[DEBUG] Gerando resumo sob demanda para processamento sequencial...');
 
             // Check if we have enough messages to summarize
             if (!this.messages || this.messages.length < 5) {
@@ -4476,7 +4617,7 @@ ${message}`;
             let parts = null;
             let responseText = '';
 
-            console.log(`[DEBUG] ${model}: Iniciando extração de conteúdo`);
+            console.log(`[DEBUG] Iniciando extração de conteúdo para modelo ${model}`);
 
             // Tentar diferentes estruturas de resposta com abordagem mais robusta
             if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
@@ -5403,7 +5544,7 @@ ${message}`;
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onerror = error => reject(error);
         });
     }
 
@@ -5570,6 +5711,89 @@ ${message}`;
         }
     }
 
+    async renameChat(chatId) {
+        const chatToRename = this.chats.find(chat => chat.id === chatId);
+        if (!chatToRename) {
+            this.showToast('Erro: Conversa não encontrada.', 'error');
+            return;
+        }
+
+        const newTitle = prompt('Digite o novo título para a conversa:', chatToRename.title);
+
+        if (newTitle && newTitle.trim() !== '' && newTitle.trim() !== chatToRename.title) {
+            const trimmedTitle = newTitle.trim();
+            try {
+                const response = await fetch(`${this.serverUrl}/api/chats/${chatId}/rename`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: trimmedTitle })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao renomear no servidor.');
+                }
+
+                // Atualiza na UI e no objeto local
+                const chat = this.chats.find(c => c.id === chatId);
+                if (chat) {
+                    chat.title = trimmedTitle;
+                }
+                if (this.currentChatId === chatId) {
+                    this.currentChatTitle = trimmedTitle;
+                    this.updateChatTitle(this.currentChatTitle);
+                }
+                this.showChatsModal(); // Atualiza a lista
+                this.showToast('✅ Conversa renomeada!');
+
+            } catch (error) {
+                console.error('Erro ao renomear conversa:', error);
+                this.showToast(error.message, 'error');
+            }
+        }
+    }
+
+    async confirmDeleteChat(chatId) {
+        const chatToDelete = this.chats.find(chat => chat.id === chatId);
+        if (!chatToDelete) {
+            this.showToast('Erro: Conversa não encontrada.', 'error');
+            return;
+        }
+
+        const chatTitle = chatToDelete.title || 'Conversa sem título';
+        const confirmation = prompt(`Para confirmar a exclusão, digite o título da conversa abaixo:\n\n"${chatTitle}"`);
+
+        if (confirmation === chatTitle) {
+            await this.deleteChatFromServer(chatId);
+        } else if (confirmation !== null) { // Evita a mensagem de erro se o usuário cancelar o prompt
+            this.showToast('A exclusão foi cancelada. O título não corresponde.', 'error');
+        }
+    }
+
+    async deleteChatFromServer(chatId) {
+        try {
+            const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao deletar a conversa.');
+            }
+
+            this.showToast('Conversa deletada com sucesso!');
+            
+            // Se a conversa deletada era a atual, iniciar uma nova
+            if (this.currentChatId === chatId) {
+                this.newChat();
+            }
+            
+            this.loadChatsFromServer(); // Recarregar a lista
+
+        } catch (error) {
+            console.error('Erro ao deletar conversa:', error);
+            this.showToast(error.message, 'error');
+        }
+    }
+
     // Renderizar mensagens
     renderMessages() {
         try {
@@ -5658,13 +5882,13 @@ ${message}`;
     fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
             reader.onload = () => {
                 // Remover o prefixo data:mime/type;base64,
                 const base64 = reader.result.split(',')[1];
                 resolve(base64);
             };
             reader.onerror = reject;
+            reader.readAsDataURL(file);
         });
     }
     
@@ -5764,24 +5988,8 @@ ${message}`;
     
     // Estimar tokens (aproximação simples)
     estimateTokens(text) {
-        // Aproximação: 1 token ≈ 3.5 caracteres para português/misto
-        return Math.ceil(text.length / 3.5);
-    }
-
-    // Chamar API do Gemini com modelo específico
-    async callGeminiAPIWithModel(prompt, conversationHistory = [], timeout = 30000, modelOverride = null) {
-        const originalModel = this.currentModel;
-        if (modelOverride) {
-            this.currentModel = modelOverride;
-        }
-        
-        try {
-            const result = await this.callGeminiAPI(prompt, conversationHistory, timeout);
-            return result;
-        } finally {
-            // Restaurar modelo original
-            this.currentModel = originalModel;
-        }
+        // Aproximação: 1 token ≈ 4 caracteres em português
+        return Math.ceil(text.length / 4);
     }
 
     // Atualizar input da API key baseado na seleção
