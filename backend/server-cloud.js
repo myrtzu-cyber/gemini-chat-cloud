@@ -765,6 +765,42 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
+        // Rename chat
+        const renameMatch = pathname.match(/^\/api\/chats\/([^\/]+)\/rename$/);
+        if (renameMatch && method === 'PUT') {
+            const chatId = renameMatch[1];
+            
+            parseJsonBody(req, async (error, data) => {
+                if (error) {
+                    console.log(`❌ Erro ao parsear JSON para renomear chat: ${error.message}`);
+                    sendJsonResponse(res, 400, { error: 'Invalid JSON' });
+                    return;
+                }
+
+                const { title } = data;
+                if (!title || typeof title !== 'string' || title.trim().length === 0) {
+                    sendJsonResponse(res, 400, { error: 'Title is required and must be a non-empty string' });
+                    return;
+                }
+
+                try {
+                    const result = await db.renameChat(chatId, title.trim());
+                    
+                    if (result.success) {
+                        console.log(`✅ Chat renomeado: ${chatId} -> "${title}"`);
+                        sendJsonResponse(res, 200, result);
+                    } else {
+                        console.log(`❌ Falha ao renomear chat: ${chatId}`);
+                        sendJsonResponse(res, 404, { error: 'Chat not found' });
+                    }
+                } catch (renameError) {
+                    console.error(`❌ Erro ao renomear chat ${chatId}:`, renameError);
+                    sendJsonResponse(res, 500, { error: 'Internal server error' });
+                }
+            });
+            return;
+        }
+
         // Delete chat
         if (chatIdMatch && method === 'DELETE') {
             const chatId = chatIdMatch[1];

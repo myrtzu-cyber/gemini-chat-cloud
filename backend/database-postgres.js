@@ -327,6 +327,39 @@ class PostgresDatabase {
         }
     }
 
+    async renameChat(chatId, newTitle) {
+        const client = await this.pool.connect();
+        try {
+            console.log(`✏️ PostgresDatabase: Renaming chat ${chatId} to "${newTitle}"`);
+
+            const result = await client.query(`
+                UPDATE chats
+                SET title = $2, updated_at = CURRENT_TIMESTAMP
+                WHERE id = $1
+                RETURNING id, title, updated_at
+            `, [chatId, newTitle]);
+
+            if (result.rows.length === 0) {
+                console.log(`❌ PostgresDatabase: Chat ${chatId} not found`);
+                return { success: false, message: 'Chat not found' };
+            }
+
+            const updatedChat = result.rows[0];
+            console.log(`✅ PostgresDatabase: Chat ${chatId} renamed to "${newTitle}"`);
+            
+            return { 
+                success: true, 
+                message: 'Chat renamed successfully',
+                chat: updatedChat
+            };
+        } catch (error) {
+            console.error('❌ PostgresDatabase: Error renaming chat:', error.message);
+            return { success: false, error: error.message };
+        } finally {
+            client.release();
+        }
+    }
+
     async deleteMessage(messageId) {
         const client = await this.pool.connect();
         try {
