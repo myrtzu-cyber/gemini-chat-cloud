@@ -4057,8 +4057,37 @@ ${message}`;
             // Add formatting reinforcement to the message
             const messageWithFormatting = this.addFormattingReinforcement(message);
             
-            // Adicionar instrução de narração automaticamente ao final da mensagem
-            const narrativeInstruction = '\n\nMestre, com base na "AÇÃO MAIS RECENTE DO JOGADOR", narre os resultados, as reações dos NPCs e do ambiente. Descreva a cena e avance a história';
+            // Adicionar instrução de narração automaticamente ao final da mensagem - WFGY Optimized
+            const narrativeInstruction = `
+
+🎯 **[COMANDO EXECUTIVO - DENSIDADE NARRATIVA MÁXIMA]**
+
+**[NÚCLEO ATIVO]** - Processe a AÇÃO MAIS RECENTE DO JOGADOR como nó central de impacto
+
+**[MATRIZ CAUSAL]** - Gere cascata de consequências:
+• Resultados imediatos da ação (físicos/mecânicos)
+• Reações dos NPCs presentes (emocionais/comportamentais)
+• Mudanças ambientais (atmosféricas/contextuais)
+• Reverberações sociais (reputação/relacionamentos)
+
+**[CATALISADORES NARRATIVOS]** - Injete elementos de progressão:
+• Revelação de informação nova
+• Surgimento de oportunidade/ameaça
+• Evolução de conflito existente
+• Abertura de caminho narrativo
+
+**[RESIDUAIS EMERGENTES]** - Capture elementos ocultos:
+• Detalhes sensoriais únicos
+• Micro-expressões de NPCs
+• Pistas ambientais sutis
+• Potencial de reviravolta
+
+**[ARESTAS TEMPORAIS]** - Conecte passado→presente→futuro:
+• Ecos de eventos anteriores
+• Implicações para objetivos atuais
+• Sementes para desenvolvimentos futuros
+
+⚡ **IMPERATIVO**: Termine com gancho narrativo que demande resposta/decisão do jogador. NUNCA conclua sem avanço tangível da trama.`;
             const messageWithNarrative = messageWithFormatting + narrativeInstruction;
             
             currentUserMessageParts.push({ text: String(messageWithNarrative) });
