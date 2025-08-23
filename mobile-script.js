@@ -4435,24 +4435,6 @@ ${message}`;
                 temperature: 0.7,
                 maxOutputTokens: 8192, // Restaurar limite original
             },
-            safetySettings: [
-                {
-                    category: "HARM_CATEGORY_HARASSMENT",
-                    threshold: "BLOCK_ONLY_HIGH"
-                },
-                {
-                    category: "HARM_CATEGORY_HATE_SPEECH", 
-                    threshold: "BLOCK_ONLY_HIGH"
-                },
-                {
-                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                    threshold: "BLOCK_ONLY_HIGH"
-                },
-                {
-                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-                    threshold: "BLOCK_ONLY_HIGH"
-                }
-            ],
         };
 
         // O system_instruction foi movido para o histórico de mensagens.
@@ -4546,7 +4528,34 @@ ${message}`;
                         };
                         
                         this.validateStreamingResponse(processedData, model);
-                        return await this.extractResponseText(processedData, model);
+                        
+                        // Extrair texto da resposta fallback
+                        const candidate = processedData.candidates?.[0];
+                        const text = candidate?.content?.parts?.[0]?.text || '';
+                        
+                        if (!text) {
+                            console.error('[DEBUG] Fallback retornou resposta sem texto válido');
+                            console.error('[DEBUG] Candidate content:', JSON.stringify(candidate?.content, null, 2));
+                            console.error('[DEBUG] Safety ratings:', JSON.stringify(candidate?.safetyRatings, null, 2));
+                            console.error('[DEBUG] Finish reason:', candidate?.finishReason);
+                            
+                            // Verificar se foi bloqueado por segurança
+                            const isBlocked = candidate?.finishReason === 'SAFETY' || 
+                                            candidate?.safetyRatings?.some(rating => 
+                                                rating.probability === 'HIGH' || rating.probability === 'MEDIUM'
+                                            );
+                            
+                            if (isBlocked) {
+                                return 'Desculpe, não posso responder a essa mensagem devido às configurações de segurança. Tente reformular sua pergunta de forma diferente.';
+                            } else {
+                                // Tentar com configurações de segurança mais permissivas
+                                console.log('[DEBUG] Tentando novamente com configurações de segurança mais permissivas...');
+                                throw new Error('Response blocked - will retry with different safety settings');
+                            }
+                        }
+                        
+                        console.log(`[DEBUG] Texto extraído do fallback: ${text.length} caracteres`);
+                        return text;
                     } else {
                         const errorText = await fallbackResponse.text();
                         console.error(`[DEBUG] Fallback não-streaming falhou para ${model}: ${fallbackResponse.status} - ${errorText}`);
