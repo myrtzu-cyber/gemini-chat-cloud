@@ -2608,11 +2608,37 @@ GRAFO TEMPORAL HISTÓRICO SEMANTICAMENTE COMPRIMIDO:`;
                     throw new Error(`Tab desconhecido: ${tabKey}`);
             }
 
-            // Generate content with extended timeout for individual tab updates (3 minutes)
-            const extendedTimeout = 180000; // 3 minutes for complex context processing
-            console.log(`[DEBUG] Gerando conteúdo para ${tabKey} com timeout estendido (${extendedTimeout/1000}s)...`);
-            const updatedContent = await this.callGeminiAPI(prompt, [], extendedTimeout);
-            console.log(`[DEBUG] ✅ Conteúdo gerado para ${tabKey} (${updatedContent.length} caracteres)`);
+            // Check prompt size and use appropriate model
+            const promptTokens = this.estimateTokens(prompt);
+            console.log(`[DEBUG] Prompt estimado: ${promptTokens} tokens para ${tabKey}`);
+            
+            let modelToUse = this.currentModel;
+            let extendedTimeout = 180000; // 3 minutes default
+            
+            // If prompt is too large for Pro model, force Flash model
+            if (promptTokens > 60000 && this.currentModel === 'gemini-2.0-flash-exp') {
+                console.log(`[WARNING] Prompt muito grande (${promptTokens} tokens), mantendo Flash model`);
+            } else if (promptTokens > 60000 && this.currentModel === 'gemini-2.5-pro') {
+                console.log(`[WARNING] Prompt muito grande (${promptTokens} tokens), mudando para Flash model`);
+                modelToUse = 'gemini-2.0-flash-exp';
+            }
+            
+            console.log(`[DEBUG] Gerando conteúdo para ${tabKey} com modelo ${modelToUse} (timeout: ${extendedTimeout/1000}s)...`);
+            
+            let updatedContent;
+            try {
+                updatedContent = await this.callGeminiAPIWithModel(prompt, [], extendedTimeout, modelToUse);
+                console.log(`[DEBUG] ✅ Conteúdo gerado para ${tabKey} (${updatedContent.length} caracteres)`);
+            } catch (error) {
+                // If rate limit with Pro, fallback to Flash
+                if (error.message.includes('429') && modelToUse === 'gemini-2.5-pro') {
+                    console.log(`[WARNING] Rate limit no modelo Pro, tentando com Flash...`);
+                    updatedContent = await this.callGeminiAPIWithModel(prompt, [], extendedTimeout, 'gemini-2.0-flash-exp');
+                    console.log(`[DEBUG] ✅ Conteúdo gerado com fallback Flash (${updatedContent.length} caracteres)`);
+                } else {
+                    throw error;
+                }
+            }
 
             // Update local context
             this.currentChatContext[tabKey] = updatedContent;
@@ -4450,7 +4476,7 @@ ${message}`;
             let parts = null;
             let responseText = '';
 
-            console.log(`[DEBUG] Iniciando extração de conteúdo para modelo ${model}`);
+            console.log(`[DEBUG] ${model}: Iniciando extração de conteúdo`);
 
             // Tentar diferentes estruturas de resposta com abordagem mais robusta
             if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
@@ -5377,7 +5403,7 @@ ${message}`;
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
+            reader.onerror = reject;
         });
     }
 
@@ -5544,89 +5570,6 @@ ${message}`;
         }
     }
 
-    async renameChat(chatId) {
-        const chatToRename = this.chats.find(chat => chat.id === chatId);
-        if (!chatToRename) {
-            this.showToast('Erro: Conversa não encontrada.', 'error');
-            return;
-        }
-
-        const newTitle = prompt('Digite o novo título para a conversa:', chatToRename.title);
-
-        if (newTitle && newTitle.trim() !== '' && newTitle.trim() !== chatToRename.title) {
-            const trimmedTitle = newTitle.trim();
-            try {
-                const response = await fetch(`${this.serverUrl}/api/chats/${chatId}/rename`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: trimmedTitle })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Falha ao renomear no servidor.');
-                }
-
-                // Atualiza na UI e no objeto local
-                const chat = this.chats.find(c => c.id === chatId);
-                if (chat) {
-                    chat.title = trimmedTitle;
-                }
-                if (this.currentChatId === chatId) {
-                    this.currentChatTitle = trimmedTitle;
-                    this.updateChatTitle(this.currentChatTitle);
-                }
-                this.showChatsModal(); // Atualiza a lista
-                this.showToast('✅ Conversa renomeada!');
-
-            } catch (error) {
-                console.error('Erro ao renomear conversa:', error);
-                this.showToast(error.message, 'error');
-            }
-        }
-    }
-
-    async confirmDeleteChat(chatId) {
-        const chatToDelete = this.chats.find(chat => chat.id === chatId);
-        if (!chatToDelete) {
-            this.showToast('Erro: Conversa não encontrada.', 'error');
-            return;
-        }
-
-        const chatTitle = chatToDelete.title || 'Conversa sem título';
-        const confirmation = prompt(`Para confirmar a exclusão, digite o título da conversa abaixo:\n\n"${chatTitle}"`);
-
-        if (confirmation === chatTitle) {
-            await this.deleteChatFromServer(chatId);
-        } else if (confirmation !== null) { // Evita a mensagem de erro se o usuário cancelar o prompt
-            this.showToast('A exclusão foi cancelada. O título não corresponde.', 'error');
-        }
-    }
-
-    async deleteChatFromServer(chatId) {
-        try {
-            const response = await fetch(`${this.serverUrl}/api/chats/${chatId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error('Falha ao deletar a conversa.');
-            }
-
-            this.showToast('Conversa deletada com sucesso!');
-            
-            // Se a conversa deletada era a atual, iniciar uma nova
-            if (this.currentChatId === chatId) {
-                this.newChat();
-            }
-            
-            this.loadChatsFromServer(); // Recarregar a lista
-
-        } catch (error) {
-            console.error('Erro ao deletar conversa:', error);
-            this.showToast(error.message, 'error');
-        }
-    }
-
     // Renderizar mensagens
     renderMessages() {
         try {
@@ -5715,13 +5658,13 @@ ${message}`;
     fileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
+            reader.readAsDataURL(file);
             reader.onload = () => {
                 // Remover o prefixo data:mime/type;base64,
                 const base64 = reader.result.split(',')[1];
                 resolve(base64);
             };
             reader.onerror = reject;
-            reader.readAsDataURL(file);
         });
     }
     
@@ -5821,8 +5764,24 @@ ${message}`;
     
     // Estimar tokens (aproximação simples)
     estimateTokens(text) {
-        // Aproximação: 1 token ≈ 4 caracteres em português
-        return Math.ceil(text.length / 4);
+        // Aproximação: 1 token ≈ 3.5 caracteres para português/misto
+        return Math.ceil(text.length / 3.5);
+    }
+
+    // Chamar API do Gemini com modelo específico
+    async callGeminiAPIWithModel(prompt, conversationHistory = [], timeout = 30000, modelOverride = null) {
+        const originalModel = this.currentModel;
+        if (modelOverride) {
+            this.currentModel = modelOverride;
+        }
+        
+        try {
+            const result = await this.callGeminiAPI(prompt, conversationHistory, timeout);
+            return result;
+        } finally {
+            // Restaurar modelo original
+            this.currentModel = originalModel;
+        }
     }
 
     // Atualizar input da API key baseado na seleção
