@@ -3712,43 +3712,135 @@ ${message}`;
                     console.log(`[STREAMING] DEBUG Chunk ${totalChunksReceived} content (primeiros 500 chars):`, chunk.substring(0, 500));
                 }
                 
-                // Processar eventos SSE completos com validação robusta
+                // A API Gemini retorna JSON array contínuo, não SSE padrão
+                // Processar como array JSON separado por vírgulas
+                
+                // Debug: mostrar estrutura do buffer para os primeiros chunks
+                if (totalChunksReceived <= 3) {
+                    console.log(`[STREAMING] DEBUG Buffer structure: "${buffer.substring(0, 300)}..."`);
+                }
+                
+                // Tentar processar o buffer como array JSON
+                let jsonObjects = [];
+                
+                // Primeiro, tentar extrair objetos JSON completos do buffer
+                try {
+                    // Adicionar colchetes se necessário para formar array válido
+                    let jsonArrayString = buffer.trim();
+                    
+                    // Se não começa com [, adicionar
+                    if (!jsonArrayString.startsWith('[')) {
+                        jsonArrayString = '[' + jsonArrayString;
+                    }
+                    
+                    // Se não termina com ], adicionar (pode estar incompleto)
+                    if (!jsonArrayString.endsWith(']')) {
+                        // Tentar encontrar o último objeto completo
+                        const lastBraceIndex = jsonArrayString.lastIndexOf('}');
+                        if (lastBraceIndex !== -1) {
+                            const completeJson = jsonArrayString.substring(0, lastBraceIndex + 1) + ']';
+                            const remainingJson = jsonArrayString.substring(lastBraceIndex + 1);
+                            
+                            try {
+                                jsonObjects = JSON.parse(completeJson);
+                                buffer = remainingJson; // Manter parte incompleta
+                                console.log(`[STREAMING] Parsed ${jsonObjects.length} JSON objects from buffer`);
+                            } catch (parseError) {
+                                console.log(`[STREAMING] JSON array parse failed, trying individual objects`);
+                            }
+                        }
+                    } else {
+                        // Buffer completo, tentar parse direto
+                        jsonObjects = JSON.parse(jsonArrayString);
+                        buffer = ''; // Limpar buffer
+                        console.log(`[STREAMING] Parsed complete JSON array with ${jsonObjects.length} objects`);
+                    }
+                } catch (arrayParseError) {
+                    // Se falhar como array, tentar extrair objetos individuais
+                    console.log(`[STREAMING] Array parse failed, extracting individual JSON objects`);
+                    
+                    const jsonStrings = buffer.split(/(?<=})\s*,\s*(?={)/);
+                    for (let i = 0; i < jsonStrings.length - 1; i++) {
+                        const jsonStr = jsonStrings[i].replace(/^,\s*/, '').trim();
+                        if (jsonStr) {
+                            try {
+                                const jsonObj = JSON.parse(jsonStr);
+                                jsonObjects.push(jsonObj);
+                            } catch (objParseError) {
+                                console.warn(`[STREAMING] Failed to parse individual JSON: ${jsonStr.substring(0, 100)}`);
+                            }
+                        }
+                    }
+                    // Manter último fragmento no buffer (pode estar incompleto)
+                    buffer = jsonStrings[jsonStrings.length - 1] || '';
+                }
+                
+                // Processar objetos JSON extraídos
+                for (const eventData of jsonObjects) {
+                    if (totalChunksReceived <= 3) {
+                        console.log(`[STREAMING] DEBUG eventData keys:`, Object.keys(eventData));
+                        console.log(`[STREAMING] DEBUG eventData full:`, JSON.stringify(eventData, null, 2));
+                    }
+                    
+                    // Extrair texto do evento
+                    if (eventData.candidates && Array.isArray(eventData.candidates) && eventData.candidates.length > 0) {
+                        const candidate = eventData.candidates[0];
+                        
+                        if (candidate && candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+                            for (const part of candidate.content.parts) {
+                                if (part && typeof part.text === 'string' && part.text.length > 0) {
+                                    completeText += part.text;
+                                    console.log(`[STREAMING] Texto adicionado: ${part.text.length} chars (Total: ${completeText.length})`);
+                                }
+                            }
+                        }
+                        
+                        // Manter referência do último candidato válido
+                        lastValidCandidate = candidate;
+                        candidates = eventData.candidates;
+                    }
+                    
+                    // Fallback: tentar extrair texto de outras estruturas possíveis
+                    else if (eventData.text && typeof eventData.text === 'string') {
+                        completeText += eventData.text;
+                        console.log(`[STREAMING] Texto direto adicionado: ${eventData.text.length} chars`);
+                    }
+                    else if (eventData.content && typeof eventData.content === 'string') {
+                        completeText += eventData.content;
+                        console.log(`[STREAMING] Conteúdo direto adicionado: ${eventData.content.length} chars`);
+                    }
+                    else if (eventData.delta && eventData.delta.text) {
+                        completeText += eventData.delta.text;
+                        console.log(`[STREAMING] Delta text adicionado: ${eventData.delta.text.length} chars`);
+                    }
+                }
+                
+                // Código antigo SSE (manter como fallback)
                 const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Manter linha incompleta no buffer
+                const sseBuffer = lines.pop() || '';
                 
                 for (const line of lines) {
                     const trimmedLine = line.trim();
                     
-                    // Debug: mostrar linhas sendo processadas
-                    if (totalChunksReceived <= 3 && trimmedLine.length > 0) {
-                        console.log(`[STREAMING] DEBUG Line: "${trimmedLine.substring(0, 200)}"`);
-                    }
-                    
-                    // Processar linha de dados SSE
+                    // Processar linha de dados SSE (fallback)
                     if (trimmedLine.startsWith('data: ')) {
                         const jsonData = trimmedLine.substring(6); // Remove "data: "
+                        
+                        // SSE fallback - não deve ser necessário com novo parser
+                        console.log('[STREAMING] SSE fallback - processando linha SSE tradicional');
                         
                         if (jsonData === '[DONE]') {
                             console.log('[STREAMING] Recebido sinal de fim do streaming');
                             continue;
                         }
                         
-                        // Validar se é JSON válido antes de processar
                         if (!jsonData || jsonData.length < 2) {
-                            console.log('[STREAMING] Dados JSON vazios ou inválidos, pulando...');
                             continue;
                         }
                         
                         try {
                             const eventData = JSON.parse(jsonData);
                             
-                            // Debug: mostrar estrutura do eventData
-                            if (totalChunksReceived <= 3) {
-                                console.log(`[STREAMING] DEBUG eventData keys:`, Object.keys(eventData));
-                                console.log(`[STREAMING] DEBUG eventData full:`, JSON.stringify(eventData, null, 2));
-                            }
-                            
-                            // Extrair texto do evento com validação robusta
                             if (eventData.candidates && Array.isArray(eventData.candidates) && eventData.candidates.length > 0) {
                                 const candidate = eventData.candidates[0];
                                 
@@ -3756,59 +3848,23 @@ ${message}`;
                                     for (const part of candidate.content.parts) {
                                         if (part && typeof part.text === 'string' && part.text.length > 0) {
                                             completeText += part.text;
-                                            console.log(`[STREAMING] Texto adicionado: ${part.text.length} chars (Total: ${completeText.length})`);
+                                            console.log(`[STREAMING] SSE Fallback - Texto adicionado: ${part.text.length} chars`);
                                         }
                                     }
                                 }
                                 
-                                // Manter referência do último candidato válido
                                 lastValidCandidate = candidate;
                                 candidates = eventData.candidates;
                             }
                             
-                            // Fallback: tentar extrair texto de outras estruturas possíveis
-                            else if (eventData.text && typeof eventData.text === 'string') {
-                                completeText += eventData.text;
-                                console.log(`[STREAMING] Texto direto adicionado: ${eventData.text.length} chars`);
-                            }
-                            else if (eventData.content && typeof eventData.content === 'string') {
-                                completeText += eventData.content;
-                                console.log(`[STREAMING] Conteúdo direto adicionado: ${eventData.content.length} chars`);
-                            }
-                            else if (eventData.delta && eventData.delta.text) {
-                                completeText += eventData.delta.text;
-                                console.log(`[STREAMING] Delta text adicionado: ${eventData.delta.text.length} chars`);
-                            }
-                            
                         } catch (parseError) {
-                            console.warn('[STREAMING] Erro ao processar evento SSE:', parseError.message);
-                            console.log('[STREAMING] Dados problemáticos (primeiros 300 chars):', jsonData.substring(0, 300));
-                            
-                            // Tentar recuperar JSON malformado
-                            try {
-                                const fixedJson = this.attemptJsonRepair(jsonData);
-                                if (fixedJson) {
-                                    const eventData = JSON.parse(fixedJson);
-                                    console.log('[STREAMING] JSON reparado com sucesso');
-                                    
-                                    if (eventData.candidates && eventData.candidates.length > 0) {
-                                        const candidate = eventData.candidates[0];
-                                        if (candidate.content && candidate.content.parts) {
-                                            for (const part of candidate.content.parts) {
-                                                if (part.text) {
-                                                    completeText += part.text;
-                                                }
-                                            }
-                                        }
-                                        candidates = eventData.candidates;
-                                    }
-                                }
-                            } catch (repairError) {
-                                console.warn('[STREAMING] Falha no reparo do JSON, continuando...');
-                            }
+                            console.warn('[STREAMING] SSE fallback parse error:', parseError.message);
                         }
                     }
                 }
+                
+                // Atualizar buffer com dados SSE restantes
+                buffer = sseBuffer;
                 
                 // Verificar se a conexão está estável
                 if (!connectionStable && consecutiveErrors === 0) {
