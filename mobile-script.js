@@ -3707,12 +3707,22 @@ ${message}`;
                 
                 console.log(`[STREAMING] Chunk ${totalChunksReceived} recebido: ${chunk.length} chars (Total: ${totalBytesReceived} bytes)`);
                 
+                // Debug: mostrar conteúdo do chunk para diagnóstico
+                if (totalChunksReceived <= 3) {
+                    console.log(`[STREAMING] DEBUG Chunk ${totalChunksReceived} content (primeiros 500 chars):`, chunk.substring(0, 500));
+                }
+                
                 // Processar eventos SSE completos com validação robusta
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || ''; // Manter linha incompleta no buffer
                 
                 for (const line of lines) {
                     const trimmedLine = line.trim();
+                    
+                    // Debug: mostrar linhas sendo processadas
+                    if (totalChunksReceived <= 3 && trimmedLine.length > 0) {
+                        console.log(`[STREAMING] DEBUG Line: "${trimmedLine.substring(0, 200)}"`);
+                    }
                     
                     // Processar linha de dados SSE
                     if (trimmedLine.startsWith('data: ')) {
@@ -3732,6 +3742,12 @@ ${message}`;
                         try {
                             const eventData = JSON.parse(jsonData);
                             
+                            // Debug: mostrar estrutura do eventData
+                            if (totalChunksReceived <= 3) {
+                                console.log(`[STREAMING] DEBUG eventData keys:`, Object.keys(eventData));
+                                console.log(`[STREAMING] DEBUG eventData full:`, JSON.stringify(eventData, null, 2));
+                            }
+                            
                             // Extrair texto do evento com validação robusta
                             if (eventData.candidates && Array.isArray(eventData.candidates) && eventData.candidates.length > 0) {
                                 const candidate = eventData.candidates[0];
@@ -3748,6 +3764,20 @@ ${message}`;
                                 // Manter referência do último candidato válido
                                 lastValidCandidate = candidate;
                                 candidates = eventData.candidates;
+                            }
+                            
+                            // Fallback: tentar extrair texto de outras estruturas possíveis
+                            else if (eventData.text && typeof eventData.text === 'string') {
+                                completeText += eventData.text;
+                                console.log(`[STREAMING] Texto direto adicionado: ${eventData.text.length} chars`);
+                            }
+                            else if (eventData.content && typeof eventData.content === 'string') {
+                                completeText += eventData.content;
+                                console.log(`[STREAMING] Conteúdo direto adicionado: ${eventData.content.length} chars`);
+                            }
+                            else if (eventData.delta && eventData.delta.text) {
+                                completeText += eventData.delta.text;
+                                console.log(`[STREAMING] Delta text adicionado: ${eventData.delta.text.length} chars`);
                             }
                             
                         } catch (parseError) {
