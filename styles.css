@@ -1,0 +1,1154 @@
+/* Importar fonte medieval */
+@import url('https://fonts.googleapis.com/css2?family=Medieval+Sharp:wght@400;700&display=swap');
+
+:root {
+    /* Paleta de cores D&D */
+    --dnd-gold: #d4af37;
+    --dnd-dark-gold: #b8860b;
+    --dnd-brown: #8b4513;
+    --dnd-dark-brown: #654321;
+    --dnd-red: #8b0000;
+    --dnd-dark-red: #4b0082;
+    --dnd-cream: #f5f5dc;
+    --dnd-parchment: #f4f1e8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Medieval Sharp', cursive;
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 50%, var(--dnd-dark-red) 100%);
+    color: var(--dnd-cream);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Header estilo pergaminho */
+.header {
+    background: linear-gradient(90deg, var(--dnd-parchment) 0%, var(--dnd-cream) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="parchment" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="%23d4af37" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23parchment)"/></svg>');
+    opacity: 0.3;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Logo estilo runa */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.logo-icon {
+    font-size: 3rem;
+    animation: swordGlow 2s ease-in-out infinite alternate;
+}
+
+.logo h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dnd-gold);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes swordGlow {
+    from { filter: drop-shadow(0 0 5px var(--dnd-gold)); }
+    to { filter: drop-shadow(0 0 20px var(--dnd-gold)); }
+}
+
+/* Configurações da API */
+.api-settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.api-key-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.api-key-input {
+    flex: 1;
+    min-width: 300px;
+    background: var(--dnd-parchment);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-family: 'Medieval Sharp', cursive;
+    font-size: 16px;
+    color: var(--dnd-brown);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 9999;
+    pointer-events: auto !important;
+    user-select: text !important;
+    opacity: 1 !important;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--dnd-dark-gold);
+    box-shadow: 
+        inset 0 2px 10px rgba(0, 0, 0, 0.1),
+        0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.save-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 12px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.save-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.save-btn:hover::before {
+    left: 100%;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+}
+
+/* Seleção de modelo */
+.model-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.model-select {
+    background: var(--dnd-parchment);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-family: 'Medieval Sharp', cursive;
+    font-size: 16px;
+    color: var(--dnd-brown);
+    cursor: pointer;
+    position: relative;
+    z-index: 9999;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+}
+
+.model-info {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: var(--dnd-brown);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Controles de chat */
+.chat-header {
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.chat-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.control-btn:hover::before {
+    left: 100%;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+}
+
+.new-chat-btn {
+    background: linear-gradient(145deg, #27ae60, #2ecc71);
+}
+
+.save-chat-btn {
+    background: linear-gradient(145deg, #f39c12, #e67e22);
+}
+
+.load-chats-btn {
+    background: linear-gradient(145deg, #9b59b6, #8e44ad);
+}
+
+.compress-history-btn {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+}
+
+.compress-history-btn:hover {
+    box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.chat-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--dnd-gold);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.auto-save-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #27ae60;
+    font-weight: 500;
+    padding: 4px 12px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(39, 174, 96, 0.2);
+}
+
+.auto-save-icon {
+    font-size: 14px;
+}
+
+.auto-save-text {
+    font-size: 11px;
+}
+
+/* Container principal do chat */
+.chat-container {
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: 20px;
+    box-shadow: 
+        inset 0 0 50px rgba(0, 0, 0, 0.5),
+        0 10px 30px rgba(0, 0, 0, 0.7);
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-container::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stone" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="%238b4513" opacity="0.1"/><circle cx="5" cy="5" r="1" fill="%23d4af37" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23stone)"/></svg>');
+    border-radius: 17px;
+    opacity: 0.3;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Mensagens estilo pergaminho */
+.message {
+    background: linear-gradient(135deg, var(--dnd-parchment) 0%, var(--dnd-cream) 100%);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 15px;
+    margin: 15px 0;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: block; /* Changed from flex to block for full-width utilization */
+}
+
+.message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--dnd-gold), var(--dnd-dark-gold), var(--dnd-gold));
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.message.user {
+    border-color: var(--dnd-red);
+}
+
+.message.assistant {
+    border-color: var(--dnd-gold);
+}
+
+.message-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 3px solid var(--dnd-brown);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    float: left; /* Float avatar to allow content to wrap around */
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+.message.user .message-avatar {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+}
+
+.message-content {
+    color: var(--dnd-brown);
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%; /* Use full width */
+    display: block; /* Ensure block display for full width */
+}
+
+/* Clearfix for messages to handle floated avatars */
+.message::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Delete button positioning for new layout */
+.delete-message-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(231, 76, 60, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.message:hover .delete-message-btn {
+    opacity: 1;
+}
+
+.delete-message-btn:hover {
+    background: rgba(231, 76, 60, 1);
+    transform: scale(1.1);
+}
+
+/* Enhanced RPG Content Formatting System */
+
+/* Narration and Story Descriptions */
+.rpg-narration {
+    font-style: italic;
+    color: var(--dnd-brown);
+    margin: 8px 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(108, 92, 231, 0.05));
+    border-left: 4px solid #6c5ce7;
+    border-radius: 0 8px 8px 0;
+    line-height: 1.5;
+}
+
+/* Environmental Descriptions */
+.rpg-environment {
+    color: #2d8659;
+    margin: 8px 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.15), rgba(46, 204, 113, 0.05));
+    border-left: 4px solid #2ecc71;
+    border-radius: 0 8px 8px 0;
+    font-family: 'Georgia', serif;
+    line-height: 1.5;
+}
+
+/* Character Dialogues */
+.rpg-dialogue {
+    color: #d68910;
+    margin: 8px 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(243, 156, 18, 0.05));
+    border-left: 4px solid #f39c12;
+    border-radius: 0 8px 8px 0;
+    position: relative;
+    line-height: 1.5;
+}
+
+.rpg-dialogue::before {
+    content: '"';
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    font-size: 1.5em;
+    color: #f39c12;
+    opacity: 0.7;
+}
+
+.rpg-dialogue::after {
+    content: '"';
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 1.5em;
+    color: #f39c12;
+    opacity: 0.7;
+}
+
+/* Character Name in Dialogue */
+.rpg-character-name {
+    font-weight: bold;
+    color: #5dade2;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+/* Dice Rolls and Mathematical Calculations */
+.rpg-dice-roll {
+    font-weight: bold;
+    color: #148f77;
+    margin: 8px 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(85, 239, 196, 0.25), rgba(85, 239, 196, 0.1));
+    border: 2px solid #55efb4;
+    border-radius: 8px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* System Messages */
+.rpg-system {
+    font-size: 0.9rem;
+    color: var(--dnd-brown);
+    text-align: center;
+    margin: 12px 0;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.3), rgba(255, 234, 167, 0.1));
+    border-top: 2px solid #fdcb6e;
+    border-bottom: 2px solid #fdcb6e;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Master/GM Descriptions */
+.rpg-master {
+    font-family: 'Georgia', serif;
+    color: #a93226;
+    margin: 8px 0;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(225, 112, 85, 0.15), rgba(225, 112, 85, 0.05));
+    border: 2px dashed #e17055;
+    border-radius: 8px;
+    line-height: 1.5;
+}
+
+/* Formatação estruturada das mensagens (mantida para compatibilidade) */
+.message-content h2 {
+    color: var(--dnd-gold);
+    font-size: 1.4rem;
+    margin: 20px 0 10px 0;
+    border-bottom: 2px solid var(--dnd-gold);
+    padding-bottom: 5px;
+}
+
+.message-content h3 {
+    color: var(--dnd-gold);
+    font-size: 1.2rem;
+    margin: 16px 0 8px 0;
+    border-bottom: 1px solid var(--dnd-gold);
+    padding-bottom: 3px;
+}
+
+.message-content h4 {
+    color: var(--dnd-dark-gold);
+    font-size: 1.1rem;
+    margin: 14px 0 6px 0;
+    font-weight: bold;
+}
+
+.message-content p {
+    margin: 12px 0;
+    text-align: justify;
+}
+
+.message-content ul {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.message-content li {
+    margin: 6px 0;
+    list-style-type: disc;
+}
+
+.message-content strong {
+    color: var(--dnd-dark-brown);
+    font-weight: bold;
+}
+
+.message-content em {
+    font-style: italic;
+    color: var(--dnd-dark-gold);
+}
+
+.message-content code {
+    background: rgba(212, 175, 55, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--dnd-dark-brown);
+}
+
+.message-content pre {
+    background: rgba(139, 69, 19, 0.1);
+    border: 1px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    overflow-x: auto;
+}
+
+.message-content pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+.message-content blockquote {
+    border-left: 4px solid var(--dnd-gold);
+    margin: 15px 0;
+    padding: 10px 20px;
+    background: rgba(212, 175, 55, 0.1);
+    font-style: italic;
+    border-radius: 0 8px 8px 0;
+}
+
+
+/* Área de entrada */
+.chat-input-section {
+    padding: 20px;
+    border-top: 2px solid var(--dnd-gold);
+    background: rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.message-input {
+    flex: 1;
+    background: var(--dnd-parchment) !important;
+    border: 3px solid var(--dnd-gold) !important;
+    border-radius: 15px !important;
+    color: var(--dnd-brown) !important;
+    font-family: 'Medieval Sharp', cursive !important;
+    font-size: 16px !important;
+    padding: 15px 20px !important;
+    min-height: 50px !important;
+    height: 50px !important;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    cursor: text !important;
+    position: relative !important;
+    z-index: 1000 !important;
+    outline: none !important;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: var(--dnd-dark-gold);
+    box-shadow: 
+        inset 0 2px 10px rgba(0, 0, 0, 0.1),
+        0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.send-btn {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 12px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 15px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    min-width: 120px;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 0, 0, 0.4);
+}
+
+.send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Contador de caracteres */
+.input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.char-count {
+    text-align: right;
+    color: var(--dnd-gold);
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* Indicador de digitação */
+.typing-indicator {
+    display: none;
+    padding: 15px 20px;
+    color: var(--dnd-gold);
+    font-style: italic;
+    text-align: center;
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 10px;
+    margin: 10px 20px;
+    border: 1px solid var(--dnd-gold);
+}
+
+/* Upload de arquivos */
+.file-upload-section {
+    display: none;
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.file-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.file-item {
+    background: var(--dnd-parchment);
+    border: 1px solid var(--dnd-gold);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--dnd-brown);
+}
+
+.file-icon {
+    font-size: 16px;
+}
+
+.file-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.remove-file-btn {
+    background: none;
+    border: none;
+    color: var(--dnd-red);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.remove-file-btn:hover {
+    background: var(--dnd-red);
+    color: white;
+}
+
+.remove-files-btn {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.remove-files-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 0, 0, 0.4);
+}
+
+.input-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.attach-btn {
+    background: linear-gradient(145deg, var(--dnd-gold), var(--dnd-dark-gold));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attach-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+}
+
+/* Modal estilo masmorra */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, var(--dnd-dark-brown) 0%, var(--dnd-brown) 100%);
+    border: 3px solid var(--dnd-gold);
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.8),
+        inset 0 0 50px rgba(212, 175, 55, 0.1);
+}
+
+.modal-header {
+    background: linear-gradient(90deg, var(--dnd-gold), var(--dnd-dark-gold));
+    color: var(--dnd-cream);
+    border-radius: 17px 17px 0 0;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--dnd-cream);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Lista de conversas */
+.chats-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.chat-item {
+    background: var(--dnd-parchment);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+.chat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+}
+
+.chat-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.chat-item-title {
+    font-weight: 700;
+    color: var(--dnd-gold);
+    font-size: 16px;
+}
+
+.chat-item-date {
+    font-size: 12px;
+    color: var(--dnd-brown);
+    opacity: 0.8;
+}
+
+.chat-item-preview {
+    color: var(--dnd-brown);
+    margin-bottom: 15px;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+.chat-item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-action-btn {
+    background: linear-gradient(145deg, var(--dnd-red), var(--dnd-dark-red));
+    border: 2px solid var(--dnd-brown);
+    border-radius: 8px;
+    color: var(--dnd-cream);
+    font-family: 'Medieval Sharp', cursive;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.chat-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 0, 0, 0.4);
+}
+
+.load-chat-btn {
+    background: linear-gradient(145deg, #27ae60, #2ecc71);
+}
+
+.delete-chat-btn {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+}
+
+/* Mensagem de boas-vindas */
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--dnd-cream);
+}
+
+.welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.welcome-message h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--dnd-gold);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-message p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.feature {
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid var(--dnd-gold);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+/* Animações especiais */
+@keyframes fireEffect {
+    0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+    50% { filter: hue-rotate(30deg) brightness(1.2); }
+}
+
+@keyframes magicGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.8); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header {
+        padding: 15px;
+    }
+    
+    .logo h1 {
+        font-size: 2rem;
+    }
+    
+    .api-settings {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .api-key-input {
+        min-width: auto;
+    }
+    
+    .chat-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .control-btn {
+        justify-content: center;
+    }
+    
+    .input-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .send-btn {
+        min-width: auto;
+    }
+    
+    .features {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-message h2 {
+        font-size: 2rem;
+    }
+    
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .logo {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+    }
+
+        /* Garantir que o campo de chave API fique acima de outros elementos */
+        .api-key-input {
+            position: relative;
+            z-index: 9999;
+            background: var(--dnd-parchment);
+            pointer-events: auto !important;
+            user-select: text !important;
+            opacity: 1 !important;
+            box-shadow: 0 0 10px #d4af37;
+            width: 100%;
+            min-width: 0;
+            border: 2px solid #d4af37;
+            outline: 2px solid #d4af37;
+            margin-bottom: 10px;
+        }
+
+        .api-key-section {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0 !important;
+        }
+
+        .save-btn {
+            width: 100%;
+            margin-top: 5px;
+            margin-left: 0 !important;
+        }
+
+    /* Garantir que o campo de chave API fique acima de outros elementos */
+    .api-key-input {
+        position: relative;
+        z-index: 1000;
+        background: var(--dnd-parchment);
+        pointer-events: auto !important;
+        user-select: text !important;
+    }
+}
