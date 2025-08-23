@@ -4436,6 +4436,17 @@ ${message}`;
                 maxOutputTokens: 8192, // Restaurar limite original
             },
         };
+        
+        // Workaround para bug conhecido do Gemini 2.5 Pro com respostas vazias
+        // Desabilitar thinking mode que causa o problema
+        if (model === 'gemini-2.5-pro') {
+            requestBody.generationConfig.responseLogprobs = false;
+            requestBody.generationConfig.logprobs = null;
+            // Adicionar parâmetro para desabilitar thinking explicitamente
+            requestBody.generationConfig.candidateCount = 1;
+            requestBody.generationConfig.stopSequences = [];
+            console.log('[DEBUG] Aplicando workaround para Gemini 2.5 Pro (bug de respostas vazias)');
+        }
 
         // O system_instruction foi movido para o histórico de mensagens.
 
